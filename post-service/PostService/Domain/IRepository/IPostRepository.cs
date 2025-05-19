@@ -10,18 +10,18 @@ namespace Domain.IRepository
     public interface IPostRepository
     {
         // Create 
-        Post CreatePost (Post post);
+        Task<Post> CreatePostAsync(Post post, bool HasMedia);
 
         // Read
-        Post GetPost (string postId);
+        Task<Post> GetPostAsync(string postId);
 
         // Read List
-        List<Post> GetUserPosts (string userId, int pageSize, string? cursorPostId);
+        Task<List<Post>> GetUserPostsAsync(string userId, int pageSize, string? cursorPostId);
 
         // Update
-        Post UpdatePost(string postId, Post newPost);
+        Task<Post> UpdatePostAsync(string postId, Post newPost, bool HasMedia);
 
         // Delete
-        bool DeletePost (string postId);
+        Task<bool> DeletePostAsync(string postId);
     }
 }

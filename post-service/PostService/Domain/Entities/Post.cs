@@ -1,5 +1,7 @@
 using Domain.Enums;
 using Domain.ValueObjects;
+using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +12,8 @@ namespace Domain.Entities
 {
     public class Post
     {
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
         public Privacy Privacy { get; set; }
         public string Content { get; set; }
