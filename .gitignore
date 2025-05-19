@@ -55,3 +55,4 @@ nunit-*.xml
 /.vs
 .vs/
 /media-service/Media/environment.env
+/media-service/Media/.env
