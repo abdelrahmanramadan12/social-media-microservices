@@ -8,16 +8,19 @@ namespace Media
     {
         public static void Main(string[] args)
         {
+            
+
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
 
             builder.Services.AddControllers();
-            // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+
             builder.Services.AddOpenApi();
 
-            builder.Services.AddDbContext<AppDBContext>(op=>op.UseSqlServer(
-                                            builder.Configuration.GetConnectionString("MediaConnectionString")));
+            var connection = builder.Configuration.GetConnectionString("MediaConnection");
+
+            builder.Services.AddDbContext<AppDBContext>(op=>op.UseSqlServer("Data Source=SQL1003.site4now.net;Initial Catalog=db_ab9179_hadzzy;User Id=db_ab9179_hadzzy_admin;Password=Hady01150045098"));
 
 
             var app = builder.Build();
