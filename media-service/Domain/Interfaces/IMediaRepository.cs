@@ -10,10 +10,9 @@ namespace Domain.Interfaces
 {
     public interface IMediaRepository
     {
-        Task<Media> AddAsync(IFormFile file, string? description, string? tags);
-        Task<Media?> GetByIdAsync(int id);
-        Task<IEnumerable<Media>> GetAllAsync();
-        Task<bool> DeleteAsync(int id);
-        Task<string> SaveFileAsync(IFormFile file, string uploadsFolder);
+        Task<Media> AddAsync(IFormFile file, string? description);
+        Task<string> GetMediaUrlById(Guid MediaId);
+        Task<Media> GetMediaByUrl(string MediaUrl);
+        Task<bool> DeleteAsync(Guid id);
     }
 }

@@ -1,5 +1,9 @@
 
+using Application.Services;
+using Domain.Interfaces;
+using DotNetEnv;
 using Infrastructure.Context;
+using Infrastructure.Repository;
 using Microsoft.EntityFrameworkCore;
 
 namespace Media
@@ -8,8 +12,7 @@ namespace Media
     {
         public static void Main(string[] args)
         {
-            
-
+            Env.Load();
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
@@ -18,10 +21,16 @@ namespace Media
 
             builder.Services.AddOpenApi();
 
-            var connection = builder.Configuration.GetConnectionString("MediaConnection");
+            var connection = Environment.GetEnvironmentVariable("MediaConnection");
 
-            builder.Services.AddDbContext<AppDBContext>(op=>op.UseSqlServer("Data Source=SQL1003.site4now.net;Initial Catalog=db_ab9179_hadzzy;User Id=db_ab9179_hadzzy_admin;Password=Hady01150045098"));
+            builder.Services.AddDbContext<AppDBContext>(op =>
+                                                        op.UseSqlServer(connection));
 
+            builder.Services.AddScoped<IUploadMediaService, UploadMediaService>();
+
+            builder.Services.AddScoped<IGetMediaService, GetMediaService>();
+
+            builder.Services.AddScoped<IMediaRepository, MediaRepository>();
 
             var app = builder.Build();
 

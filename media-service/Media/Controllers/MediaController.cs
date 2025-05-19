@@ -1,83 +1,46 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Application.Services;
+using Domain.Interfaces;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Media.Controllers
 {
-    public class MediaController : Controller
+    [Route("api/[controller]")]
+    [ApiController]
+    public class MediaController(IUploadMediaService uploadMediaService, IGetMediaService getMediaService) : ControllerBase
     {
+        private readonly IGetMediaService _getMediaService = getMediaService;
+        private readonly IUploadMediaService _uploadMediaService = uploadMediaService;
+
         // GET: MediaController
-        public ActionResult Index()
+        [HttpGet]
+        public async Task<ActionResult> GetImage(string ImageUrl)
         {
-            return View();
+            return Ok(await _getMediaService.GetMediaAsync(ImageUrl));
         }
 
-        // GET: MediaController/Details/5
-        public ActionResult Details(int id)
+        [HttpGet]
+        public async Task<ActionResult> GetImageInfo(Guid ImageId)
         {
-            return View();
+            return Ok(await _getMediaService.GetMediaURL(ImageId));
         }
 
-        // GET: MediaController/Create
-        public ActionResult Create()
+        [HttpGet]
+        public async Task<ActionResult> UploadImage(IFormFile FormFile, string description)
         {
-            return View();
-        }
-
-        // POST: MediaController/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+            return Ok(await _uploadMediaService.UploadMediaAsync(FormFile, description));
         }
 
         // GET: MediaController/Edit/5
-        public ActionResult Edit(int id)
+        public ActionResult Edit(Guid id)
         {
-            return View();
-        }
-
-        // POST: MediaController/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+            return Ok();
         }
 
         // GET: MediaController/Delete/5
-        public ActionResult Delete(int id)
+        public async Task<ActionResult> Delete(Guid id)
         {
-            return View();
-        }
-
-        // POST: MediaController/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+            return Ok(await _uploadMediaService.DeleteMediaAsync(id));
         }
     }
 }
