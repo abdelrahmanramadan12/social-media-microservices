@@ -14,5 +14,6 @@ namespace Domain.Interfaces
         Task<string> GetMediaUrlById(Guid MediaId);
         Task<Media> GetMediaByUrl(string MediaUrl);
         Task<bool> DeleteAsync(Guid id);
+        Task<bool> EditMediaAsync(Media media, string MediaUrl);
     }
 }

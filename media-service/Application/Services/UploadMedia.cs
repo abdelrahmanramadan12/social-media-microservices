@@ -1,4 +1,5 @@
-﻿using Domain.Interfaces;
+﻿using Domain.Entities;
+using Domain.Interfaces;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -32,5 +33,19 @@ namespace Application.Services
 
             return isDeleted;
         }
+
+        public async Task<bool> EditMediaAsync(string MediaUrl)
+        {
+            // Assuming you have a method to edit the media in the database or storage
+            // For example, you might have a method like this:
+            Media? media = await _mediaRepository.GetMediaByUrl(MediaUrl) ?? throw new Exception("Media not found");
+
+            // Perform the edit operation here
+            bool isEdited = await _mediaRepository.EditMediaAsync(media, MediaUrl);
+
+            return isEdited;
+
+        }
+
     }
 }

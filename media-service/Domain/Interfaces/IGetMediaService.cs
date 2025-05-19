@@ -10,7 +10,8 @@ namespace Domain.Interfaces
 {
     public interface IGetMediaService
     {
-        public Task<string> GetMediaURL(Guid mediaId);
-        public Task<Media?> GetMediaAsync(string mediaUrl);
+        Task<string> GetMediaURL(Guid mediaId);
+        Task<Media?> GetMediaAsync(string mediaUrl);
+        Task<Media?> EditMediaAsync(string MediaUrl);
     }
 }

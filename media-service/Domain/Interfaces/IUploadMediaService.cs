@@ -13,6 +13,6 @@ namespace Domain.Interfaces
 
         public Task<bool> DeleteMediaAsync(Guid id);
 
-
+        public Task<bool> EditMediaAsync(string MediaUrl);
     }
 }

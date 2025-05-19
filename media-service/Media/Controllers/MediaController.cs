@@ -2,6 +2,7 @@
 using Domain.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace Media.Controllers
 {
@@ -14,33 +15,30 @@ namespace Media.Controllers
 
         // GET: MediaController
         [HttpGet]
-        public async Task<ActionResult> GetImage(string ImageUrl)
-        {
-            return Ok(await _getMediaService.GetMediaAsync(ImageUrl));
-        }
+        //[ProducesResponseType(typeof(CheckDTO), StatusCodes.Status200OK)]
+        public async Task<ActionResult> GetImage(string ImageUrl) => Ok(await _getMediaService.GetMediaAsync(ImageUrl));
 
         [HttpGet]
-        public async Task<ActionResult> GetImageInfo(Guid ImageId)
-        {
-            return Ok(await _getMediaService.GetMediaURL(ImageId));
-        }
+        //[ProducesResponseType(typeof(CheckDTO), StatusCodes.Status200OK)]
 
-        [HttpGet]
+        public async Task<ActionResult> GetImageInfo(Guid ImageId) => Ok(await _getMediaService.GetMediaURL(ImageId));
+
+        [HttpPost]
+        //[ProducesResponseType(typeof(CheckDTO), StatusCodes.Status200OK)]
+
         public async Task<ActionResult> UploadImage(IFormFile FormFile, string description)
-        {
-            return Ok(await _uploadMediaService.UploadMediaAsync(FormFile, description));
-        }
+                                                => Ok(await _uploadMediaService.UploadMediaAsync(FormFile, description));
 
-        // GET: MediaController/Edit/5
-        public ActionResult Edit(Guid id)
-        {
-            return Ok();
-        }
+        [HttpPut]
+        //[ProducesResponseType(typeof(CheckDTO), StatusCodes.Status200OK)]
 
+        public async Task<ActionResult> Edit(string ImageUrl) => Ok(await _getMediaService.EditMediaAsync(ImageUrl));
+
+        [HttpDelete]
         // GET: MediaController/Delete/5
-        public async Task<ActionResult> Delete(Guid id)
-        {
-            return Ok(await _uploadMediaService.DeleteMediaAsync(id));
-        }
+        //[ProducesResponseType(typeof(CheckDTO), StatusCodes.Status200OK)]
+
+        public async Task<ActionResult> Delete(Guid id) => Ok(await _uploadMediaService.DeleteMediaAsync(id));
+
     }
 }
