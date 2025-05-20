@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,10 +9,12 @@ namespace Domain.Interfaces
 {
     public interface IUploadMediaService
     {
-        public Task<string> UploadMediaAsync(IFormFile file, string? description);
 
-        public Task<bool> DeleteMediaAsync(Guid id);
+        Task<string> UploadAsync(string filePath, MediaType type);
 
-        public Task<bool> EditMediaAsync(string MediaUrl);
+        Task<bool> DeleteMediaAsync(string id);
+
+        Task<string> EditMediaAsync(string MediaUrl, string newUrl, string? folder = null);
+
     }
 }

@@ -1,4 +1,4 @@
-﻿using Domain.Entities;
+﻿using Domain.Enums;
 using Domain.Interfaces;
 using Microsoft.AspNetCore.Http;
 using System;
@@ -9,43 +9,24 @@ using System.Threading.Tasks;
 
 namespace Application.Services
 {
-    public class UploadMediaService(IMediaRepository mediaRepository) : IUploadMediaService
+    public class UploadMediaService(
+        ICloudinaryCore cloudinary,
+        MediaUploadStrategyFactory uploadStrategyFactory): IUploadMediaService
     {
-        private readonly IMediaRepository _mediaRepository = mediaRepository;
-
-        public async Task<string> UploadMediaAsync(IFormFile file, string? description)
+        private readonly MediaUploadStrategyFactory _strategyFactory = uploadStrategyFactory;
+        private readonly ICloudinaryCore _cloudinary = cloudinary;
+        public async Task<string> UploadAsync(string filePath, MediaType type)
         {
-            // Assuming you have a method to upload the media to the database or storage
-            // For example, you might have a method like this:
-            var media = await _mediaRepository.AddAsync(file, description);
-            return media.Url ?? throw new Exception("Sorry We could not upload your image at the moment .. please try again later !");
+            IMediaUploadStrategy strategy = _strategyFactory.GetStrategy(type);
+            var url = await strategy.UploadAsync(filePath);
+            return url ?? throw new Exception("Failed to upload media.");
         }
 
-        public async Task<bool> DeleteMediaAsync(Guid id)
-        {
-            // Assuming you have a method to delete the media from the database or storage
-            // For example, you might have a method like this:
-            bool isDeleted = await _mediaRepository.DeleteAsync(id);
-            if (!isDeleted)
-            {
-                throw new Exception("Sorry We could not delete your image at the moment .. please try again later !");
-            }
+        public async Task<bool> DeleteMediaAsync(string id) => await _cloudinary.DeleteMediaAsync(id);
 
-            return isDeleted;
-        }
+        public async Task<string> EditMediaAsync(string MediaUrl, string newUrl, string? folder = null)
+                                                => await _cloudinary.EditMediaAsync(MediaUrl, newUrl, folder);
 
-        public async Task<bool> EditMediaAsync(string MediaUrl)
-        {
-            // Assuming you have a method to edit the media in the database or storage
-            // For example, you might have a method like this:
-            Media? media = await _mediaRepository.GetMediaByUrl(MediaUrl) ?? throw new Exception("Media not found");
-
-            // Perform the edit operation here
-            bool isEdited = await _mediaRepository.EditMediaAsync(media, MediaUrl);
-
-            return isEdited;
-
-        }
 
     }
 }

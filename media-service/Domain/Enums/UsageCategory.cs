@@ -8,9 +8,11 @@ namespace Domain.Enums
 {
     public enum UsageCategory
     {
-        Profile,
+        ProfilePicture,
+        CoverPicture,
         Post,
         Story,
-        message,
+        Message,
+        Comment
     }
 }

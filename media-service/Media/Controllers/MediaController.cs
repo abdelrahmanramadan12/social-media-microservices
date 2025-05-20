@@ -1,4 +1,5 @@
 ﻿using Application.Services;
+using Domain.Enums;
 using Domain.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -8,37 +9,43 @@ namespace Media.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class MediaController(IUploadMediaService uploadMediaService, IGetMediaService getMediaService) : ControllerBase
+    public class MediaController(IUploadMediaService uploadMediaService) : ControllerBase
     {
-        private readonly IGetMediaService _getMediaService = getMediaService;
         private readonly IUploadMediaService _uploadMediaService = uploadMediaService;
 
-        // GET: MediaController
-        [HttpGet]
-        //[ProducesResponseType(typeof(CheckDTO), StatusCodes.Status200OK)]
-        public async Task<ActionResult> GetImage(string ImageUrl) => Ok(await _getMediaService.GetMediaAsync(ImageUrl));
+        [HttpPost("upload")]
+        public async Task<IActionResult> UploadMedia([FromForm] IFormFile file, [FromForm] MediaType mediaType = MediaType.Image)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("No file was uploaded.");
 
-        [HttpGet]
-        //[ProducesResponseType(typeof(CheckDTO), StatusCodes.Status200OK)]
+            // Save the file temporarily
+            var filePath = Path.GetTempFileName();
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
 
-        public async Task<ActionResult> GetImageInfo(Guid ImageId) => Ok(await _getMediaService.GetMediaURL(ImageId));
+            try
+            {
+                var result = await _uploadMediaService.UploadAsync(filePath, mediaType);
+                return Ok(new { Url = result });
+            }
+            finally
+            {
+                // Clean up the temp file
+                if (System.IO.File.Exists(filePath))
+                {
+                    System.IO.File.Delete(filePath);
+                }
+            }
+        }
+        [HttpPut("edit")]
+        public async Task<IActionResult> Edit(string ImageUrl, string filePath, string? folder = null)
+                                            => Ok(await _uploadMediaService.EditMediaAsync(ImageUrl, filePath, folder));
 
-        [HttpPost]
-        //[ProducesResponseType(typeof(CheckDTO), StatusCodes.Status200OK)]
-
-        public async Task<ActionResult> UploadImage(IFormFile FormFile, string description)
-                                                => Ok(await _uploadMediaService.UploadMediaAsync(FormFile, description));
-
-        [HttpPut]
-        //[ProducesResponseType(typeof(CheckDTO), StatusCodes.Status200OK)]
-
-        public async Task<ActionResult> Edit(string ImageUrl) => Ok(await _getMediaService.EditMediaAsync(ImageUrl));
-
-        [HttpDelete]
-        // GET: MediaController/Delete/5
-        //[ProducesResponseType(typeof(CheckDTO), StatusCodes.Status200OK)]
-
-        public async Task<ActionResult> Delete(Guid id) => Ok(await _uploadMediaService.DeleteMediaAsync(id));
+        [HttpDelete("delete/{id}")]
+        public async Task<IActionResult> Delete(string id) => Ok(await _uploadMediaService.DeleteMediaAsync(id));
 
     }
 }
