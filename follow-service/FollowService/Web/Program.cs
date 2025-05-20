@@ -1,10 +1,10 @@
-
 using Infrastructure.Data;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using Services.Implementations;
 using Services.Interfaces;
+using Workers;
 using Xcourse.Infrastructure.Repositories;
 
 namespace Web
@@ -26,8 +26,16 @@ namespace Web
                 options.UseMongoDB(builder.Configuration.GetConnectionString("AtlasUri"), builder.Configuration.GetSection("DatabaseName").Value);
             });
 
-            builder.Services.AddScoped<IFollowService, FollowService>();
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            builder.Services.AddScoped<IFollowCommandService, FollowCommandService>();
+            builder.Services.AddScoped<IFollowQueryService, FollowQueryService>();
+            builder.Services.AddScoped<IUserService, UserService>();
+
+            builder.Services.AddSingleton<IProfileCreatedListener, ProfileCreatedListener>();
+            builder.Services.AddSingleton<IProfileDeletedListener, ProfileDeletedListener>();
+            
+            builder.Services.AddHostedService<RabbitMqWorker>();
 
             var app = builder.Build();
 
