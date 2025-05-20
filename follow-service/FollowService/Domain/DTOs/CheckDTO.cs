@@ -1,4 +1,4 @@
-﻿namespace Web.DTOs
+﻿namespace Domain.DTOs
 {
     public class CheckDTO
     {
