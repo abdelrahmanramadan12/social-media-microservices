@@ -12,12 +12,14 @@ namespace Xcourse.Infrastructure.Repositories
         private readonly FollowDbContext _context;
 
         public IRepository<User> Users { get; }
+        public IRepository<Follow> Follows { get; }
 
         public UnitOfWork(FollowDbContext context)
         {
             _context = context;
 
             Users = new BaseRepository<User>(_context);
+            Follows = new BaseRepository<Follow>(_context);
         }
 
         public int Save()
