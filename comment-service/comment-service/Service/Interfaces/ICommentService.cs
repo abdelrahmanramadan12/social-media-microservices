@@ -1,0 +1,16 @@
+﻿using Domain.DTOs;
+using Microsoft.AspNetCore.Http;
+
+namespace Service.Interfaces
+{
+    public interface ICommentService
+    {
+        Task<CommentResponseDto> CreateCommentAsync(CreateCommentRequestDto dto);
+
+        Task<PagedCommentsDto> ListCommentsAsync(string postId, string? nextCommentIdHash = null);
+
+        Task<CommentResponseDto?> UpdateCommentAsync(EditCommentRequestDto dto);
+
+        Task<bool> DeleteCommentAsync(string CommentId, string userId);
+    }
+}
