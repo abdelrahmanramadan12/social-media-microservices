@@ -9,16 +9,23 @@ namespace Infrastructure.Data
         public FollowDbContext(DbContextOptions<FollowDbContext> options) : base(options) { }
 
         public virtual DbSet<User> Users { get; set; }
+        public virtual DbSet<Follow> Follows { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>(entity =>
             {
                 entity.ToCollection("users");
-                entity.Property(e => e.UserId).HasElementName("user_id");
-                entity.Property(e => e.Followers).HasElementName("followers");
-                entity.Property(e => e.Following).HasElementName("following");
             });
+
+            modelBuilder.Entity<Follow>(entity =>
+            {
+                entity.ToCollection("follows");
+                entity.Property(e => e.FollowerId).HasElementName("follower_id");
+                entity.Property(e => e.FollowingId).HasElementName("following_id");
+                entity.Property(e => e.FollowedAt).HasElementName("followed_at");
+            });
+
             base.OnModelCreating(modelBuilder);
         }
     }
