@@ -1,5 +1,6 @@
 ﻿using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using MongoDB.Driver;
 using MongoDB.EntityFrameworkCore.Extensions;
 
 namespace Infrastructure.Data

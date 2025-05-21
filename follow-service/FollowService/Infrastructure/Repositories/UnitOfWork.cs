@@ -1,11 +1,8 @@
-﻿
-
-using Domain.Entities;
+﻿using Domain.Entities;
 using Infrastructure.Data;
-using Infrastructure.Repositories;
 using Infrastructure.Repositories.Interfaces;
 
-namespace Xcourse.Infrastructure.Repositories
+namespace Infrastructure.Repositories
 {
     public class UnitOfWork : IUnitOfWork
     {

@@ -10,8 +10,6 @@ namespace Infrastructure.Repositories.Interfaces
 
     public interface IRepository<T> where T : class
     {
-        T Get(int id);
-        Task<T> GetAsync(int id);
         IEnumerable<T> GetAll(string[]? includes = null, int? skip = null, int? take = null, Expression<Func<T, object>>? order = null, Order direction = Order.ASC);
         Task<IEnumerable<T>> GetAllAsync(string[]? includes = null, int? skip = null, int? take = null, Expression<Func<T, object>>? order = null, Order direction = Order.ASC);
 

@@ -14,14 +14,6 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public T Get(int id)
-        {
-            return _context.Set<T>().Find(id);
-        }
-        public async Task<T> GetAsync(int id)
-        {
-            return await _context.Set<T>().FindAsync(id);
-        }
         public IEnumerable<T> GetAll(
             string[]? includes = null,
             int? skip = null,
