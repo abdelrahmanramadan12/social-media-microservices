@@ -8,7 +8,7 @@ namespace Domain.DTOs
 {
     public class PagedCommentsDto
     {
-        public IEnumerable<CommentResponseDto> Comments { get; set; } 
+        public IEnumerable<CommentResponseDto>? Comments { get; set; } 
         public string? NextCommentIdHash { get; set; }  
     }
 }

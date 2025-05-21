@@ -6,8 +6,9 @@ using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Service.Interfaces;
+using Service.Interfaces.RabbitMQServices;
 
-namespace Service.Implementations
+namespace Service.Implementations.RabbitMQServices
 {
     public class PostDeletedListener : IPostDeletedListener
     {

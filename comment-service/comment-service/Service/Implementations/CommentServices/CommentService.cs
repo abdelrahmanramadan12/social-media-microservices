@@ -1,21 +1,24 @@
-﻿using System.ComponentModel.Design;
-using System.Reflection;
-using Domain.DTOs;
+﻿using Domain.DTOs;
 using Domain.Entities;
+using Domain.Events;
 using Domain.IRepository;
-using Microsoft.AspNetCore.Http;
 using MongoDB.Bson;
-using Service.Interfaces;
+using Service.Interfaces.CommentServices;
+using Service.Interfaces.RabbitMQServices;
 
-namespace Service.Implementations
+namespace Service.Implementations.CommentServices
 {
     public class CommentService : ICommentService
     {
         private readonly ICommentRepository _commentRepository;
+        private readonly ICommentDeletedPublisher _commentDeletedPublisher;
+        private readonly ICommentCreatedPublisher _commentCreatedPublisher;
 
-        public CommentService(ICommentRepository commentRepository)
+        public CommentService(ICommentRepository commentRepository, ICommentDeletedPublisher commentDeletedPublisher, ICommentCreatedPublisher commentCreatedPublisher)
         {
             _commentRepository = commentRepository;
+            _commentDeletedPublisher = commentDeletedPublisher;
+            _commentCreatedPublisher = commentCreatedPublisher;
         }
 
         public async Task<PagedCommentsDto> ListCommentsAsync(string postId, string? nextCommentIdHash = null)
@@ -42,8 +45,8 @@ namespace Service.Implementations
             string? nextCursor =
                 comments.Count < PageSize
                     ? null
-                    :comments.Last().Id.ToString();
-                    //: AesEncryptionService.Encrypt(comments.Last().Id.ToString());
+                    : comments.Last().Id.ToString();
+            //: AesEncryptionService.Encrypt(comments.Last().Id.ToString());
 
 
             var dto = new PagedCommentsDto
@@ -79,6 +82,19 @@ namespace Service.Implementations
 
             await _commentRepository.CreateAsync(comment);
 
+
+            // Notify the post service about the new comment
+            await _commentCreatedPublisher.PublishAsync(new CommentCreatedEvent
+            {
+                PostId = comment.PostId,
+                Content = comment.Content,
+                MediaURL = comment?.MediaUrl,
+                CommentAuthorId = comment.AuthorId,
+                CreatedAt = comment.CreatedAt,
+                //PostAuthorId = dto.PostAuthorId,
+                IsEdited = false
+            });
+
             return ToDto(comment);
         }
 
@@ -112,15 +128,21 @@ namespace Service.Implementations
                 throw new UnauthorizedAccessException("You can only delete your own comments.");
 
             await _commentRepository.DeleteAsync(commentId);
+
+            // Notify the post service about the deleted comment
+            await _commentDeletedPublisher.PublishAsync(new CommentDeletedEvent
+            {
+                PostId = comment.PostId,
+            });
             return true;
         }
 
-        
+
         //-----------------------------------------------------
         // Helper method to convert Comment to CommentResponseDto
         private CommentResponseDto ToDto(Comment c) => new()
         {
-            CommentId =c.Id.ToString(),
+            CommentId = c.Id.ToString(),
             PostId = c.PostId,
             AuthorId = c.AuthorId,
             CommentContent = c.Content ?? "",

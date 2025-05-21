@@ -1,7 +1,6 @@
 ﻿using Domain.DTOs;
-using Microsoft.AspNetCore.Http;
 
-namespace Service.Interfaces
+namespace Service.Interfaces.CommentServices
 {
     public interface ICommentService
     {

@@ -1,4 +1,4 @@
-﻿namespace Service.Interfaces
+﻿namespace Service.Interfaces.RabbitMQServices
 {
     public interface IPostDeletedListener : IAsyncDisposable
     {

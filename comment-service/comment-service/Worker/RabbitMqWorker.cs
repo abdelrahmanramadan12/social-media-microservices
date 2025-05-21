@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Hosting;
-using Service.Interfaces;
+using Service.Interfaces.RabbitMQServices;
 
 namespace Worker
 {

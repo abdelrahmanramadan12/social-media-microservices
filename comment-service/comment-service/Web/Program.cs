@@ -1,12 +1,13 @@
 using Domain.IRepository;
-using Infrastructure.Data;
 using Infrastructure.Repositories;
-using Microsoft.EntityFrameworkCore;
 using MongoDB.Driver;
 using Scalar.AspNetCore;
 using Service.Implementations;
+using Service.Implementations.CommentServices;
+using Service.Implementations.RabbitMQServices;
 using Service.Interfaces;
-using Worker;
+using Service.Interfaces.CommentServices;
+using Service.Interfaces.RabbitMQServices;
 
 namespace Web
 {
@@ -22,19 +23,23 @@ namespace Web
             var databaseName = builder.Configuration.GetSection("DatabaseName").Value;
 
             // Register IMongoClient and IMongoDatabase
-            builder.Services.AddSingleton<IMongoClient>(sp => 
+            builder.Services.AddSingleton<IMongoClient>(sp =>
                 new MongoClient(connectionString));
-            
-            builder.Services.AddSingleton<IMongoDatabase>(sp => 
+
+            builder.Services.AddSingleton<IMongoDatabase>(sp =>
                 sp.GetRequiredService<IMongoClient>().GetDatabase(databaseName));
 
 
             // Register repositories
             builder.Services.AddScoped<ICommentRepository, CommentRepository>();
-            
+
             // Register services
             builder.Services.AddScoped<ICommentService, CommentService>();
             builder.Services.AddScoped<IPostDeletedService, PostDeletedService>();
+
+            builder.Services.AddSingleton<IRabbitMqPublisher, RabbitMqPublisher>();
+            builder.Services.AddSingleton<ICommentCreatedPublisher, CommentCreatedPublisher>();
+            builder.Services.AddSingleton<ICommentDeletedPublisher, CommentDeletedPublisher>();
 
             builder.Services.AddSingleton<IPostDeletedListener, PostDeletedListener>();
 
@@ -49,7 +54,7 @@ namespace Web
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
-            {               
+            {
                 app.MapOpenApi();
                 app.MapScalarApiReference();
             }

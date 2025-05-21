@@ -3,7 +3,7 @@ using Domain.DTOs;
 using Domain.IRepository;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
-using Service.Interfaces;
+using Service.Interfaces.CommentServices;
 
 namespace Web.Controllers
 {
