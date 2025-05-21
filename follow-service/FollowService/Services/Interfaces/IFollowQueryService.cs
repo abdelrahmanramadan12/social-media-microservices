@@ -6,9 +6,9 @@ namespace Services.Interfaces
     {
         Task<bool> IsFollowing(string userId, string otherId);
         Task<bool> IsFollower(string userId, string otherId);
-        Task<ICollection<String>> ListFollowing(string userId);
-        Task<ICollection<String>> ListFollowers(string userId);
-        Task<FollowingPageDTO> ListFollowingPage(string userId, string cursor);
-        Task<FollowersPageDTO> ListFollowersPage(string userId, string cursor);
+        Task<FollowsDTO> ListFollowing(string userId);
+        Task<FollowsDTO> ListFollowers(string userId);
+        Task<FollowsPageDTO> ListFollowingPage(string userId, int? cursor);
+        Task<FollowsPageDTO> ListFollowersPage(string userId, int? cursor);
     }
 }

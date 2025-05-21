@@ -1,8 +1,6 @@
 ﻿using Domain.DTOs;
-using Domain.Entities;
 using Infrastructure.Repositories.Interfaces;
 using Services.Interfaces;
-using System.Linq.Expressions;
 
 namespace Services.Implementations
 {
@@ -27,75 +25,73 @@ namespace Services.Implementations
             return follow != null;
         }
 
-        public async Task<ICollection<String>> ListFollowing(string userId)
+        public async Task<FollowsDTO> ListFollowing(string userId)
         {
-            var following = (await _unitOfWork.Follows.FindAllAsync(f => f.FollowerId == userId))?.Select(f => f.FollowingId)?.ToList()?? [];
-            return following;
-        }
-
-        public async Task<ICollection<String>> ListFollowers(string userId)
-        {
-            var followers = (await _unitOfWork.Follows.FindAllAsync(f => f.FollowingId == userId))?.Select(f => f.FollowerId)?.ToList()?? [];
-            return followers;
-        }
-
-        public async Task<FollowingPageDTO> ListFollowingPage(string userId, string cursor)
-        {
-            const int PageSize = 30;
-
-            Expression<Func<Follow, bool>> filter = f => f.FollowerId == userId;
-
-            if (!string.IsNullOrEmpty(cursor))
+            var following = (await _unitOfWork.Follows.FindAllAsync(f => f.FollowerId == userId))?.Select(f => f.FollowingId)?.ToList() ?? [];
+            var dto = new FollowsDTO
             {
-                var nextUserId = AesEncryptionService.Decrypt(cursor);
-                filter = f => f.FollowerId == userId && string.Compare(f.FollowingId, nextUserId) > 0;
-            }
+                Follows = following
+            };
+            return dto;
+        }
 
-            var pageFollows = (await _unitOfWork.Follows.FindAllAsync(
-                expression: filter,
-                skip: 0,
+        public async Task<FollowsDTO> ListFollowers(string userId)
+        {
+            var followers = (await _unitOfWork.Follows.FindAllAsync(f => f.FollowingId == userId))?.Select(f => f.FollowerId)?.ToList() ?? [];
+            var dto = new FollowsDTO();
+            if (followers.Count >= 10000)
+            {
+                dto.IsCelebrity = true;
+                dto.Follows = [];
+            } else
+            {
+                dto.IsCelebrity = false;
+                dto.Follows = followers;
+            }
+            return dto;
+        }
+
+        public async Task<FollowsPageDTO> ListFollowingPage(string userId, int? cursor)
+        {
+            const int PageSize = 3;
+
+            var followingPage = (await _unitOfWork.Follows.FindAllAsync(
+                f => f.FollowerId == userId,
+                skip: cursor ?? 0,
                 take: PageSize + 1,
                 order: f => f.FollowingId,
                 direction: Order.ASC
             )).ToList();
 
-            var page = pageFollows.Take(PageSize).Select(f => f.FollowingId).ToList();
-            string? newNextUserId = pageFollows.Count > PageSize ? AesEncryptionService.Encrypt(pageFollows[PageSize].FollowingId) : null;
+            var page = followingPage.Take(PageSize).Select(f => f.FollowerId).ToList();
+            cursor = followingPage.Count > PageSize ? (cursor == null ? 0 : cursor) + PageSize : null;
 
-            return new FollowingPageDTO
+            return new FollowsPageDTO
             {
-                Following = page,
-                Next = newNextUserId
+                Follows = page,
+                Next = cursor
             };
         }
 
-        public async Task<FollowersPageDTO> ListFollowersPage(string userId, string cursor)
+        public async Task<FollowsPageDTO> ListFollowersPage(string userId, int? cursor)
         {
-            const int PageSize = 30;
+            const int PageSize = 3;
 
-            Expression<Func<Follow, bool>> filter = f => f.FollowingId == userId;
-
-            if (!string.IsNullOrEmpty(cursor))
-            {
-                var nextUserId = AesEncryptionService.Decrypt(cursor);
-                filter = f => f.FollowingId == userId && string.Compare(f.FollowerId, nextUserId) > 0;
-            }
-
-            var pageFollows = (await _unitOfWork.Follows.FindAllAsync(
-                expression: filter,
-                skip: 0,
+            var followersPage = (await _unitOfWork.Follows.FindAllAsync(
+                f => f.FollowingId == userId,
+                skip: cursor ?? 0,
                 take: PageSize + 1,
                 order: f => f.FollowerId,
                 direction: Order.ASC
             )).ToList();
 
-            var page = pageFollows.Take(PageSize).Select(f => f.FollowerId).ToList();
-            string? newCursor = pageFollows.Count > PageSize ? AesEncryptionService.Encrypt(pageFollows[PageSize].FollowerId) : null;
+            var page = followersPage.Take(PageSize).Select(f => f.FollowerId).ToList();
+            cursor = followersPage.Count > PageSize ? (cursor == null ? 0 : cursor) + PageSize : null;
 
-            return new FollowersPageDTO
+            return new FollowsPageDTO
             {
-                Followers = page,
-                Next = newCursor
+                Follows = page,
+                Next = cursor
             };
         }
     }
