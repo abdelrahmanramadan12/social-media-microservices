@@ -6,6 +6,7 @@ using MongoDB.Driver;
 using Scalar.AspNetCore;
 using Service.Implementations;
 using Service.Interfaces;
+using Worker;
 
 namespace Web
 {
@@ -27,17 +28,18 @@ namespace Web
             builder.Services.AddSingleton<IMongoDatabase>(sp => 
                 sp.GetRequiredService<IMongoClient>().GetDatabase(databaseName));
 
-            //// EntityFrameworkCore configuration (if you still need it)
-            //builder.Services.AddDbContext<CommentContext>(options =>
-            //{
-            //    options.UseMongoDB(connectionString, databaseName);
-            //});
 
             // Register repositories
             builder.Services.AddScoped<ICommentRepository, CommentRepository>();
             
             // Register services
             builder.Services.AddScoped<ICommentService, CommentService>();
+            builder.Services.AddScoped<IPostDeletedService, PostDeletedService>();
+
+            builder.Services.AddSingleton<IPostDeletedListener, PostDeletedListener>();
+
+            //builder.Services.AddHostedService<RabbitMqWorker>();
+
 
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
