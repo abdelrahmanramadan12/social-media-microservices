@@ -23,14 +23,17 @@ namespace Workers
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            await _profileCreatedListener.ListenAsync();
-            await _profileDeletedListener.ListenAsync();
+            var createdTask = _profileCreatedListener.ListenAsync(stoppingToken);
+            var deletedTask = _profileDeletedListener.ListenAsync(stoppingToken);
 
-            if (stoppingToken.IsCancellationRequested)
-            {
-                await _profileCreatedListener.DisposeAsync();
-                await _profileDeletedListener.DisposeAsync();
-            }
+            await Task.WhenAll(createdTask, deletedTask);
+        }
+
+        public override async Task StopAsync(CancellationToken cancellationToken)
+        {
+            await _profileCreatedListener.DisposeAsync();
+            await _profileDeletedListener.DisposeAsync();
+            await base.StopAsync(cancellationToken);
         }
     }
 }

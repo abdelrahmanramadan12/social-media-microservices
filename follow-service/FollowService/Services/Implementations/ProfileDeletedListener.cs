@@ -41,7 +41,7 @@ namespace Services.Implementations
             _channel = await _connection.CreateChannelAsync();
         }
 
-        public async Task ListenAsync()
+        public async Task ListenAsync(CancellationToken _cancellationToken)
         {
             if (_channel == null)
                 throw new InvalidOperationException("Listener not initialized.");
@@ -70,7 +70,7 @@ namespace Services.Implementations
                 }
             };
 
-            await _channel.BasicConsumeAsync(queue: _queueName, autoAck: true, consumer: consumer);
+            await _channel.BasicConsumeAsync(queue: _queueName, autoAck: true, consumer: consumer, cancellationToken: _cancellationToken);
         }
 
         public async ValueTask DisposeAsync()

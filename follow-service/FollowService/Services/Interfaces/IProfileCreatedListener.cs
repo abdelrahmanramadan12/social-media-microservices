@@ -3,6 +3,6 @@
     public interface IProfileCreatedListener : IAsyncDisposable
     {
         Task InitializeAsync();
-        Task ListenAsync();
+        Task ListenAsync(CancellationToken cancellationToken);
     }
 }
