@@ -58,3 +58,4 @@ appsettings.json
 
 #vs
 .vs/
+/follow-service/FollowService/Web/Properties/PublishProfiles/site26014-WebDeploy.pubxml.user
