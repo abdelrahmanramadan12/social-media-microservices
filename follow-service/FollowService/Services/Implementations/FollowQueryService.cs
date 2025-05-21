@@ -38,22 +38,16 @@ namespace Services.Implementations
         public async Task<FollowsDTO> ListFollowers(string userId)
         {
             var followers = (await _unitOfWork.Follows.FindAllAsync(f => f.FollowingId == userId))?.Select(f => f.FollowerId)?.ToList() ?? [];
-            var dto = new FollowsDTO();
-            if (followers.Count >= 10000)
+            var dto = new FollowsDTO
             {
-                dto.IsCelebrity = true;
-                dto.Follows = [];
-            } else
-            {
-                dto.IsCelebrity = false;
-                dto.Follows = followers;
-            }
+                Follows = followers
+            };
             return dto;
         }
 
         public async Task<FollowsPageDTO> ListFollowingPage(string userId, int? cursor)
         {
-            const int PageSize = 3;
+            const int PageSize = 30;
 
             var followingPage = (await _unitOfWork.Follows.FindAllAsync(
                 f => f.FollowerId == userId,
@@ -75,7 +69,7 @@ namespace Services.Implementations
 
         public async Task<FollowsPageDTO> ListFollowersPage(string userId, int? cursor)
         {
-            const int PageSize = 3;
+            const int PageSize = 30;
 
             var followersPage = (await _unitOfWork.Follows.FindAllAsync(
                 f => f.FollowingId == userId,
