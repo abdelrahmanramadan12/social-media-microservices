@@ -1,11 +1,11 @@
 using Infrastructure.Data;
+using Infrastructure.Repositories;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using Services.Implementations;
 using Services.Interfaces;
 using Workers;
-using Xcourse.Infrastructure.Repositories;
 
 namespace Web
 {
@@ -35,7 +35,7 @@ namespace Web
             builder.Services.AddSingleton<IProfileCreatedListener, ProfileCreatedListener>();
             builder.Services.AddSingleton<IProfileDeletedListener, ProfileDeletedListener>();
             
-            builder.Services.AddHostedService<RabbitMqWorker>();
+            //builder.Services.AddHostedService<RabbitMqWorker>();
 
             var app = builder.Build();
 

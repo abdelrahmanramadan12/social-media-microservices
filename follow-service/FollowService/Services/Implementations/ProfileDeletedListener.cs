@@ -1,5 +1,6 @@
 ﻿using Domain.DTOs;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Services.Interfaces;
@@ -16,23 +17,23 @@ namespace Services.Implementations
         private string _password;
         private string _hostName;
         private string _queueName;
-        private readonly UserService _userService;
+        private readonly IServiceScopeFactory _scopeFactory;
 
-        public ProfileDeletedListener(IConfiguration config, UserService userService)
+        public ProfileDeletedListener(IConfiguration config, IServiceScopeFactory scopeFactory)
         {
             _userName = config.GetSection("ProfileDeletedMQ:UserName").Value;
             _password = config.GetSection("ProfileDeletedMQ:Password").Value;
             _hostName = config.GetSection("ProfileDeletedMQ:HostName").Value;
             _queueName = config.GetSection("ProfileDeletedMQ:QueueName").Value;
-            _userService = userService;
+            _scopeFactory = scopeFactory;
         }
 
         public async Task InitializeAsync()
         {
             var factory = new ConnectionFactory
             {
-                UserName = _userName,
-                Password = _password,
+                //UserName = _userName,
+                //Password = _password,
                 HostName = _hostName
             };
 
@@ -45,7 +46,13 @@ namespace Services.Implementations
             if (_channel == null)
                 throw new InvalidOperationException("Listener not initialized.");
 
-            await _channel.QueueDeclareAsync(_queueName, false, false, false, null);
+            await _channel.QueueDeclareAsync(
+                queue: _queueName,
+                durable: true,
+                exclusive: false,
+                autoDelete: false,
+                arguments: null
+                );
 
             var consumer = new AsyncEventingBasicConsumer(_channel);
 
@@ -53,6 +60,9 @@ namespace Services.Implementations
             {
                 var messageJson = Encoding.UTF8.GetString(args.Body.ToArray());
                 var userDto = JsonSerializer.Deserialize<UserDTO>(messageJson);
+
+                using var scope = _scopeFactory.CreateScope();
+                var _userService = scope.ServiceProvider.GetRequiredService<IUserService>();
 
                 if (userDto != null && !string.IsNullOrEmpty(userDto.UserId))
                 {
