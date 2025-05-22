@@ -33,7 +33,7 @@ namespace Media.Controllers
                                                         editMediaDto.ImageUrl,
                                                         editMediaDto.filePath,
                                                         editMediaDto.usageCategory,
-                                                        editMediaDto.folder));
+                                                        editMediaDto.mediaType));
 
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> Delete(IEnumerable<string> id) => Ok(await _uploadMediaService.DeleteMediaAsync(id));

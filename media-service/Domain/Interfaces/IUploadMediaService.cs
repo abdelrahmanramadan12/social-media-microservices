@@ -14,7 +14,7 @@ namespace Domain.Interfaces
 
         Task<bool> DeleteMediaAsync(IEnumerable<string> id);
 
-        Task<string> EditMediaAsync(string MediaUrl, string newUrl, UsageCategory usageCategory, string? folder = null);
+        Task<string> EditMediaAsync(string MediaUrl, string newUrl, UsageCategory usageCategory, MediaType type);
 
     }
 }

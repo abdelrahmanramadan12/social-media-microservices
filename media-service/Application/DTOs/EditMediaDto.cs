@@ -12,6 +12,6 @@ namespace Application.DTOs
         public string ImageUrl = string.Empty;
         public string filePath = string.Empty;
         public UsageCategory usageCategory;
-        public string? folder = null;
+        public MediaType mediaType;
     }
 }
