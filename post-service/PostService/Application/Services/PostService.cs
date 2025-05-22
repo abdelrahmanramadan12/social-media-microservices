@@ -30,7 +30,6 @@ namespace Application.Services
             var validationResult = await _validationService.ValidateNewPost(postDto, userId);
             if (!validationResult.IsValid)
             {
-                res.IsValid = false;
                 res.Errors = validationResult.Errors;
                 res.ErrorType = res.ErrorType;
                 return res;
@@ -56,7 +55,6 @@ namespace Application.Services
                 res.DataItem = postResponse;
             }else
             {
-                res.IsValid = false;
                 res.Errors.Add("Faild to add the post to the DB");
             }
 
