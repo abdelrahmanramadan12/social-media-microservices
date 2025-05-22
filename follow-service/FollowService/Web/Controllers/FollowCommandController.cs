@@ -29,7 +29,7 @@ namespace Web.Controllers
             return BadRequest();
         }
 
-        [HttpPost("unfollow")]
+        [HttpDelete("unfollow")]
         [ProducesResponseType(typeof(void), StatusCodes.Status204NoContent)]
         public async Task<IActionResult> Unfollow([FromHeader(Name = "userId")] string userId, [FromBody] FollowDTO req)
         {
