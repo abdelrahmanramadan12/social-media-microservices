@@ -15,21 +15,19 @@ namespace Services.Implementations
 
         public async Task AddUser(string id)
         {
-            var user = await _unitOfWork.Users.FindAsync(u => u.Id == id);
+            var user = await _unitOfWork.Users.FindAsync(id);
             if (user == null)
             {
                 await _unitOfWork.Users.AddAsync(new User { Id = id });
-                await _unitOfWork.SaveAsync();
             }
         }
 
         public async Task DeleteUser(string id)
         {
-            var user = await _unitOfWork.Users.FindAsync(u => u.Id == id);
+            var user = await _unitOfWork.Users.FindAsync(id);
             if (user != null)
             {
-                _unitOfWork.Users.Delete(user);
-                await _unitOfWork.SaveAsync();
+                await _unitOfWork.Users.DeleteAsync(id);
             }
         }
     }

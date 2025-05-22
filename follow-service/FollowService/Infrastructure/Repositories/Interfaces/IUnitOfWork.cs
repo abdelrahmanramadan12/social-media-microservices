@@ -1,13 +1,8 @@
-﻿using Domain.Entities;
-
-namespace Infrastructure.Repositories.Interfaces
+﻿namespace Infrastructure.Repositories.Interfaces
 {
-    public interface IUnitOfWork : IDisposable
+    public interface IUnitOfWork
     {
-        IRepository<User> Users { get; }
-        IRepository<Follow> Follows { get; }
-
-        int Save();
-        Task<int> SaveAsync();
+        IUserRepository Users { get; }
+        IFollowRepository Follows { get; }
     }
 }

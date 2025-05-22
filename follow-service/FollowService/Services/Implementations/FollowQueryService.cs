@@ -15,19 +15,19 @@ namespace Services.Implementations
 
         public async Task<bool> IsFollowing(string userId, string otherId)
         {
-            var follow = await _unitOfWork.Follows.FindAsync(f => f.FollowerId == userId && f.FollowingId == otherId);
+            var follow = await _unitOfWork.Follows.FindAsync(userId, otherId);
             return follow != null;
         }
 
         public async Task<bool> IsFollower(string userId, string otherId)
         {
-            var follow = await _unitOfWork.Follows.FindAsync(f => f.FollowerId == otherId && f.FollowingId == userId);
+            var follow = await _unitOfWork.Follows.FindAsync(otherId, userId);
             return follow != null;
         }
 
         public async Task<FollowsDTO> ListFollowing(string userId)
         {
-            var following = (await _unitOfWork.Follows.FindAllAsync(f => f.FollowerId == userId))?.Select(f => f.FollowingId)?.ToList() ?? [];
+            var following = (await _unitOfWork.Follows.FindFollowingAsync(userId))?.Select(f => f.FollowingId)?.ToList() ?? [];
             var dto = new FollowsDTO
             {
                 Follows = following
@@ -37,7 +37,7 @@ namespace Services.Implementations
 
         public async Task<FollowsDTO> ListFollowers(string userId)
         {
-            var followers = (await _unitOfWork.Follows.FindAllAsync(f => f.FollowingId == userId))?.Select(f => f.FollowerId)?.ToList() ?? [];
+            var followers = (await _unitOfWork.Follows.FindFollowersAsync(userId))?.Select(f => f.FollowerId)?.ToList() ?? [];
             var dto = new FollowsDTO
             {
                 Follows = followers
@@ -45,20 +45,18 @@ namespace Services.Implementations
             return dto;
         }
 
-        public async Task<FollowsPageDTO> ListFollowingPage(string userId, int? cursor)
+        public async Task<FollowsPageDTO> ListFollowingPage(string userId, string? cursor)
         {
-            const int PageSize = 30;
+            const int PageSize = 20;
 
-            var followingPage = (await _unitOfWork.Follows.FindAllAsync(
-                f => f.FollowerId == userId,
-                skip: cursor ?? 0,
-                take: PageSize + 1,
-                order: f => f.FollowingId,
-                direction: Order.ASC
+            var followingPage = (await _unitOfWork.Follows.FindFollowingAsync(
+                userId,
+                cursor,
+                PageSize + 1
             )).ToList();
 
-            var page = followingPage.Take(PageSize).Select(f => f.FollowerId).ToList();
-            cursor = followingPage.Count > PageSize ? (cursor == null ? 0 : cursor) + PageSize : null;
+            var page = followingPage.Take(PageSize).Select(f => f.FollowingId).ToList();
+            cursor = followingPage.Count > PageSize ? followingPage[PageSize].FollowingId : null;
 
             return new FollowsPageDTO
             {
@@ -67,20 +65,18 @@ namespace Services.Implementations
             };
         }
 
-        public async Task<FollowsPageDTO> ListFollowersPage(string userId, int? cursor)
+        public async Task<FollowsPageDTO> ListFollowersPage(string userId, string? cursor)
         {
-            const int PageSize = 30;
+            const int PageSize = 20;
 
-            var followersPage = (await _unitOfWork.Follows.FindAllAsync(
-                f => f.FollowingId == userId,
-                skip: cursor ?? 0,
-                take: PageSize + 1,
-                order: f => f.FollowerId,
-                direction: Order.ASC
+            var followersPage = (await _unitOfWork.Follows.FindFollowersAsync(
+                userId,
+                cursor,
+                PageSize + 1
             )).ToList();
 
             var page = followersPage.Take(PageSize).Select(f => f.FollowerId).ToList();
-            cursor = followersPage.Count > PageSize ? (cursor == null ? 0 : cursor) + PageSize : null;
+            cursor = followersPage.Count > PageSize ? followersPage[PageSize].FollowerId : null;
 
             return new FollowsPageDTO
             {

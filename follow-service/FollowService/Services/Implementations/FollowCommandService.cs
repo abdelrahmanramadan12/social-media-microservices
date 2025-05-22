@@ -20,15 +20,15 @@ namespace Services.Implementations
                 return false;
             }
 
-            var user = await _unitOfWork.Users.FindAsync(u => u.Id == userId);
-            var other = await _unitOfWork.Users.FindAsync(u => u.Id == otherId);
+            var user = await _unitOfWork.Users.FindAsync(userId);
+            var other = await _unitOfWork.Users.FindAsync(otherId);
 
             if (user == null || other == null)
             {
                 return false;
             }
 
-            var follow = await _unitOfWork.Follows.FindAsync(f => f.FollowerId == userId && f.FollowingId == otherId);
+            var follow = await _unitOfWork.Follows.FindAsync(userId, otherId);
 
             if (follow == null)
             {
@@ -40,7 +40,6 @@ namespace Services.Implementations
                 };
 
                 await _unitOfWork.Follows.AddAsync(follow);
-                await _unitOfWork.SaveAsync();
             }
 
             return true;
@@ -48,12 +47,11 @@ namespace Services.Implementations
 
         public async Task Unfollow(string userId, string otherId)
         {
-            var follow = await _unitOfWork.Follows.FindAsync(f => f.FollowerId == userId && f.FollowingId == otherId);
+            var follow = await _unitOfWork.Follows.FindAsync(userId, otherId);
 
             if (follow != null)
             {
-                _unitOfWork.Follows.Delete(follow);
-                await _unitOfWork.SaveAsync();
+                await _unitOfWork.Follows.DeleteAsync(follow.Id);
             }
         }
     }

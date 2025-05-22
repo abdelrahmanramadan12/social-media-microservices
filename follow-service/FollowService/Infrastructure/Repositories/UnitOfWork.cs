@@ -1,37 +1,16 @@
-﻿using Domain.Entities;
-using Infrastructure.Data;
-using Infrastructure.Repositories.Interfaces;
+﻿using Infrastructure.Repositories.Interfaces;
 
 namespace Infrastructure.Repositories
 {
     public class UnitOfWork : IUnitOfWork
     {
-        private readonly FollowDbContext _context;
+        public IUserRepository Users { get; }
+        public IFollowRepository Follows { get; }
 
-        public IRepository<User> Users { get; }
-        public IRepository<Follow> Follows { get; }
-
-        public UnitOfWork(FollowDbContext context)
+        public UnitOfWork(IUserRepository userRepository, IFollowRepository followRepository)
         {
-            _context = context;
-
-            Users = new BaseRepository<User>(_context);
-            Follows = new BaseRepository<Follow>(_context);
-        }
-
-        public int Save()
-        {
-            return _context.SaveChanges();
-        }
-
-        public async Task<int> SaveAsync()
-        {
-            return await _context.SaveChangesAsync();
-        }
-
-        public void Dispose()
-        {
-            _context.Dispose();
+            Users = userRepository;
+            Follows = followRepository;
         }
     }
 }

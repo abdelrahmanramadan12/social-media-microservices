@@ -1,7 +1,6 @@
-using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Infrastructure.Repositories.Interfaces;
-using Microsoft.EntityFrameworkCore;
+using MongoDB.Driver;
 using Scalar.AspNetCore;
 using Services.Implementations;
 using Services.Interfaces;
@@ -21,11 +20,13 @@ namespace Web
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
 
-            builder.Services.AddDbContext<FollowDbContext>(options =>
-            {
-                options.UseMongoDB(builder.Configuration.GetConnectionString("AtlasUri"), builder.Configuration.GetSection("DatabaseName").Value);
-            });
+            builder.Services.AddSingleton<IMongoClient>(sp =>
+                new MongoClient(builder.Configuration.GetConnectionString("AtlasUri")));
+            builder.Services.AddSingleton(sp =>
+                sp.GetRequiredService<IMongoClient>().GetDatabase(builder.Configuration.GetSection("DatabaseName").Value));
 
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<IFollowRepository, FollowRepository>();
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             builder.Services.AddScoped<IFollowCommandService, FollowCommandService>();

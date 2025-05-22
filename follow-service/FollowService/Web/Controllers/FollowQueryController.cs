@@ -49,7 +49,7 @@ namespace Web.Controllers
 
         [HttpGet("list-following-page/{userId}")]
         [ProducesResponseType(typeof(FollowsPageDTO), StatusCodes.Status200OK)]
-        public async Task<IActionResult> ListFollowingPage(string userId,[FromQuery] int? next = null)
+        public async Task<IActionResult> ListFollowingPage(string userId,[FromQuery] string? next = null)
         {
             var res = await _followQueryService.ListFollowingPage(userId, next);
             return Ok(res);
@@ -57,7 +57,7 @@ namespace Web.Controllers
 
         [HttpGet("list-followers-page/{userId}")]
         [ProducesResponseType(typeof(FollowsPageDTO), StatusCodes.Status200OK)]
-        public async Task<IActionResult> ListFollowersPage(string userId,[FromQuery] int? next = null)
+        public async Task<IActionResult> ListFollowersPage(string userId,[FromQuery] string? next = null)
         {
             var res = await _followQueryService.ListFollowersPage(userId, next);
             return Ok(res);
