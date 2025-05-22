@@ -14,25 +14,28 @@ namespace Media.Controllers
     {
         private readonly IUploadMediaService _uploadMediaService = uploadMediaService;
 
+        [HttpPost]
         public async Task<IActionResult> UploadMedia([FromForm] ReceivedMediaDto mediaDto)
         {
-            if (mediaDto.files == null || !mediaDto.files.Any())
+            if (mediaDto.Files == null || !mediaDto.Files.Any())
                 return BadRequest("No files were uploaded.");
 
-            if (!AreFilesValid(mediaDto.files, mediaDto.mediaType, out var validationError))
+            if (!AreFilesValid(mediaDto.Files, mediaDto.MediaType, out var validationError))
                 return BadRequest(validationError);
 
             var uploadResult = await ProcessFilesAsync(mediaDto);
             return Ok(new { Success = true, Uploaded = uploadResult.Count, Urls = uploadResult });
         }
 
+        [HttpPut]
         public async Task<IActionResult> EditMedia([FromForm] ReceivedMediaDto editMediaDto, [FromForm] IEnumerable<string> MediaUrls)
         {
             var TryAddingNewFiles = UploadMedia(editMediaDto);
             return TryAddingNewFiles.IsFaulted ? await DeleteMedia(MediaUrls) : throw new Exception("Could not Add the media");
         }
 
-        public async Task<IActionResult> DeleteMedia([FromBody] IEnumerable<string> Urls) 
+        [HttpDelete]
+        public async Task<IActionResult> DeleteMedia([FromBody] IEnumerable<string> Urls)
                                                         => Ok(await _uploadMediaService.DeleteMediaAsync(Urls));
 
         private static bool AreFilesValid(IEnumerable<IFormFile> files, MediaType mediaType, out string? error)
@@ -77,7 +80,7 @@ namespace Media.Controllers
 
             try
             {
-                foreach (var file in mediaDto.files)
+                foreach (var file in mediaDto.Files)
                 {
                     var filePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + Path.GetExtension(file.FileName));
                     tempFiles.Add(filePath);
@@ -87,7 +90,7 @@ namespace Media.Controllers
                         await file.CopyToAsync(stream);
                     }
 
-                    var result = await _uploadMediaService.UploadAsync(filePath, mediaDto.mediaType, mediaDto.usageCategory);
+                    var result = await _uploadMediaService.UploadAsync(filePath, mediaDto.MediaType, mediaDto.UsageCategory);
                     results.Add(result);
                 }
             }

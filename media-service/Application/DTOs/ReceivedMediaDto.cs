@@ -10,8 +10,8 @@ namespace Application.DTOs
 {
     public class ReceivedMediaDto
     {
-        public IEnumerable<IFormFile> files = null!;
-        public UsageCategory usageCategory;
-        public MediaType mediaType;
+        public IEnumerable<IFormFile> Files { get; set; } = null!;
+        public MediaType MediaType { get; set; }
+        public UsageCategory UsageCategory { get; set; }
     }
 }
