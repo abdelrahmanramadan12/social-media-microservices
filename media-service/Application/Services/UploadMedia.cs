@@ -22,13 +22,13 @@ namespace Application.Services
             return url ?? throw new Exception("Failed to upload media.");
         }
 
-        public async Task<bool> DeleteMediaAsync(IEnumerable<string> id) => await _cloudinary.DeleteMediaAsync(id);
+        public async Task<bool> DeleteMediaAsync(IEnumerable<string> URL) => await _cloudinary.DeleteMediaAsync(URL);
 
-        public async Task<string> EditMediaAsync(string MediaUrl, string newUrl, UsageCategory usageCategory, MediaType type)
-        {
-            var isDeleted = await _cloudinary.DeleteSingleMediaAsync(MediaUrl);
-            return await (isDeleted ? UploadAsync(newUrl, type, usageCategory)
-                                    : throw new Exception("Could not delete the media"));
-        }
+        //public async Task<string> EditMediaAsync(string MediaUrl, string newUrl, UsageCategory usageCategory, MediaType type)
+        //{
+        //    var isDeleted = await _cloudinary.DeleteSingleMediaAsync(MediaUrl);
+        //    return await (isDeleted ? UploadAsync(newUrl, type, usageCategory)
+        //                            : throw new Exception("Could not delete the media"));
+        //}
     }
 }

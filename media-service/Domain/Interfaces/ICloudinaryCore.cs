@@ -14,7 +14,8 @@ namespace Domain.Interfaces
     {
         //Cloudinary GetClient();
         Task<RawUploadResult> UploadRawAsync(RawUploadParams uploadParams);
-        Task<string> EditMediaAsync(string MediaUrl, string filePath, UsageCategory usageCategory, string? folder = null);
+
+        //Task<string> EditMediaAsync(string MediaUrl, string filePath, UsageCategory usageCategory, string? folder = null);
         Task<string> UploadMediaAsync(string filePath, UsageCategory usageCategory, string? folder = null);
         Task<bool> DeleteMediaAsync(IEnumerable<string> id);
         Task<bool> DeleteSingleMediaAsync(string id);

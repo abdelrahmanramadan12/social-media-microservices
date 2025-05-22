@@ -19,12 +19,12 @@ namespace Infrastructure.Storage
 
         public Cloudinary GetClient() => _cloudinary;
 
-        public async Task<bool> DeleteMediaAsync(IEnumerable<string> id)
+        public async Task<bool> DeleteMediaAsync(IEnumerable<string> Url)
         {
 
-            foreach (var mediaId in id)
+            foreach (var mediaUrl in Url)
             {
-                var result = await _cloudinary.DestroyAsync(new DeletionParams(mediaId));
+                var result = await _cloudinary.DestroyAsync(new DeletionParams(mediaUrl));
                 if (result.Result != "ok")
                     return false;
             }
@@ -38,11 +38,11 @@ namespace Infrastructure.Storage
    
             return true;
         }
-        public async Task<string> EditMediaAsync(string MediaUrl, string filePath, UsageCategory usageCategory, string? folder = null)
-        {
-            var IsDeleted = await DeleteSingleMediaAsync(MediaUrl);
-            return await (IsDeleted ? UploadMediaAsync(filePath, usageCategory, folder) : throw new Exception("could not delete the media"));
-        }
+        //public async Task<string> EditMediaAsync(string MediaUrl, string filePath, UsageCategory usageCategory, string? folder = null)
+        //{
+        //    var IsDeleted = await DeleteSingleMediaAsync(MediaUrl);
+        //    return await (IsDeleted ? UploadMediaAsync(filePath, usageCategory, folder) : throw new Exception("could not delete the media"));
+        //}
 
         public async Task<RawUploadResult> UploadRawAsync(RawUploadParams uploadParams)
                                     => await _cloudinary.UploadAsync(uploadParams);

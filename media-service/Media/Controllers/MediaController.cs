@@ -28,15 +28,14 @@ namespace Media.Controllers
         }
 
         [HttpPut("edit")]
-        public async Task<IActionResult> Edit(EditMediaDto editMediaDto)
-                        => Ok(await _uploadMediaService.EditMediaAsync(
-                                                        editMediaDto.ImageUrl,
-                                                        editMediaDto.filePath,
-                                                        editMediaDto.usageCategory,
-                                                        editMediaDto.mediaType));
+        public async Task<IActionResult> Edit(ReceivedMediaDto editMediaDto, IEnumerable<string> ImageUrl)
+        {
+            var TryAddingNewFiles = UploadMedia(editMediaDto);
+            return TryAddingNewFiles.IsFaulted ? await Delete(ImageUrl) : throw new Exception("Could not Add the media");
+        }
 
-        [HttpDelete("delete/{id}")]
-        public async Task<IActionResult> Delete(IEnumerable<string> id) => Ok(await _uploadMediaService.DeleteMediaAsync(id));
+        [HttpDelete("delete/{Url}")]
+        public async Task<IActionResult> Delete(IEnumerable<string> Url) => Ok(await _uploadMediaService.DeleteMediaAsync(Url));
 
         private static bool AreFilesValid(IEnumerable<IFormFile> files, MediaType mediaType, out string? error)
         {
