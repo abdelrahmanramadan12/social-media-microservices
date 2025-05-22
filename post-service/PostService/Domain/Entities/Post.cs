@@ -17,7 +17,7 @@ namespace Domain.Entities
         public string Id { get; set; }
         public Privacy Privacy { get; set; }
         public string Content { get; set; }
-        public string AuthourId { get; set; }
+        public string AuthorId { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public DateTime DeletedAt { get; set; }
