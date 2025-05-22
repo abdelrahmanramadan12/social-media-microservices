@@ -13,15 +13,15 @@ namespace Application.Services
     {
         private readonly IServiceProvider _provider = provider;
 
-        public IMediaUploadStrategy GetStrategy(MediaType type)
+        public IMediaUploadStrategy GetStrategy(MediaType type, UsageCategory usageCategory)
         {
             return type switch
             {
-                MediaType.Image => _provider.GetRequiredService<ImageUploadStrategy>(),
-                MediaType.Video => _provider.GetRequiredService<VideoUploadStrategy>(),
-                MediaType.Audio => _provider.GetRequiredService<AudioUploadStrategy>(),
-                MediaType.Document => _provider.GetRequiredService<DocumentUploadStrategy>(),
-                _ => throw new NotSupportedException($"Media type {type} not supported.")
+                MediaType.IMAGE => _provider.GetRequiredService<ImageUploadStrategy>(),
+                MediaType.VIDEO => _provider.GetRequiredService<VideoUploadStrategy>(),
+                MediaType.AUDIO => _provider.GetRequiredService<AudioUploadStrategy>(),
+                MediaType.DOCUMENT => _provider.GetRequiredService<DocumentUploadStrategy>(),
+                _ => throw new NotSupportedException($"Media type {type} not supported. or Usage Category is unavailable{usageCategory}")
             };
         }
     }

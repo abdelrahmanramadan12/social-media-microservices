@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Domain.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,6 @@ namespace Domain.Interfaces
 {
     public interface IMediaUploadStrategy
     {
-        Task<string> UploadAsync(string filePath);
+        Task<string> UploadAsync(string filePath, UsageCategory usageCategory);
     }
 }

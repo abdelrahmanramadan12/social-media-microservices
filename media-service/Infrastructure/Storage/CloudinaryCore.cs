@@ -19,22 +19,35 @@ namespace Infrastructure.Storage
 
         public Cloudinary GetClient() => _cloudinary;
 
-        public async Task<bool> DeleteMediaAsync(string id)
+        public async Task<bool> DeleteMediaAsync(IEnumerable<string> id)
         {
-            var result = await _cloudinary.DestroyAsync(new DeletionParams(id));
-            return result.Result == "ok";
-        }
 
-        public async Task<string> EditMediaAsync(string MediaUrl, string filePath, string? folder = null)
+            foreach (var mediaId in id)
+            {
+                var result = await _cloudinary.DestroyAsync(new DeletionParams(mediaId));
+                if (result.Result != "ok")
+                    return false;
+            }
+            return true;
+        }
+        public async Task<bool> DeleteSingleMediaAsync(string id)
         {
-            var IsDeleted = await DeleteMediaAsync(MediaUrl);
-            return await (IsDeleted ? UploadMediaAsync(filePath, folder) : throw new Exception("could not delete the media"));
+                var result = await _cloudinary.DestroyAsync(new DeletionParams(id));
+                if (result.Result != "ok")
+                    return false;
+   
+            return true;
+        }
+        public async Task<string> EditMediaAsync(string MediaUrl, string filePath, UsageCategory usageCategory, string? folder = null)
+        {
+            var IsDeleted = await DeleteSingleMediaAsync(MediaUrl);
+            return await (IsDeleted ? UploadMediaAsync(filePath, usageCategory, folder) : throw new Exception("could not delete the media"));
         }
 
         public async Task<RawUploadResult> UploadRawAsync(RawUploadParams uploadParams)
                                     => await _cloudinary.UploadAsync(uploadParams);
 
-        public async Task<string> UploadMediaAsync(string filePath, string? folder = null)
+        public async Task<string> UploadMediaAsync(string filePath, UsageCategory usageCategory, string? folder = null)
         {
             var uploadParams = new ImageUploadParams
             {
@@ -46,7 +59,7 @@ namespace Infrastructure.Storage
             };
 
             if (folder == "images")
-                uploadParams.Transformation = GetTransformation(UsageCategory.Post);
+                uploadParams.Transformation = GetTransformation(usageCategory);
 
 
             var result = await _cloudinary.UploadAsync(uploadParams);

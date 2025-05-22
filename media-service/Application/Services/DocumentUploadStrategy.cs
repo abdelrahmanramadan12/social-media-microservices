@@ -1,6 +1,7 @@
 ﻿using CloudinaryDotNet.Actions;
 using CloudinaryDotNet;
 using Domain.Interfaces;
+using Domain.Enums;
 
 namespace Application.Services
 {
@@ -8,7 +9,7 @@ namespace Application.Services
     {
         private readonly ICloudinaryCore _cloudinaryCore = cloudinaryCore;
 
-        public async Task<string> UploadAsync(string filePath)
+        public async Task<string> UploadAsync(string filePath, UsageCategory usageCategory)
         {
             var uploadParams = new RawUploadParams
             {

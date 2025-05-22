@@ -1,5 +1,6 @@
 ﻿using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
+using Domain.Enums;
 using Domain.Interfaces;
 
 namespace Application.Services
@@ -8,9 +9,9 @@ namespace Application.Services
     {
         private readonly ICloudinaryCore _cloudinaryCore = cloudinaryCore;
 
-        public async Task<string> UploadAsync(string filePath)
+        public async Task<string> UploadAsync(string filePath, UsageCategory usageCategory)
         {
-            return await _cloudinaryCore.UploadMediaAsync(filePath, "Audio");
+            return await _cloudinaryCore.UploadMediaAsync(filePath, usageCategory, "Audio");
         }
     }
 }

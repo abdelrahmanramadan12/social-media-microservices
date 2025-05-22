@@ -1,5 +1,6 @@
 ﻿using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
+using Domain.Enums;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -13,8 +14,9 @@ namespace Domain.Interfaces
     {
         //Cloudinary GetClient();
         Task<RawUploadResult> UploadRawAsync(RawUploadParams uploadParams);
-        Task<string> EditMediaAsync(string MediaUrl, string filePath, string? folder = null);
-        Task<string> UploadMediaAsync(string filePath, string? folder = null);
-        Task<bool> DeleteMediaAsync(string id);
+        Task<string> EditMediaAsync(string MediaUrl, string filePath, UsageCategory usageCategory, string? folder = null);
+        Task<string> UploadMediaAsync(string filePath, UsageCategory usageCategory, string? folder = null);
+        Task<bool> DeleteMediaAsync(IEnumerable<string> id);
+        Task<bool> DeleteSingleMediaAsync(string id);
     }
 }

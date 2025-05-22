@@ -1,5 +1,6 @@
 ﻿using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
+using Domain.Enums;
 using Domain.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -13,9 +14,9 @@ namespace Application.Services
     {
         private readonly ICloudinaryCore _cloudinaryCore = cloudinaryCore;
 
-        public async Task<string> UploadAsync(string filePath)
+        public async Task<string> UploadAsync(string filePath, UsageCategory usageCategory)
         {
-            return await _cloudinaryCore.UploadMediaAsync(filePath, "images");
+            return await _cloudinaryCore.UploadMediaAsync(filePath, usageCategory, "images");
         }
     }
 

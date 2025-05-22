@@ -8,9 +8,10 @@ namespace Domain.Enums
 {
    public enum MediaType
     {
-        Image,
-        Video,
-        Audio,
-        Document
+        UNKNOWN,
+        IMAGE,
+        VIDEO,
+        AUDIO,
+        DOCUMENT
     }
 }

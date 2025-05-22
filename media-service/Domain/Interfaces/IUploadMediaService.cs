@@ -10,11 +10,11 @@ namespace Domain.Interfaces
     public interface IUploadMediaService
     {
 
-        Task<string> UploadAsync(string filePath, MediaType type);
+        Task<string> UploadAsync(string filePath, MediaType type ,UsageCategory usageCategory);
 
-        Task<bool> DeleteMediaAsync(string id);
+        Task<bool> DeleteMediaAsync(IEnumerable<string> id);
 
-        Task<string> EditMediaAsync(string MediaUrl, string newUrl, string? folder = null);
+        Task<string> EditMediaAsync(string MediaUrl, string newUrl, UsageCategory usageCategory, string? folder = null);
 
     }
 }
