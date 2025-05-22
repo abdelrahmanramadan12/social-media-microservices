@@ -22,9 +22,10 @@ namespace Web.Controllers
         [HttpGet("{postId}")]
         public async Task<IActionResult> Get(
             [FromRoute] string postId,
-            [FromQuery] string? nextCommentIdHash = null)
+            [FromQuery] string? next = null)
         {
-            var comments = await _commentService.ListCommentsAsync(postId, nextCommentIdHash);
+            var comments = await _commentService.ListCommentsAsync(postId, next);
+
             return Ok(comments);
         }
 

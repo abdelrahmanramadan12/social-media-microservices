@@ -2,11 +2,11 @@ using Domain.IRepository;
 using Infrastructure.Repositories;
 using MongoDB.Driver;
 using Scalar.AspNetCore;
-using Service.Implementations;
 using Service.Implementations.CommentServices;
+using Service.Implementations.PostServices;
 using Service.Implementations.RabbitMQServices;
-using Service.Interfaces;
 using Service.Interfaces.CommentServices;
+using Service.Interfaces.PostServices;
 using Service.Interfaces.RabbitMQServices;
 
 namespace Web
@@ -32,16 +32,20 @@ namespace Web
 
             // Register repositories
             builder.Services.AddScoped<ICommentRepository, CommentRepository>();
+            builder.Services.AddScoped<IPostRepository, PostRepository>();
 
             // Register services
             builder.Services.AddScoped<ICommentService, CommentService>();
             builder.Services.AddScoped<IPostDeletedService, PostDeletedService>();
+            builder.Services.AddScoped<IPostAddedService, PostAddedService>();
 
+            // Register RabbitMQ services
             builder.Services.AddSingleton<IRabbitMqPublisher, RabbitMqPublisher>();
             builder.Services.AddSingleton<ICommentCreatedPublisher, CommentCreatedPublisher>();
             builder.Services.AddSingleton<ICommentDeletedPublisher, CommentDeletedPublisher>();
 
             builder.Services.AddSingleton<IPostDeletedListener, PostDeletedListener>();
+            builder.Services.AddSingleton<IPostAddedListener, PostAddedListener>();
 
             //builder.Services.AddHostedService<RabbitMqWorker>();
 

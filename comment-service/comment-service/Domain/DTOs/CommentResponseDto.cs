@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Domain.DTOs
+﻿namespace Domain.DTOs
 {
     public class CommentResponseDto
     {
@@ -14,6 +8,8 @@ namespace Domain.DTOs
         public string CommentContent { get; set; } = default!;
         public string? MediaUrl { get; set; }
         public DateTime CreatedAt { get; set; }
+        public int ReactCount { get; set; }
+        public bool IsLiked { get; set; }
         public bool IsEdited { get; set; }
     }
 }

@@ -11,6 +11,7 @@ namespace Service.Implementations.CommentServices
     public class CommentService : ICommentService
     {
         private readonly ICommentRepository _commentRepository;
+        private readonly IPostRepository _postRepository;
         private readonly ICommentDeletedPublisher _commentDeletedPublisher;
         private readonly ICommentCreatedPublisher _commentCreatedPublisher;
 
@@ -21,16 +22,15 @@ namespace Service.Implementations.CommentServices
             _commentCreatedPublisher = commentCreatedPublisher;
         }
 
-        public async Task<PagedCommentsDto> ListCommentsAsync(string postId, string? nextCommentIdHash = null)
+        public async Task<PagedCommentsDto> ListCommentsAsync(string postId, string? nextCommentId = null)
         {
             var PageSize = 10;
             string? decryptedCursor = null;
-            if (!string.IsNullOrWhiteSpace(nextCommentIdHash))
+            if (!string.IsNullOrWhiteSpace(nextCommentId))
             {
                 try
                 {
-                    //decryptedCursor = AesEncryptionService.Decrypt(nextCommentIdHash);
-                    decryptedCursor = nextCommentIdHash;
+                    decryptedCursor = nextCommentId;
                 }
                 catch
                 {
@@ -46,7 +46,6 @@ namespace Service.Implementations.CommentServices
                 comments.Count < PageSize
                     ? null
                     : comments.Last().Id.ToString();
-            //: AesEncryptionService.Encrypt(comments.Last().Id.ToString());
 
 
             var dto = new PagedCommentsDto
@@ -62,8 +61,8 @@ namespace Service.Implementations.CommentServices
 
         public async Task<CommentResponseDto> CreateCommentAsync(CreateCommentRequestDto dto)
         {
-            ///====> call post/follow service to check the ability to add comment in this post 
-            /// if not allowed, throw an exception
+            ///====> call post/follow service to check the ability to add comment in this post  --> based on privacy
+            /// if allowed
 
             if (string.IsNullOrWhiteSpace(dto.PostId))
                 throw new NullReferenceException("PostId is required.");
@@ -82,6 +81,7 @@ namespace Service.Implementations.CommentServices
 
             await _commentRepository.CreateAsync(comment);
 
+            var post = await _postRepository.GetPostByIdAsync(comment.PostId);
 
             // Notify the post service about the new comment
             await _commentCreatedPublisher.PublishAsync(new CommentCreatedEvent
@@ -91,7 +91,7 @@ namespace Service.Implementations.CommentServices
                 MediaURL = comment?.MediaUrl,
                 CommentAuthorId = comment.AuthorId,
                 CreatedAt = comment.CreatedAt,
-                //PostAuthorId = dto.PostAuthorId,
+                PostAuthorId = post.AuthorId,
                 IsEdited = false
             });
 

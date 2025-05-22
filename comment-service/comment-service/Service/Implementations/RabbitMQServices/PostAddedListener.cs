@@ -10,7 +10,7 @@ using Service.Interfaces.RabbitMQServices;
 
 namespace Service.Implementations.RabbitMQServices
 {
-    public class PostDeletedListener : IPostDeletedListener
+    public class PostAddedListener:IAsyncDisposable, IPostAddedListener
     {
         private IConnection? _connection;
         private IChannel? _channel;
@@ -20,13 +20,13 @@ namespace Service.Implementations.RabbitMQServices
         private string _queueName;
         private readonly IServiceScopeFactory _scopeFactory;
 
-        public PostDeletedListener(IConfiguration configuration, IServiceScopeFactory scopeFactory)
+        public PostAddedListener(IConfiguration configuration, IServiceScopeFactory scopeFactory)
         {
             _scopeFactory = scopeFactory;
-            _userName = configuration.GetSection("PostDeletedMQ:UserName").Value;
-            _password = configuration.GetSection("PostDeletedMQ:Password").Value;
-            _hostName = configuration.GetSection("PostDeletedMQ:HostName").Value;
-            _queueName = configuration.GetSection("PostDeletedMQ:QueueName").Value;
+            _userName = configuration.GetSection("PostAddedMQ:UserName").Value;
+            _password = configuration.GetSection("PostAddedMQ:Password").Value;
+            _hostName = configuration.GetSection("PostAddedMQ:HostName").Value;
+            _queueName = configuration.GetSection("PostAddedMQ:QueueName").Value;
         }
         public async Task InitializeAsync()
         {
@@ -42,7 +42,7 @@ namespace Service.Implementations.RabbitMQServices
 
         public async Task ListenAsync(CancellationToken cancellationToken)
         {
-            if ( _channel == null)
+            if (_channel == null)
             {
                 throw new InvalidOperationException("Channel is not initialized.");
             }
@@ -60,15 +60,15 @@ namespace Service.Implementations.RabbitMQServices
                     var body = ea.Body.ToArray();
                     var message = Encoding.UTF8.GetString(body);
                     // Deserialize the message
-                    var postDeletedEvent = JsonSerializer.Deserialize<PostDeletedEvent>(message);
-                    if (postDeletedEvent != null && !string.IsNullOrEmpty(postDeletedEvent.PostId))
+                    var postAddedEvent = JsonSerializer.Deserialize<PostAddedEvent>(message);
+                    if (postAddedEvent != null && !string.IsNullOrEmpty(postAddedEvent.PostId))
                     {
                         using (var scope = _scopeFactory.CreateScope())
                         {
 
                             // Call the service to handle the post deletion ==> delete all comments related to this post
-                            var postDeletedService = scope.ServiceProvider.GetRequiredService<IPostDeletedService>();
-                            await postDeletedService.HandlePostDeletedAsync(postDeletedEvent.PostId);
+                            var postAddedService = scope.ServiceProvider.GetRequiredService<IPostAddedService>();
+                            await postAddedService.HandlePostAddedAsync(postAddedEvent);
                         }
                     }
 
@@ -99,5 +99,6 @@ namespace Service.Implementations.RabbitMQServices
                 await _connection.CloseAsync();
             }
         }
+
     }
 }
