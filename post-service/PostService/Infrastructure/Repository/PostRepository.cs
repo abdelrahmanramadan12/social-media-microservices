@@ -1,7 +1,8 @@
-﻿using Domain.Entities;
+using Domain.Entities;
 using Domain.Enums;
 using Domain.IRepository;
 using Domain.ValueObjects;
+using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
@@ -17,10 +18,10 @@ namespace Infrastructure.Repository
         private readonly string _dataBaseName;
         private readonly IMongoCollection<Post> _posts;
         private readonly FilterDefinition<Post> NotDeletedFilter = Builders<Post>.Filter.Eq(p => p.IsDeleted, false);
-        public PostRepository(string connectionString, string dataBaseName)
+        public PostRepository(IConfiguration configuration)
         {
-            _connectionString = connectionString;
-            _dataBaseName = dataBaseName;
+            _connectionString = configuration.GetConnectionString("DefaultConnection")!;
+            _dataBaseName = configuration.GetSection("DatabaseName").Value!;
             var client = new MongoClient(_connectionString);
             var database = client.GetDatabase(_dataBaseName);
             _posts = database.GetCollection<Post>("Posts");
@@ -69,22 +70,25 @@ namespace Infrastructure.Repository
         public async Task<List<Post>> GetUserPostsAsync(string userId, int pageSize, string? cursorPostId)
         {
 
-            var filter = Builders<Post>.Filter.Eq(p => p.AuthourId, userId) & NotDeletedFilter;
+            var filter = Builders<Post>.Filter.Eq(p => p.AuthorId, userId) & NotDeletedFilter;
 
             if (string.IsNullOrEmpty(cursorPostId))
             {
                 filter &= Builders<Post>.Filter.Lt(p => p.CreatedAt, DateTime.Now);
                 var lastPost = await _posts.Find(filter).FirstOrDefaultAsync();
-
-                if (lastPost != null) cursorPostId = lastPost.Id;
-                else return [];
-
+                if (lastPost == null) return [];
+            }else
+            {
+                var lastPostFilter = Builders<Post>.Filter.Eq(p => p.Id, cursorPostId);
+                var lastPost = await (await _posts.FindAsync(lastPostFilter)).FirstOrDefaultAsync();
+                filter &= Builders<Post>.Filter.Lt(p => p.CreatedAt, lastPost.CreatedAt);
+                if (lastPost == null) return [];
             }
 
             var posts = await _posts.Find(filter)
-                                .SortByDescending(p => p.CreatedAt)
-                                .Limit(pageSize)
-                                .ToListAsync();
+                                    .SortByDescending(p => p.CreatedAt)
+                                    .Limit(pageSize)
+                                    .ToListAsync();
             return posts;
 
         }
