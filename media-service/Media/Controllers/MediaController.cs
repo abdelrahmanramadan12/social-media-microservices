@@ -8,13 +8,12 @@ using System.Threading.Tasks;
 
 namespace Media.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/internal/[controller]")]
     [ApiController]
     public class MediaController(IUploadMediaService uploadMediaService) : ControllerBase
     {
         private readonly IUploadMediaService _uploadMediaService = uploadMediaService;
 
-        [HttpPost("upload")]
         public async Task<IActionResult> UploadMedia([FromForm] ReceivedMediaDto mediaDto)
         {
             if (mediaDto.files == null || !mediaDto.files.Any())
@@ -27,15 +26,14 @@ namespace Media.Controllers
             return Ok(new { Success = true, Uploaded = uploadResult.Count, Urls = uploadResult });
         }
 
-        [HttpPut("edit")]
-        public async Task<IActionResult> Edit(ReceivedMediaDto editMediaDto, IEnumerable<string> ImageUrl)
+        public async Task<IActionResult> EditMedia([FromForm] ReceivedMediaDto editMediaDto, [FromForm] IEnumerable<string> MediaUrls)
         {
             var TryAddingNewFiles = UploadMedia(editMediaDto);
-            return TryAddingNewFiles.IsFaulted ? await Delete(ImageUrl) : throw new Exception("Could not Add the media");
+            return TryAddingNewFiles.IsFaulted ? await DeleteMedia(MediaUrls) : throw new Exception("Could not Add the media");
         }
 
-        [HttpDelete("delete/{Url}")]
-        public async Task<IActionResult> Delete(IEnumerable<string> Url) => Ok(await _uploadMediaService.DeleteMediaAsync(Url));
+        public async Task<IActionResult> DeleteMedia([FromBody] IEnumerable<string> Urls) 
+                                                        => Ok(await _uploadMediaService.DeleteMediaAsync(Urls));
 
         private static bool AreFilesValid(IEnumerable<IFormFile> files, MediaType mediaType, out string? error)
         {
