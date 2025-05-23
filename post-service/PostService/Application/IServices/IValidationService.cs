@@ -9,6 +9,6 @@ namespace Application.IServices
 {
     public interface IValidationService
     {
-        public Task<ValidationResult> ValidateNewPost(PostDTO post, string userId);
+        public Task<ValidationResult> ValidateNewPost(PostInputDTO post, string userId);
     }
 }

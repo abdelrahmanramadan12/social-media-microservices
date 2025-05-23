@@ -1,3 +1,4 @@
+using Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,11 +12,14 @@ namespace Application.DTOs
         public string AuthorId {  get; set; }
         public string PostId { get; set; }
         public string PostContent { get; set; }
-        public List<string> MediaURL { get; set; }
+        public Privacy Privacy { get; set; }
+        public List<string> MediaUrls { get; set; } = new List<string>();
+        public bool HasMedia => MediaUrls.Count() > 0;
         public DateTime CreatedAt { get; set; }
         public bool IsEdited { get; set; }
         public int NumberOfLikes { get; set; }
         public int NumberOfComments { get; set; }
         public bool IsLiked { get; set; }
+        public PostAuthorProfile PostAuthorProfile { get; set; }
     }
 }

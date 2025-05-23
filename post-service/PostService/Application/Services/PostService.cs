@@ -1,14 +1,9 @@
 using Application.DTOs;
 using Application.IServices;
 using Domain.Entities;
+using Domain.Enums;
 using Domain.IRepository;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
+using Domain.ValueObjects;
 
 namespace Application.Services
 {
@@ -16,51 +11,74 @@ namespace Application.Services
     {
         private readonly IPostRepository _postRepository;
         private readonly IValidationService _validationService;
-        public PostService(IPostRepository postRepository, IValidationService validationService)
+        private readonly IMediaServiceClient _mediaServiceClient;
+        public PostService(IPostRepository postRepository, IValidationService validationService, IMediaServiceClient mediaServiceClient)
         {
             this._postRepository = postRepository;
             this._validationService = validationService;
+            this._mediaServiceClient = mediaServiceClient;
         }
 
-        public async Task<ServiceResponse<PostResponseDTO>> AddPostAsync(string userId, PostDTO postDto)
+
+        public async Task<ServiceResponse<PostResponseDTO>> AddPostAsync(string userId, PostInputDTO postInputDto)
         {
             var res = new ServiceResponse<PostResponseDTO>();
+            var post = new Post();
 
-            // Validate
-            var validationResult = await _validationService.ValidateNewPost(postDto, userId);
+            // Validate Post Content
+            var validationResult = await _validationService.ValidateNewPost(postInputDto, userId);
             if (!validationResult.IsValid)
             {
                 res.Errors = validationResult.Errors;
-                res.ErrorType = res.ErrorType;
+                res.ErrorType = validationResult.ErrorType;
                 return res;
-            }else
-            {
-                postDto.userId = userId;
             }
+            post.AuthorId = postInputDto.AuthorId;
+            post.Content = postInputDto.Content;
+            post.Privacy = postInputDto.Privacy;
+
 
             // Upload Media 
-            if (postDto.HasMedia)
+            if (postInputDto.HasMedia)
             {
-                // Media Service 
-                // Assign Return URL
+                var uploadResponse = await AssignMediaToPostInput(postInputDto);
+                if (uploadResponse.Success)
+                {
+                    post.MediaList = uploadResponse.Urls
+                        .Select(url => new Media
+                        {
+                            MediaUrl = url,
+                            MediaType = postInputDto.MediaType
+                        })
+                        .ToList();
+                }
+                else
+                {
+                    res.Errors.Add("Falied to upload media!");
+                    res.ErrorType = ErrorType.BadRequest;
+                    return res;
+                }
             }
 
             // Add to the DB 
-            Post newPost = new Post();
-
-            var post = await _postRepository.CreatePostAsync(newPost, postDto.HasMedia);
-            if (post != null)
-            {
-                var postResponse  = MapPostToPostResponseDto(post);
-                res.DataItem = postResponse;
-            }else
+            post = await _postRepository.CreatePostAsync(post, postInputDto.HasMedia);
+            if (post == null)
             {
                 res.Errors.Add("Faild to add the post to the DB");
             }
 
+            // Map Post => PostResponse
+            MappingResult<PostResponseDTO> mappingResult = await MapPostToPostResponseDto(post, false, true);
+            if (!mappingResult.Success)
+            {
+                res.Errors = mappingResult.Errors;
+                return res;
+            }
+            res.DataItem = mappingResult.Item;
+
             return res;
         }
-
+        
         public Task<bool> DeletePostAsync(string userId, string postId, out string message)
         {
             throw new NotImplementedException();
@@ -80,40 +98,106 @@ namespace Application.Services
         {
             throw new NotImplementedException();
         }
-
-        public Task<ServiceResponse<PostResponseDTO>> UpdatePostAsync(string userId, PostDTO postDto)
+        
+        public Task<ServiceResponse<PostResponseDTO>> UpdatePostAsync(string userId, PostInputDTO postInputDto)
         {
             throw new NotImplementedException();
         }
 
-        private Post MapPostDtoToPost(PostDTO postDto)
+
+        // Helper Methods
+        private async Task<MappingResult<PostResponseDTO>> MapPostToPostResponseDto(Post post, bool checkIsLiked, bool assignProfile)
         {
-            Post post = new Post()
+            PostResponseDTO postResponseDTO = new PostResponseDTO();
+            MappingResult<PostResponseDTO> mappingResult = new MappingResult<PostResponseDTO>();
+
+
+            // IsLiked ??
+            if (!checkIsLiked)
+                postResponseDTO.IsLiked = false;
+            else
             {
-                Privacy = postDto.Privacy,
-                Content = postDto.Content,
-                AuthorId = postDto.userId,
-            };
+                postResponseDTO.IsLiked = true; // TODO: Replce with actual call to the service
 
-            return post;
+            }
 
+            // Assign Profile ??
+            if (!assignProfile)
+                postResponseDTO.PostAuthorProfile = null;
+            else
+            {
+                postResponseDTO.PostAuthorProfile = new PostAuthorProfile()
+                {
+                    UserId = postResponseDTO.AuthorId,
+                    ProfilePictureUrl = "",
+                    DisplayName = "Test Test",
+                    Username = "test.test"
+                };
+            }
+
+            // Mapping Media
+            if (post.MediaList.Count() > 0)
+            {
+                post.MediaList.ForEach(media =>
+                {
+                    postResponseDTO.MediaUrls.Add(media.MediaUrl);
+                });
+            }
+
+            // Mapping Other Properties
+            postResponseDTO.PostId = post.Id;
+            postResponseDTO.AuthorId = post.AuthorId;
+            postResponseDTO.NumberOfLikes = post.NumberOfLikes;
+            postResponseDTO.NumberOfComments = post.NumberOfComments;
+            postResponseDTO.Privacy = post.Privacy;
+            postResponseDTO.CreatedAt = post.CreatedAt;
+            postResponseDTO.IsEdited = !(post.UpdatedAt == null);
+
+            mappingResult.Item = postResponseDTO;
+            return mappingResult;
         }
-        private PostResponseDTO MapPostToPostResponseDto(Post post)
+        private async Task<MediaUploadResponse> AssignMediaToPostInput(PostInputDTO postInputDTO)
         {
-            var postResponseDto = new PostResponseDTO()
-            {
-                PostId = post.Id,
-                PostContent = post.Content,
-                CreatedAt = post.CreatedAt,
-                IsEdited = false,
-                IsLiked = false,
-                AuthorId = post.AuthorId,
-                MediaURL = post.MediaList.Select(ml => ml.MediaUrl).ToList(),
-                NumberOfComments = post.NumberOfComments,
-                NumberOfLikes = post.NumberOfLikes,
-            };
+            var mediaUploadResponse = new MediaUploadResponse();
+            var mediaUploadRequest = new MediaUploadRequest();
 
-            return postResponseDto;
+            if ((!postInputDTO.HasMedia) || (postInputDTO.Media.Count() <= 0))
+            {
+                mediaUploadResponse.Success = false;
+                return mediaUploadResponse;
+            }
+
+            mediaUploadRequest.usageCategory = UsageCategory.Post;
+            mediaUploadRequest.Files = postInputDTO.Media;
+
+            switch (postInputDTO.MediaType)
+            {
+                case MediaType.Video:
+                    mediaUploadRequest.MediaType = MediaType.Video;
+                    break;
+                case MediaType.Image:
+                    mediaUploadRequest.MediaType = MediaType.Image;
+                    break;
+                case MediaType.Audio:
+                    mediaUploadRequest.MediaType = MediaType.Audio;
+                    break;
+                case MediaType.Document:
+                    mediaUploadRequest.MediaType = MediaType.Document;
+                    break;
+                default:
+                    break;
+            }
+
+            try
+            {
+                mediaUploadResponse = await _mediaServiceClient.UploadMediaAsync(mediaUploadRequest);
+                return mediaUploadResponse;
+            }
+            catch
+            {
+                mediaUploadResponse.Success = false;
+                return mediaUploadResponse;
+            }
         }
     }
 }

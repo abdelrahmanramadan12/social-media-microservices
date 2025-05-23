@@ -14,14 +14,14 @@ internal sealed class MediaServiceClient : IMediaServiceClient
         this._http = http;
     }
 
-    public async Task<UploadResponse> UploadMediaAsync(MediaUploadRequest request, CancellationToken ct = default)
+    public async Task<MediaUploadResponse> UploadMediaAsync(MediaUploadRequest request, CancellationToken ct = default)
     {
         using var form = BuildMultipartContent(request);
         var response = await _http.PostAsync("media/upload", form, ct);
-        return await ReadAs<UploadResponse>(response, ct);
+        return await ReadAs<MediaUploadResponse>(response, ct);
     }
 
-    public async Task<UploadResponse> EditMediaAsync(MediaUploadRequest newFiles, IEnumerable<string> currentUrls, CancellationToken ct = default)
+    public async Task<MediaUploadResponse> EditMediaAsync(MediaUploadRequest newFiles, IEnumerable<string> currentUrls, CancellationToken ct = default)
     {
         using var form = BuildMultipartContent(newFiles);
 
@@ -31,7 +31,7 @@ internal sealed class MediaServiceClient : IMediaServiceClient
         }
 
         var response = await _http.PostAsync("media/edit", form, ct);
-        return await ReadAs<UploadResponse>(response, ct);
+        return await ReadAs<MediaUploadResponse>(response, ct);
     }
 
     public async Task<bool> DeleteMediaAsync(IEnumerable<string> urls, CancellationToken ct = default)

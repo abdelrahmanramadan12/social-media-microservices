@@ -9,13 +9,14 @@ using System.Threading.Tasks;
 namespace Application.DTOs
 {
 
-    public class PostDTO
+    public class PostInputDTO
     {
         public string PostId { get; set; }
-        public string userId { get; set; }
+        public string AuthorId { get; set; }
         public string Content { get; set; }
         public Privacy Privacy { get; set; }
-        public bool HasMedia { get; set; } 
-        public IFormFile? Media { get; set; }
+        public bool HasMedia { get; set; }
+        public MediaType MediaType { get; set; }
+        public IEnumerable<IFormFile> Media { get; set; }
     }
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Application.DTOs
 {
-    public class UploadResponse
+    public class MediaUploadResponse
     {
         public bool Success { get; set; }
         public int Uploaded { get; set; }

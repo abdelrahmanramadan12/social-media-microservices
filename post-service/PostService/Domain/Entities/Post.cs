@@ -19,8 +19,8 @@ namespace Domain.Entities
         public string Content { get; set; }
         public string AuthorId { get; set; }
         public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
-        public DateTime DeletedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+        public DateTime? DeletedAt { get; set; }
         public bool IsDeleted { get; set; }
         public int NumberOfLikes { get; set; }  
         public int NumberOfComments { get; set; }

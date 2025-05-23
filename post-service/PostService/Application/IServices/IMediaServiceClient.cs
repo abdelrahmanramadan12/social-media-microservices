@@ -10,11 +10,11 @@ namespace Application.IServices
 {
     public interface IMediaServiceClient
     {
-        Task<UploadResponse> UploadMediaAsync(
+        Task<MediaUploadResponse> UploadMediaAsync(
             MediaUploadRequest request,
             CancellationToken cancellationToken = default);
 
-        Task<UploadResponse> EditMediaAsync(
+        Task<MediaUploadResponse> EditMediaAsync(
             MediaUploadRequest newFiles,
             IEnumerable<string> currentUrls,
             CancellationToken cancellationToken = default);

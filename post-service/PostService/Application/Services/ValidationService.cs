@@ -11,7 +11,7 @@ namespace Application.Services
 {
     public class ValidationService : IValidationService
     {
-        public async Task<ValidationResult> ValidateNewPost(PostDTO post, string userId)
+        public async Task<ValidationResult> ValidateNewPost(PostInputDTO post, string userId)
         {
             var result = new ValidationResult();
 
@@ -35,7 +35,7 @@ namespace Application.Services
 
             return result;
         }
-        public async Task<ValidationResult> ValidateUpdatePost(PostDTO post, string userId)
+        public async Task<ValidationResult> ValidateUpdatePost(PostInputDTO post, string userId)
         {
             var result = new ValidationResult();
 
@@ -61,7 +61,7 @@ namespace Application.Services
         }
 
         // Utility Validators
-        private ValidationResult ValidatePostContent(PostDTO post)
+        private ValidationResult ValidatePostContent(PostInputDTO post)
         {
             var result = new ValidationResult();
 
@@ -75,7 +75,7 @@ namespace Application.Services
 
             return result;
         }
-        private ValidationResult ValidatePostMedia(PostDTO post)
+        private ValidationResult ValidatePostMedia(PostInputDTO post)
         {
             var result = new ValidationResult();
             if (post.Media == null)
