@@ -22,6 +22,6 @@ namespace Domain.IRepository
         Task<Post> UpdatePostAsync(string postId, Post newPost, bool HasMedia);
 
         // Delete
-        Task<bool> DeletePostAsync(string postId);
+        Task<bool> DeletePostAsync(string postId, string PostAuthorId);
     }
 }

@@ -15,7 +15,8 @@ namespace Application.IServices
         public Task<ServiceResponse<PostResponseDTO>> GetReactedPostListAsync(string userId, int pageSize, string cursorPostId);
         public Task<ServiceResponse<PostResponseDTO>> AddPostAsync(string userId, PostInputDTO postInputDto);
         public Task<ServiceResponse<PostResponseDTO>> UpdatePostAsync(string userId, PostInputDTO postInputDto);
-        public Task<bool> DeletePostAsync(string userId, string postId, out string message);
+        public Task<ServiceResponse<string>> DeletePostAsync(string userId, string postId);
+
 
     }
 }

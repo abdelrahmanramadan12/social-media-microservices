@@ -12,7 +12,8 @@ namespace Application.DTOs
         NotFound, 
         BadRequest,
         UnAuthorized,
-        Validation
+        Validation,
+        InternalServerError
     }
     public class ServiceResponse<T>
     {

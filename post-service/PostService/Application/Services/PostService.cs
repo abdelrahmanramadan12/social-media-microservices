@@ -4,6 +4,7 @@ using Domain.Entities;
 using Domain.Enums;
 using Domain.IRepository;
 using Domain.ValueObjects;
+using ZstdSharp.Unsafe;
 
 namespace Application.Services
 {
@@ -18,7 +19,6 @@ namespace Application.Services
             this._validationService = validationService;
             this._mediaServiceClient = mediaServiceClient;
         }
-
 
         public async Task<ServiceResponse<PostResponseDTO>> AddPostAsync(string userId, PostInputDTO postInputDto)
         {
@@ -68,7 +68,7 @@ namespace Application.Services
             }
 
             // Map Post => PostResponse
-            MappingResult<PostResponseDTO> mappingResult = await MapPostToPostResponseDto(post, false, true);
+            MappingResult<PostResponseDTO> mappingResult = await MapPostToPostResponseDto(post, post.AuthorId, false, true);
             if (!mappingResult.Success)
             {
                 res.Errors = mappingResult.Errors;
@@ -78,15 +78,79 @@ namespace Application.Services
 
             return res;
         }
-        
-        public Task<bool> DeletePostAsync(string userId, string postId, out string message)
+
+        public async Task<ServiceResponse<string>> DeletePostAsync(string userId, string postId)
         {
-            throw new NotImplementedException();
+            var response = new ServiceResponse<string>();
+            if (string.IsNullOrEmpty(postId))
+            {
+                response.ErrorType = ErrorType.BadRequest;
+                response.Errors.Add("Invalid Request! Missing the Post Id");
+                return response;
+            }
+            if (string.IsNullOrEmpty(userId))
+            {
+                response.ErrorType = ErrorType.UnAuthorized;
+                response.Errors.Add("Invalid Request! Missing the User Id");
+                return response;
+            }
+            var result = await _postRepository.DeletePostAsync(postId, userId);
+            if (!result)
+            {
+                response.ErrorType = ErrorType.BadRequest;
+                response.Errors.Add("Invalid Rperation! post isn't found or you don't have permession");
+                return response;
+            }
+            response.DataItem = postId;
+            return response;
         }
 
-        public Task<ServiceResponse<PostResponseDTO>> GetPostByIdAsync(string userId, string postId)
+        public async Task<ServiceResponse<PostResponseDTO>> GetPostByIdAsync(string userId, string postId)
         {
-            throw new NotImplementedException();
+            var response = new ServiceResponse<PostResponseDTO>();
+            var postResponse = new PostResponseDTO();
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                response.ErrorType = ErrorType.BadRequest;
+                response.Errors.Add($"Invalid Request! You are not authorized");
+                return response;
+            }
+
+            if (string.IsNullOrEmpty(postId))
+            {
+                response.ErrorType = ErrorType.BadRequest;
+                response.Errors.Add($"Invalid Request! Post {postId} doesn't or it has been deleted!");
+                return response;
+            }
+            var post = await _postRepository.GetPostAsync(postId);
+            if (post == null)
+            {
+                response.ErrorType = ErrorType.BadRequest;
+                response.Errors.Add($"Invalid Request! Post {postId} doesn't or it has been deleted!");
+                return response;
+            }
+            var accessResult = await CheckPostAccess(userId, post);
+            if (!accessResult.IsValid)
+            {
+                response.Errors = accessResult.Errors;
+                response.ErrorType = accessResult.ErrorType;
+                return response;
+            }
+
+            // Mapping -> PostResponseDto
+            // IsLiked ??
+            // Assign the author profile
+
+            var mappingResult = await MapPostToPostResponseDto(post, userId, true, true);
+            if (!mappingResult.Success)
+            {
+                response.Errors = mappingResult.Errors;
+                response.ErrorType = mappingResult.ErrorType;
+                return response;
+            }
+            response.DataItem = mappingResult.Item;
+            return response;
         }
 
         public Task<ServiceResponse<PostResponseDTO>> GetProfilePostListAsync(string userId, string profileUserId, int pageSize, string cursorPostId)
@@ -98,7 +162,7 @@ namespace Application.Services
         {
             throw new NotImplementedException();
         }
-        
+
         public Task<ServiceResponse<PostResponseDTO>> UpdatePostAsync(string userId, PostInputDTO postInputDto)
         {
             throw new NotImplementedException();
@@ -106,7 +170,7 @@ namespace Application.Services
 
 
         // Helper Methods
-        private async Task<MappingResult<PostResponseDTO>> MapPostToPostResponseDto(Post post, bool checkIsLiked, bool assignProfile)
+        private async Task<MappingResult<PostResponseDTO>> MapPostToPostResponseDto(Post post, string userId,bool checkIsLiked, bool assignProfile)
         {
             PostResponseDTO postResponseDTO = new PostResponseDTO();
             MappingResult<PostResponseDTO> mappingResult = new MappingResult<PostResponseDTO>();
@@ -123,7 +187,7 @@ namespace Application.Services
 
             // Assign Profile ??
             if (!assignProfile)
-                postResponseDTO.PostAuthorProfile = null;
+                postResponseDTO.PostAuthorProfile = null; // TODO: Add a try and catch here ... If there are smoe errors specify thier type
             else
             {
                 postResponseDTO.PostAuthorProfile = new PostAuthorProfile()
@@ -197,6 +261,42 @@ namespace Application.Services
             {
                 mediaUploadResponse.Success = false;
                 return mediaUploadResponse;
+            }
+        }
+        private async Task<ValidationResult> CheckPostAccess(string userId, Post post)
+        {
+            // LOGIC FLOW
+            // Public(OK) OnlyMe(NO) 
+            // Private(??) -> UserId is empty (NO)
+            //             -> UserId Avilable (Follower ??) (OK) 
+            //                                (Not Follower ??) (OK)  
+
+
+            var result = new ValidationResult();
+            if (post.Privacy == Privacy.Public)
+                return result;
+
+            if (post.Privacy == Privacy.OnlyMe)
+            {
+                result.Errors.Add("Invalid Operation! The post you are trying to access has been made private");
+            }
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                result.Errors.Add("Invalid Operation! You don't have a permession fot the post you are trying to access");
+                result.ErrorType = ErrorType.UnAuthorized;
+            }
+
+            try
+            {
+                bool IsFollower = await Task.FromResult(true); // TODO: Implement the follow service client and add the logic here
+                return result; 
+
+            }catch
+            {
+                result.Errors.Add("Something wen't wrong while checking your perrmession. try again later!");
+                result.ErrorType = ErrorType.InternalServerError;
+                return result;
             }
         }
     }

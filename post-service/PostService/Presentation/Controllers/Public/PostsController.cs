@@ -85,7 +85,7 @@ namespace Presentation.Controllers.Public
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddPost([FromForm] PostDTO postDto, [FromHeader(Name = "userId")] string userId)
+        public async Task<IActionResult> AddPost([FromForm] PostInputDTO postDto, [FromHeader(Name = "userId")] string userId)
         {
             ServiceResponse<PostResponseDTO> res = await _postService.AddPostAsync(userId, postDto);
             if (!res.IsValid)
@@ -97,7 +97,7 @@ namespace Presentation.Controllers.Public
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdatePost([FromForm] PostDTO postDto, [FromHeader(Name = "userId")] string userId)
+        public async Task<IActionResult> UpdatePost([FromForm] PostInputDTO postDto, [FromHeader(Name = "userId")] string userId)
         {
             ServiceResponse<PostResponseDTO> res = await _postService.UpdatePostAsync(userId, postDto);
             if (!res.IsValid)
@@ -111,23 +111,23 @@ namespace Presentation.Controllers.Public
         [HttpDelete]
         public async Task<IActionResult> DeletePost([FromBody] string postId, [FromHeader(Name = "userId")] string userId)
         {
-            string message;
-            bool res = await _postService.DeletePostAsync(userId ,postId, out message);
-            if (!res)
-                return BadRequest(new {Errors = new List<string>() { message } });
+            var res = await _postService.DeletePostAsync(userId ,postId);
+            if (!res.IsValid)
+                return HandleServiceError(res);
             
             return NoContent();
         }
         
 
         // Utilities
-        private ActionResult HandleServiceError(ServiceResponse<PostResponseDTO> res)
+        private ActionResult HandleServiceError<T>(ServiceResponse<T> res)
         {
             return res.ErrorType switch
             {
                 ErrorType.NotFound => NotFound(new { errors = res.Errors }),
                 ErrorType.BadRequest => BadRequest(new { errors = res.Errors }),
                 ErrorType.UnAuthorized => Unauthorized(new { errors = res.Errors }),
+                ErrorType.InternalServerError => StatusCode(StatusCodes.Status500InternalServerError, res.Errors),
                 _ => BadRequest(new { errors = res.Errors }),
             };
         }

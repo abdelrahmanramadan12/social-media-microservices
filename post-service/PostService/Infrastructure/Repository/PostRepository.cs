@@ -47,9 +47,11 @@ namespace Infrastructure.Repository
 
         }
 
-        public async Task<bool> DeletePostAsync(string postId)
+        public async Task<bool> DeletePostAsync(string postId, string postAuthorId)
         {
-            var filter = Builders<Post>.Filter.Eq(p => p.Id, postId) & NotDeletedFilter;
+            var postIdFilter = Builders<Post>.Filter.Eq(p => p.Id, postId);
+            var postAuthorFilter = Builders<Post>.Filter.Eq(p => p.AuthorId, postAuthorId);
+            var filter = postIdFilter & postAuthorFilter & NotDeletedFilter;
 
             var update = Builders<Post>.Update
                 .Set(p => p.IsDeleted, true)
