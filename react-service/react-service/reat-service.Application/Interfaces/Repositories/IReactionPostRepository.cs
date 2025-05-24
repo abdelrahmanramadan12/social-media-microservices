@@ -12,6 +12,8 @@ namespace reat_service.Application.Interfaces.Repositories
         Task<List<ReactionPost>> GetReactsByPostAsync(string postId, string  nextReactIdHash, string userId);
         Task<string> CreateReaction(ReactionPost reaction);
         Task<bool> DeleteReactionAsync(string postId, string userId);
+        public Task<bool> DeleteReactionsByPostId(string postId);
+
 
     }
 }

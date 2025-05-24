@@ -13,5 +13,6 @@ namespace reat_service.Application.Interfaces.Services
       Task<PagedReactsResponse> GetReactsByPostAsync(string postId, string? nextReactIdHash, string userId);
        Task<bool> DeleteReactionAsync(string postId, string userId);
        Task<string> AddReactionAsync(CreateReactionRequest reaction , string userId);
+        Task<bool> DeleteReactionsByPostId(string postId);
     }
 }

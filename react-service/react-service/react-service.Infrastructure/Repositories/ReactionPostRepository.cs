@@ -17,7 +17,7 @@ namespace react_service.Infrastructure.Repositories
 
         public IOptions<PaginationSettings> PaginationSetting { get; }
 
-        public ReactionPostRepository(IOptions<MongoDbSettings> mongodbsettings, IMongoClient mongoClient , IOptions<PaginationSettings> paginationSetting)
+        public ReactionPostRepository(IOptions<MongoDbSettings> mongodbsettings, IMongoClient mongoClient, IOptions<PaginationSettings> paginationSetting)
         {
             var database = mongoClient.GetDatabase(mongodbsettings.Value.DatabaseName);
             _collection = database.GetCollection<ReactionPost>("ReactionPost");
@@ -80,7 +80,7 @@ namespace react_service.Infrastructure.Repositories
 
         public async Task<string> CreateReaction(ReactionPost reaction)
         {
-           // var session = await mongoClient.StartSessionAsync(); 
+            // var session = await mongoClient.StartSessionAsync(); 
 
             //session.StartTransaction();
             try
@@ -89,18 +89,18 @@ namespace react_service.Infrastructure.Repositories
 
                 if (reationExist)
                 {
-                    await DeleteReactionAsync(reaction.PostId,reaction.UserId);
+                    await DeleteReactionAsync(reaction.PostId, reaction.UserId);
                 }
 
-                await _collection.InsertOneAsync( reaction);
+                await _collection.InsertOneAsync(reaction);
 
-             //   await session.CommitTransactionAsync();
+                //   await session.CommitTransactionAsync();
 
                 return reaction.PostId;
             }
             catch (Exception ex)
             {
-               // await session.AbortTransactionAsync();
+                // await session.AbortTransactionAsync();
                 throw new Exception("Failed to create reaction within transaction", ex);
             }
         }
@@ -108,13 +108,20 @@ namespace react_service.Infrastructure.Repositories
         public async Task<bool> DeleteReactionAsync(string postId, string userId)
         {
             var reationExist = await CheckUserAndPostIdExist(postId, userId);
-            if(reationExist)
+            if (reationExist)
             {
-                var res= await _collection.DeleteOneAsync(r => r.PostId == postId && r.UserId == userId);
-                return res.DeletedCount > 0;    
+                var res = await _collection.DeleteOneAsync(r => r.PostId == postId && r.UserId == userId);
+                return res.DeletedCount > 0;
             }
-            return false;   
+            return false;
 
+        }
+
+        public async Task<bool> DeleteReactionsByPostId(string postId)
+        {
+            var filter = Builders<ReactionPost>.Filter.Eq(r => r.PostId, postId);
+            var result = await _collection.DeleteManyAsync(filter);
+            return result.DeletedCount > 0;
         }
     }
 }

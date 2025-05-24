@@ -4,8 +4,10 @@ using MongoDB.Driver;
 using react_service.Infrastructure;
 using react_service.Infrastructure.Mongodb;
 using reat_service.Application;
+using reat_service.Application.Interfaces.Listeners;
 using reat_service.Application.Mapper;
 using reat_service.Application.Pagination;
+using reat_service.Application.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,6 +27,7 @@ builder.Services.AddSingleton<IMongoClient>(sp =>
     var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
     return new MongoClient(settings.ConnectionString);
 });
+builder.Services.AddSingleton<IPostDeletedListener,PostDeletedListener>();
 
 
 // add infrastructure services

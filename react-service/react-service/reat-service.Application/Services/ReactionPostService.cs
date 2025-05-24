@@ -16,14 +16,14 @@ using System.Threading.Tasks;
 
 namespace reat_service.Application.Services
 {
-    public  class ReactionPostService : IReactionPostService
+    public class ReactionPostService : IReactionPostService
     {
         private readonly HttpClient _httpClient;
         private readonly IReactionPostRepository reactionRepository;
         private readonly IMapper mapper;
         private readonly IOptions<PaginationSettings> paginationSetting;
 
-        public ReactionPostService( IReactionPostRepository reactionRepository, IMapper mapper , IOptions<PaginationSettings> paginationSetting)
+        public ReactionPostService(IReactionPostRepository reactionRepository, IMapper mapper, IOptions<PaginationSettings> paginationSetting)
         {
             this.reactionRepository = reactionRepository;
             this.mapper = mapper;
@@ -45,12 +45,12 @@ namespace reat_service.Application.Services
 
             //var lastSeenId = PaginationHelper.DecodeCursor(nextReactIdHash);
 
-            var reactionList = await  reactionRepository.GetReactsByPostAsync(postId, nextReactIdHash, userId);
-           
-            bool hasMore =  reactionList.Count() > (paginationSetting.Value.DefaultPageSize - 1) ; 
-           
-            var response=  mapper.Map<PagedReactsResponse>(reactionList);
-            
+            var reactionList = await reactionRepository.GetReactsByPostAsync(postId, nextReactIdHash, userId);
+
+            bool hasMore = reactionList.Count() > (paginationSetting.Value.DefaultPageSize - 1);
+
+            var response = mapper.Map<PagedReactsResponse>(reactionList);
+
             response.HasMore = hasMore;
             response.NextCursor = hasMore ? reactionList.LastOrDefault().Id : null;
 
@@ -63,7 +63,7 @@ namespace reat_service.Application.Services
 
 
         }
-        public async Task<string> AddReactionAsync(CreateReactionRequest reation ,string  userId)
+        public async Task<string> AddReactionAsync(CreateReactionRequest reation, string userId)
         {
             #region validation
             // validation on postId 
@@ -72,9 +72,9 @@ namespace reat_service.Application.Services
             // var postId = _gatewayService.CallServiceAsync<string>("PostService", "/api/public/post/validatePostId?postId=" + postId);
             #endregion
 
-            
+
             var reactionObj = mapper.Map<ReactionPost>(reation);
-            reactionObj.UserId = userId;    
+            reactionObj.UserId = userId;
             return await reactionRepository.CreateReaction(reactionObj);
         }
 
@@ -92,9 +92,19 @@ namespace reat_service.Application.Services
 
             return await reactionRepository.DeleteReactionAsync(postId, userId);
 
-            
-        }
 
-     
+        }
+        public async Task<bool> DeleteReactionsByPostId(string postId)
+        {
+            #region validation
+            // validation on postId 
+            // var UserId =  _gatewayService.CallServiceAsync<string>("UserService", "/api/public/user/validateUserId?userId=" + userId);
+            // validation on UserId
+            // var postId = _gatewayService.CallServiceAsync<string>("PostService", "/api/public/post/validatePostId?postId=" + postId);
+            #endregion
+            return await reactionRepository.DeleteReactionsByPostId(postId);
+
+
+        }
     }
 }
