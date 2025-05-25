@@ -1,5 +1,6 @@
 using Application.DTOs;
 using Application.IServices;
+using Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,31 +36,37 @@ namespace Application.Services
 
             return result;
         }
-        public async Task<ValidationResult> ValidateUpdatePost(PostInputDTO post, string userId)
+        public async Task<ValidationResult> ValidateUpdatePost(PostInputDTO postInputDto, Post post, string userId)
         {
             var result = new ValidationResult();
 
-            if (post == null || string.IsNullOrEmpty(post.PostId))
+            if (postInputDto == null || string.IsNullOrEmpty(postInputDto.PostId))
             {
-                result.Errors.Add("Post Id missing");
+                result.Errors.Add("Invalid Operation! post doesn't exist or has been deleted");
                 result.ErrorType = ErrorType.BadRequest;
                 return result;
             }
 
-            result = ValidatePostContent(post);
+            if (postInputDto.AuthorId != userId)
+            {
+                result.Errors.Add("Invalid Operation! you don't have the permession to edit this postInputDto!");
+                result.ErrorType = ErrorType.UnAuthorized;
+                return result;
+            }
+
+            result = ValidatePostContent(postInputDto);
             if (!result.IsValid)
                 return result;
 
-            if (post.HasMedia)
+            if (postInputDto.HasMedia)
             {
-                result = ValidatePostMedia(post);
+                result = ValidatePostMedia(postInputDto);
                 if (!result.IsValid)
                     return result;
             }
 
             return result;
         }
-
         // Utility Validators
         private ValidationResult ValidatePostContent(PostInputDTO post)
         {
@@ -79,9 +86,15 @@ namespace Application.Services
         {
             var result = new ValidationResult();
             if (post.Media == null)
+            {
                 result.Errors.Add("Invalid media or it has been corrupted. try again later");
-            result.ErrorType = ErrorType.BadRequest;
-
+                result.ErrorType = ErrorType.BadRequest;
+            }
+            if (post.Media.Count() > 0)
+            {
+                result.Errors.Add("Invalid Request! The max number of media items you can upload per post is four (4) items");
+                result.ErrorType = ErrorType.BadRequest;
+            }
             return result;
         }
 

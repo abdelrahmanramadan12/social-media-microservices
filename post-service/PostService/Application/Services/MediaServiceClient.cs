@@ -21,9 +21,9 @@ internal sealed class MediaServiceClient : IMediaServiceClient
         return await ReadAs<MediaUploadResponse>(response, ct);
     }
 
-    public async Task<MediaUploadResponse> EditMediaAsync(MediaUploadRequest newFiles, IEnumerable<string> currentUrls, CancellationToken ct = default)
+    public async Task<MediaUploadResponse> EditMediaAsync(MediaUploadRequest mediaUploaRequest, IEnumerable<string> currentUrls, CancellationToken ct = default)
     {
-        using var form = BuildMultipartContent(newFiles);
+        using var form = BuildMultipartContent(mediaUploaRequest);
 
         foreach (var url in currentUrls)
         {

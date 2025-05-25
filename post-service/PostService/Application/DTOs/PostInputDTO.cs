@@ -15,6 +15,7 @@ namespace Application.DTOs
         public string AuthorId { get; set; }
         public string Content { get; set; }
         public Privacy Privacy { get; set; }
+        public List<string> MediaUrls { get; set; } = new List<string>();
         public bool HasMedia { get; set; }
         public MediaType MediaType { get; set; }
         public IEnumerable<IFormFile> Media { get; set; }

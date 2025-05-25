@@ -4,7 +4,6 @@ using Domain.Entities;
 using Domain.Enums;
 using Domain.IRepository;
 using Domain.ValueObjects;
-using ZstdSharp.Unsafe;
 
 namespace Application.Services
 {
@@ -163,14 +162,45 @@ namespace Application.Services
             throw new NotImplementedException();
         }
 
-        public Task<ServiceResponse<PostResponseDTO>> UpdatePostAsync(string userId, PostInputDTO postInputDto)
+        public async Task<ServiceResponse<PostResponseDTO>> UpdatePostAsync(string userId, PostInputDTO postInputDto)
         {
-            throw new NotImplementedException();
+            var response = new ServiceResponse<PostResponseDTO>();
+            var postToUpdate = await _postRepository.GetPostAsync(postInputDto.PostId);
+
+            // Validate Post Update (Including security)
+            var validationResult = await _validationService.ValidateUpdatePost(postInputDto, postToUpdate, userId);
+            if (!validationResult.IsValid)
+            {
+                response.Errors = validationResult.Errors;
+                response.ErrorType = validationResult.ErrorType;
+                return response;
+            }
+
+            // Update Data (Locally)
+            postToUpdate.Content = postInputDto.Content;
+            postToUpdate.Privacy = postInputDto.Privacy;
+
+            // Update Media
+            var updateMediaResponse = await UpdatePostMedia(postInputDto, postToUpdate);
+            if (!updateMediaResponse.IsValid)
+            {
+                response.Errors = updateMediaResponse.Errors;
+                response.ErrorType = updateMediaResponse.ErrorType;
+                return response;
+            }
+            postToUpdate = updateMediaResponse.DataItem;
+
+            // Add to the DB
+            var updateResult = await _postRepository.UpdatePostAsync(postToUpdate.Id, postToUpdate, postInputDto.HasMedia);
+
+            var postResponseDto = await MapPostToPostResponseDto(postToUpdate, postToUpdate.AuthorId, true, true);
+            response.DataItem = postResponseDto.Item;
+            return response!;
         }
 
 
         // Helper Methods
-        private async Task<MappingResult<PostResponseDTO>> MapPostToPostResponseDto(Post post, string userId,bool checkIsLiked, bool assignProfile)
+        private async Task<MappingResult<PostResponseDTO>> MapPostToPostResponseDto(Post post, string userId, bool checkIsLiked, bool assignProfile)
         {
             PostResponseDTO postResponseDTO = new PostResponseDTO();
             MappingResult<PostResponseDTO> mappingResult = new MappingResult<PostResponseDTO>();
@@ -290,14 +320,177 @@ namespace Application.Services
             try
             {
                 bool IsFollower = await Task.FromResult(true); // TODO: Implement the follow service client and add the logic here
-                return result; 
+                return result;
 
-            }catch
+            }
+            catch
             {
                 result.Errors.Add("Something wen't wrong while checking your perrmession. try again later!");
                 result.ErrorType = ErrorType.InternalServerError;
                 return result;
             }
         }
+        private async Task<ServiceResponse<Post>> UpdatePostMedia(PostInputDTO postInputDto, Post postToUpdate)
+        {
+            var response = new ServiceResponse<Post>();
+
+            var existingMediaUrls = postToUpdate.MediaList.Select(m => m.MediaUrl).ToList();
+            var inputMediaUrls = postInputDto.MediaUrls ?? new List<string>();
+            var urlsToBeDeleted = existingMediaUrls
+                .Where(url => !inputMediaUrls.Contains(url))
+                .ToList();
+
+            bool hasNewMedia = postInputDto.Media != null && postInputDto.Media.Any();
+            bool hasDeletedMedia = urlsToBeDeleted.Any();
+            bool isMediaListEmpty = !postToUpdate.MediaList.Any();
+            bool mediaTypeChanged = postToUpdate.MediaList.Any() &&
+                                     postInputDto.MediaType != postToUpdate.MediaList.First().MediaType;
+
+            // Case 1: No new media submitted
+            if (!postInputDto.HasMedia)
+            {
+                if (hasDeletedMedia)
+                {
+                    var deleteResult = await _mediaServiceClient.DeleteMediaAsync(urlsToBeDeleted);
+                    if (!deleteResult)
+                    {
+                        response.Errors.Add("Failed to delete removed media.");
+                        response.ErrorType = ErrorType.InternalServerError;
+                        return response;
+                    }
+
+                    postToUpdate.MediaList.RemoveAll(m => urlsToBeDeleted.Contains(m.MediaUrl));
+                }
+
+                response.DataItem = postToUpdate;
+                return response;
+            }
+
+            // Validate total media count
+            int totalMediaCount = postInputDto.Media.Count() + inputMediaUrls.Count();
+            if (totalMediaCount > 4)
+            {
+                response.Errors.Add("Invalid request. A maximum of 4 media items is allowed.");
+                response.ErrorType = ErrorType.BadRequest;
+                return response;
+            }
+
+            // Case 2: New media for empty post
+            if (isMediaListEmpty)
+            {
+                var uploadResult = await AssignMediaToPostInput(postInputDto);
+                if (!uploadResult.Success)
+                {
+                    response.Errors.Add("Failed to upload the media.");
+                    response.ErrorType = ErrorType.InternalServerError;
+                    return response;
+                }
+
+                response.DataItem = postToUpdate;
+                return response;
+            }
+
+            // Case 3: Media type mismatch
+            if (mediaTypeChanged)
+            {
+                if (!inputMediaUrls.Any())
+                {
+                    var mediaUploadRequest = new MediaUploadRequest
+                    {
+                        MediaType = postInputDto.MediaType,
+                        Files = postInputDto.Media
+                    };
+
+                    var uploadResult = await _mediaServiceClient.EditMediaAsync(mediaUploadRequest, existingMediaUrls);
+                    if (!uploadResult.Success)
+                    {
+                        response.Errors.Add("Failed to update media with new type.");
+                        response.ErrorType = ErrorType.InternalServerError;
+                        return response;
+                    }
+
+                    // Replace all media
+                    postToUpdate.MediaList.Clear();
+                    uploadResult.Urls.ForEach(url =>
+                    {
+                        postToUpdate.MediaList.Add(new Media
+                        {
+                            MediaType = postInputDto.MediaType,
+                            MediaUrl = url
+                        });
+                    });
+
+                    response.DataItem = postToUpdate;
+                    return response;
+                }
+
+                response.Errors.Add("Invalid request. Cannot mix media types.");
+                response.ErrorType = ErrorType.BadRequest;
+                return response;
+            }
+
+            // Case 4: Matched type but some media deleted
+            if (hasDeletedMedia)
+            {
+                var mediaUploadRequest = new MediaUploadRequest
+                {
+                    MediaType = postInputDto.MediaType,
+                    Files = postInputDto.Media
+                };
+
+                var uploadResult = await _mediaServiceClient.EditMediaAsync(mediaUploadRequest, urlsToBeDeleted);
+                if (!uploadResult.Success)
+                {
+                    response.Errors.Add("Failed to update media.");
+                    response.ErrorType = ErrorType.InternalServerError;
+                    return response;
+                }
+
+                // Remove old and add new
+                postToUpdate.MediaList.RemoveAll(m => urlsToBeDeleted.Contains(m.MediaUrl));
+                uploadResult.Urls.ForEach(url =>
+                {
+                    postToUpdate.MediaList.Add(new Media
+                    {
+                        MediaType = postInputDto.MediaType,
+                        MediaUrl = url
+                    });
+                });
+
+                response.DataItem = postToUpdate;
+                return response;
+            }
+
+            // Case 5: Just adding new media to existing (no deletions)
+            if (hasNewMedia)
+            {
+                var mediaUploadRequest = new MediaUploadRequest
+                {
+                    MediaType = postInputDto.MediaType,
+                    Files = postInputDto.Media
+                };
+
+                var uploadResult = await _mediaServiceClient.UploadMediaAsync(mediaUploadRequest);
+                if (!uploadResult.Success)
+                {
+                    response.Errors.Add("Failed to upload new media.");
+                    response.ErrorType = ErrorType.InternalServerError;
+                    return response;
+                }
+
+                uploadResult.Urls.ForEach(url =>
+                {
+                    postToUpdate.MediaList.Add(new Media
+                    {
+                        MediaType = postInputDto.MediaType,
+                        MediaUrl = url
+                    });
+                });
+            }
+
+            response.DataItem = postToUpdate;
+            return response;
+        }
+
     }
 }
