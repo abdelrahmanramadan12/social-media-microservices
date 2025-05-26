@@ -56,6 +56,15 @@ namespace react_service.Controllers
             await _reactionService.AddReactionAsync(request , userId);
             return NoContent();
         }
-
+        [HttpPost("~/api/internal/reacts/user/reacted/")]
+        public async Task<IActionResult> GetPostsReactedByUser([FromBody] List<string> postIds, [FromHeader(Name = "userId")] string userId)
+        {
+            if (postIds == null || postIds.Count == 0)
+            {
+                return BadRequest("Post IDs cannot be null or empty.");
+            }
+            var reactedPosts = await _reactionService.IsPostsReactedByUserAsync(postIds, userId);
+            return Ok(reactedPosts);
+        }   
     }
 }

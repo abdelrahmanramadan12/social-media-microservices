@@ -123,5 +123,18 @@ namespace react_service.Infrastructure.Repositories
             var result = await _collection.DeleteManyAsync(filter);
             return result.DeletedCount > 0;
         }
+
+        public Task<List<string>> IsPostsReactedByUserAsync(List<string> postIds, string userId)
+        {
+            var filter = Builders<ReactionPost>.Filter.And(
+                Builders<ReactionPost>.Filter.In(r => r.PostId, postIds),
+                Builders<ReactionPost>.Filter.Eq(r => r.UserId, userId)
+            );
+            return _collection.Find(filter)
+                .Project(r => r.PostId)
+                .ToListAsync();
+        }
+
+      
     }
 }

@@ -14,6 +14,8 @@ namespace reat_service.Application.Interfaces.Repositories
         Task<bool> DeleteReactionAsync(string postId, string userId);
         public Task<bool> DeleteReactionsByPostId(string postId);
 
+        public Task<List<string>> IsPostsReactedByUserAsync(List<string> postIds, string userId);
+
 
     }
 }

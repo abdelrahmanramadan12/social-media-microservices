@@ -5,77 +5,103 @@ using RabbitMQ.Client.Events;
 using reat_service.Application.Interfaces.Listeners;
 using reat_service.Application.Interfaces.Services;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace reat_service.Application.Services
 {
-  
-        public class PostDeletedListener : IPostDeletedListener
+    public class PostDeletedListener : IPostDeletedListener, IAsyncDisposable
+    {
+        private IConnection? _connection;
+        private IModel? _channel;
+        private readonly string _hostname;
+        private readonly string _username;
+        private readonly string _password;
+        private readonly string _queueName;
+        private readonly IServiceScopeFactory _scopeFactory;
+        private readonly IReactionPostService _reactionPostService;
+
+        public PostDeletedListener(
+            IConfiguration configuration,
+            IServiceScopeFactory scopeFactory,
+            IReactionPostService reactionPostService)
         {
-            private IConnection? _connection;
-            private IChannel? _channel;
-            private string _postId;
-            private string _queueName;
-            private readonly IServiceScopeFactory _scopeFactory;
-            private readonly IReactionPostService reactionPostService;
-            private const string _hostName = "localhost";
-
-           public PostDeletedListener(IConfiguration config, IServiceScopeFactory scopeFactory ,IReactionPostService reactionPostService)
-           {
-                _postId = config.GetSection("PostDeletedMQ:QueueName").Value;
-                _scopeFactory = scopeFactory;
-                 this.reactionPostService = reactionPostService;
-           }
-
-            public async Task InitializeAsync()
-            {
-                var factory = new ConnectionFactory
-                {
-                    HostName = _hostName
-                };
-
-                _connection = await factory.CreateConnectionAsync();
-                _channel = await _connection.CreateChannelAsync();
-            }
-
-            public async Task ListenAsync(CancellationToken _cancellationToken)
-            {
-                if (_channel == null)
-                    throw new InvalidOperationException("Listener not initialized.");
-
-                await _channel.QueueDeclareAsync(
-                    queue: _queueName,
-                    durable: true,
-                    exclusive: false,
-                    autoDelete: false,
-                    arguments: null
-                    );
-
-                var consumer = new AsyncEventingBasicConsumer(_channel);
-
-                consumer.ReceivedAsync += async (model, args) =>
-                {
-                    var messageJson = Encoding.UTF8.GetString(args.Body.ToArray());
-                    var postId = JsonSerializer.Deserialize<string>(messageJson);                   
-                    await reactionPostService.DeleteReactionsByPostId(postId);
-                    
-                };
-
-                await _channel.BasicConsumeAsync(queue: _queueName, autoAck: true, consumer: consumer, cancellationToken: _cancellationToken);
-            }
-
-            public async ValueTask DisposeAsync()
-            {
-                if (_channel != null)
-                    await _channel.CloseAsync();
-
-                if (_connection != null)
-                    await _connection.CloseAsync();
-            }
+            _hostname = configuration["RabbitMQ:Listener:HostName"];
+            _username = configuration["RabbitMQ:Listener:UserName"];
+            _password = configuration["RabbitMQ:Listener:Password"];
+            _queueName = configuration["RabbitMQ:Listener:QueueName"];
+            _scopeFactory = scopeFactory;
+            _reactionPostService = reactionPostService;
         }
-   
+
+        public Task InitializeAsync()
+        {
+            var factory = new ConnectionFactory
+            {
+                HostName = _hostname,
+                UserName = _username,
+                Password = _password
+            };
+
+            _connection = factory.CreateConnection();
+            _channel = _connection.CreateModel();
+
+            _channel.QueueDeclare(
+                queue: _queueName,
+                durable: true,
+                exclusive: false,
+                autoDelete: false,
+                arguments: null);
+
+            return Task.CompletedTask;
+        }
+
+        public Task ListenAsync(CancellationToken cancellationToken)
+        {
+            if (_channel == null)
+                throw new InvalidOperationException("Listener not initialized.");
+
+            var consumer = new AsyncEventingBasicConsumer(_channel);
+
+            consumer.Received += async (model, ea) =>
+            {
+                var body = ea.Body.ToArray();
+                var messageJson = Encoding.UTF8.GetString(body);
+
+                try
+                {
+                    var postId = JsonSerializer.Deserialize<string>(messageJson);
+                    if (!string.IsNullOrEmpty(postId))
+                    {
+                        await _reactionPostService.DeleteReactionsByPostId(postId);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // TODO: log exception
+                    Console.WriteLine($"Error processing message: {ex.Message}");
+                }
+            };
+
+            _channel.BasicConsume(
+                queue: _queueName,
+                autoAck: true,
+                consumer: consumer);
+
+            return Task.CompletedTask;
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            _channel?.Close();
+            _connection?.Close();
+
+            _channel?.Dispose();
+            _connection?.Dispose();
+
+            return ValueTask.CompletedTask;
+        }
+    }
 }

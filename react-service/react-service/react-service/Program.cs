@@ -5,6 +5,7 @@ using react_service.Infrastructure;
 using react_service.Infrastructure.Mongodb;
 using reat_service.Application;
 using reat_service.Application.Interfaces.Listeners;
+using reat_service.Application.Interfaces.Publishers;
 using reat_service.Application.Mapper;
 using reat_service.Application.Pagination;
 using reat_service.Application.Services;
@@ -27,7 +28,9 @@ builder.Services.AddSingleton<IMongoClient>(sp =>
     var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
     return new MongoClient(settings.ConnectionString);
 });
-builder.Services.AddSingleton<IPostDeletedListener,PostDeletedListener>();
+builder.Services.AddScoped<IPostDeletedListener,PostDeletedListener>();
+builder.Services.AddScoped<IReactionPublisher, ReactionPublisher>();
+
 
 
 // add infrastructure services
@@ -39,6 +42,18 @@ builder.Services.AddControllers();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+// Add CORS services
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    });
+});
+
 //builder.Services.AddHttpClient("GatewayClient", client =>
 //{
 //    client.BaseAddress = new Uri("http://localhost:5000"); // Replace with your gateway URL
@@ -47,12 +62,10 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
     app.UseSwagger();
     app.UseSwaggerUI();
-}
 
+app.UseCors("AllowAll");
 
 
 
