@@ -40,7 +40,7 @@ internal sealed class MediaServiceClient : IMediaServiceClient
         return await ReadAs<bool>(response, ct);
     }
 
-    
+
     // Helper Methods
     private MultipartFormDataContent BuildMultipartContent(MediaUploadRequest req)
     {
