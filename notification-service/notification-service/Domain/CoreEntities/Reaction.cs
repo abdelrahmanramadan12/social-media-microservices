@@ -1,22 +1,22 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Bson;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain.Entities
+namespace Domain.CoreEntities
 {
-    internal class ReationPost
+    public class Reaction
     {
+
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; } = string.Empty; // Unique identifier for the reaction
-
         public string AuthorId { get; set; } = string.Empty;
-
-        public string PostId { get; set; } = string.Empty;
+        public List<string> ReactionsOnCommentId { get; set; } = [];
+        public List<string> ReactionsOnPostId { get; set; } = [];
 
     }
 }

@@ -6,9 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain.Entities
+namespace Domain.CoreEntities
 {
-    internal class Follows
+    public class Follows
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]

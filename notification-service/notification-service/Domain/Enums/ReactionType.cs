@@ -4,9 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain.Entities
+namespace Domain.Enums
 {
-    internal class Reaction
+    public enum ReactionType
     {
+        None,
+        Like,
+        Love,
+        Haha,
+        Wow,
+        Sad,
     }
 }
