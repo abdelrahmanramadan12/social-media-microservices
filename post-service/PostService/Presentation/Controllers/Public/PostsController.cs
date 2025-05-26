@@ -1,9 +1,6 @@
 using Application.DTOs;
 using Application.IServices;
-using Domain.Entities;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
 
 namespace Presentation.Controllers.Public
 {
@@ -41,8 +38,8 @@ namespace Presentation.Controllers.Public
                 next = _encryptionService.Decrypt(next);
 
             const int pageSize = 15 + 1;
-            ServiceResponse<PostResponseDTO> res = await _postService.GetProfilePostListAsync(userId ,profileUserId, pageSize, next);
-            
+            ServiceResponse<PostResponseDTO> res = await _postService.GetProfilePostListAsync(userId, profileUserId, pageSize, next);
+
             if (!res.IsValid)
                 return HandleServiceError(res);
 
@@ -51,7 +48,7 @@ namespace Presentation.Controllers.Public
                 var lastPost = res.DataList[^1];
                 res.DataList.RemoveAt(res.DataList.Count - 1);
                 string nextPostIdEncrpted = _encryptionService.Encrypt(lastPost.PostId);
-                return Ok(new { data = res.DataList , next = nextPostIdEncrpted});                       
+                return Ok(new { data = res.DataList, next = nextPostIdEncrpted });
             }
 
             return Ok(new { data = res.DataList, next = (string?)null });
@@ -111,13 +108,13 @@ namespace Presentation.Controllers.Public
         [HttpDelete]
         public async Task<IActionResult> DeletePost([FromBody] string postId, [FromHeader(Name = "userId")] string userId)
         {
-            var res = await _postService.DeletePostAsync(userId ,postId);
+            var res = await _postService.DeletePostAsync(userId, postId);
             if (!res.IsValid)
                 return HandleServiceError(res);
-            
+
             return NoContent();
         }
-        
+
 
         // Utilities
         private ActionResult HandleServiceError<T>(ServiceResponse<T> res)

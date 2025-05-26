@@ -1,7 +1,6 @@
 using Application.DTOs;
 using Application.IServices;
 using Domain.Entities;
-using Domain.Enums;
 using Domain.IRepository;
 using Domain.ValueObjects;
 
@@ -11,13 +10,11 @@ namespace Application.Services
     {
         private readonly IPostRepository _postRepository;
         private readonly IValidationService _validationService;
-        private readonly IMediaServiceClient _mediaServiceClient;
         private readonly IHelperService _helperService;
-        public PostService(IPostRepository postRepository, IValidationService validationService, IMediaServiceClient mediaServiceClient, IHelperService helperService)
+        public PostService(IPostRepository postRepository, IValidationService validationService, IHelperService helperService)
         {
             this._postRepository = postRepository;
             this._validationService = validationService;
-            this._mediaServiceClient = mediaServiceClient;
             _helperService = helperService;
         }
 
@@ -154,9 +151,43 @@ namespace Application.Services
             return response;
         }
 
-        public Task<ServiceResponse<PostResponseDTO>> GetProfilePostListAsync(string userId, string profileUserId, int pageSize, string cursorPostId)
+        public async Task<ServiceResponse<PostResponseDTO>> GetProfilePostListAsync(string userId, string targetUserId, int pageSize, string cursorPostId)
         {
-            throw new NotImplementedException();
+            var response = new ServiceResponse<PostResponseDTO>();
+
+            // GET: fetch posts based on the privacy constrains
+            List<Post> profilePosts = await _postRepository.GetUserPostsAsync(targetUserId, pageSize, cursorPostId);
+            if (profilePosts == null || profilePosts.Count() <= 0)
+            {
+                response.DataList = new List<PostResponseDTO>();
+                return response;
+            }
+            List<string> postIds = profilePosts.Select(profilePostIds => profilePostIds.ToString()).ToList();
+
+
+            var reactedPostListResponsePromise = _helperService.GetReactedPostList(postIds, userId);
+            var profileResponsePromise = _helperService.GetProfilesResponse(new List<string>() { targetUserId });
+
+            var reactedPostListResponse = await reactedPostListResponsePromise;
+            var profileResponse = await profileResponsePromise;
+
+            // GET: fetch the profile of the users
+            if (!reactedPostListResponse.Success)
+            {
+                response.Errors.Add("Failed to load the reactions!");
+                response.ErrorType = ErrorType.InternalServerError;
+                return response;
+            }
+            if (!profileResponse.Success)
+            {
+                response.Errors.Add("Failed to load the user profile!");
+                response.ErrorType = ErrorType.InternalServerError;
+                return response;
+            }
+
+            // Aggregate: 
+            response.DataList = _helperService.AgregatePostResponseList(profilePosts, profileResponse.postAuthorProfiles, reactedPostListResponse.ReactedPosts);
+            return response;
         }
 
         public Task<ServiceResponse<PostResponseDTO>> GetReactedPostListAsync(string userId, int pageSize, string cursorPostId)
@@ -199,7 +230,5 @@ namespace Application.Services
             response.DataItem = postResponseDto.Item;
             return response!;
         }
-
-
     }
 }

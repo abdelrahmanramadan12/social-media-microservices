@@ -4,28 +4,22 @@ using Domain.Entities;
 using Domain.Enums;
 using Domain.IRepository;
 using Domain.ValueObjects;
-using MyCompany.MediaSdk;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Services
 {
     public class HelperService : IHelperService
     {
-        private readonly IPostRepository _postRepository;
-        private readonly IValidationService _validationService;
         private readonly IMediaServiceClient _mediaServiceClient;
-        public HelperService(IPostRepository postRepository, IValidationService validationService, IMediaServiceClient mediaServiceClient)
+        private readonly IReactionServiceClient _reactionServiceClient;
+        private readonly IProfileServiceClient _profileServiceClient;
+        public HelperService(IPostRepository postRepository, IValidationService validationService, IMediaServiceClient mediaServiceClient, IReactionServiceClient reactionServiceClient, IProfileServiceClient profileServiceClient)
         {
-            this._postRepository = postRepository;
-            this._validationService = validationService;
             this._mediaServiceClient = mediaServiceClient;
+            this._reactionServiceClient = reactionServiceClient;
+            this._profileServiceClient = profileServiceClient;
         }
-        
-        
+
+
         // Helper Methods
         public async Task<MappingResult<PostResponseDTO>> MapPostToPostResponseDto(Post post, string userId, bool checkIsLiked, bool assignProfile)
         {
@@ -318,6 +312,63 @@ namespace Application.Services
             response.DataItem = postToUpdate;
             return response;
         }
-        
+        public async Task<ReactedPostListResponse> GetReactedPostList(List<string> userPostIds)
+        {
+            var request = new ReactedPostListRequest()
+            {
+                PostIds = userPostIds
+            };
+
+            var response = await _reactionServiceClient.GetReactedPostsAsync(request);
+            return response;
+        }
+        public List<PostResponseDTO> AgregatePostResponseList(List<Post> posts, List<PostAuthorProfile> profiles, List<string> likedPosts)
+        {
+            List<PostResponseDTO> postResponseDTOs = new List<PostResponseDTO>();
+
+            foreach (var post in posts)
+            {
+                var profile = profiles.FirstOrDefault(p => p.UserId == post.AuthorId);
+
+                var postResponse = new PostResponseDTO
+                {
+                    AuthorId = post.AuthorId,
+                    PostId = post.Id,
+                    PostContent = post.Content,
+                    Privacy = post.Privacy,
+                    MediaUrls = post.MediaList?.Select(m => m.MediaUrl).ToList() ?? new List<string>(),
+                    CreatedAt = post.CreatedAt,
+                    IsEdited = post.UpdatedAt.HasValue && post.UpdatedAt.Value > post.CreatedAt,
+                    NumberOfLikes = post.NumberOfLikes,
+                    NumberOfComments = post.NumberOfComments,
+                    IsLiked = likedPosts.Contains(post.Id),
+                    PostAuthorProfile = profile
+                };
+
+                postResponseDTOs.Add(postResponse);
+            }
+
+            return postResponseDTOs;
+        }
+        public async Task<ReactedPostListResponse> GetReactedPostList(List<string> userPosts, string userId)
+        {
+            var request = new ReactedPostListRequest
+            {
+                PostIds = userPosts,
+                UserId = userId
+            };
+            var response = await _reactionServiceClient.GetReactedPostsAsync(request);
+            return response;
+        }
+        public async Task<ProfilesResponse> GetProfilesResponse(List<string> userIds)
+        {
+            var request = new ProfilesRequest
+            {
+                UserIds = userIds
+            };
+
+            var response = await _profileServiceClient.GetProfilesAsync(request);
+            return response;
+        }
     }
 }

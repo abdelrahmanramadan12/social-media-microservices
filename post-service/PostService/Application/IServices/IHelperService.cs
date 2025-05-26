@@ -1,11 +1,6 @@
 using Application.DTOs;
 using Application.Services;
 using Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.IServices
 {
@@ -15,5 +10,8 @@ namespace Application.IServices
         public Task<ValidationResult> CheckPostAccess(string userId, Post post);
         public Task<MediaUploadResponse> AssignMediaToPostInput(PostInputDTO postInputDTO);
         public Task<MappingResult<PostResponseDTO>> MapPostToPostResponseDto(Post post, string userId, bool checkIsLiked, bool assignProfile);
+        public Task<ReactedPostListResponse> GetReactedPostList(List<string> userPostIds, string userId);
+        public Task<ProfilesResponse> GetProfilesResponse(List<string> userIds);
+        public List<PostResponseDTO> AgregatePostResponseList(List<Post> posts, List<PostAuthorProfile> profiles, List<string> likedPosts);
     }
 }
