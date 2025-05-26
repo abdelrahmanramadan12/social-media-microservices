@@ -12,10 +12,10 @@ namespace Domain.Entities
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; }
+        public string Id { get; set; } = string.Empty; // Unique identifier for the follow relationship
 
-        public string SourceId { get; set; }        // Follower
+        public string MyId { get; set; } = string.Empty;  
 
-        public string DestinationId { get; set; }   // Followed
+        public List<string> FollowersId { get; set; } = [];   // List of IDs that follow me
     }
 }

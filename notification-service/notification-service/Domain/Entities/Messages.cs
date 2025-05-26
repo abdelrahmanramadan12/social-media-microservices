@@ -12,10 +12,10 @@ namespace Domain.Entities
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; }
+        public string Id { get; set; } = string.Empty; // Unique identifier for the message
 
-        public string SourceUserId { get; set; }
+        public string SourceUserId { get; set; } = string.Empty;
 
-        public string DestinationUserId { get; set; }
+        public string DestinationUserId { get; set; } = string.Empty;
     }
 }

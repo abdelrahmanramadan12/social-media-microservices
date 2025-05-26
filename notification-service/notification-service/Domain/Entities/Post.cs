@@ -12,11 +12,11 @@ namespace Domain.Entities
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; }
+        public string Id { get; set; } = string.Empty; // Unique identifier for the post
 
-        public string AuthorId { get; set; }
+        public string MyId { get; set; } = string.Empty;
 
-        public string PostId { get; set; }
+        public List<string> PostId { get; set; } = []; // Unique identifier for the post, can be used for comments or replies
 
     }
 }
