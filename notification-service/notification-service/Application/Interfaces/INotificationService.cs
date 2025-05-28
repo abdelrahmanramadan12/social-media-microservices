@@ -5,7 +5,9 @@ namespace Application.Interfaces
 {
     public interface INotificationService
     {
-      public List<NotificationsDTO>  GetNotificationsByType(string userId, NotificationEntity notificationType);
+        List<NotificationsDTO> GetNotificationsByType(string userId, NotificationEntity notificationType);
+        List<NotificationsDTO> UnreadNotifications(string userId, NotificationEntity notificationEntity);
+        bool MarkNotificationsAsRead(string userId, string notificationEntity);
 
     }
 }

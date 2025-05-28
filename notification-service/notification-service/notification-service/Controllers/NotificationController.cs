@@ -19,30 +19,23 @@ namespace notification_service.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetUnreadNotifications([FromHeader(Name = "userId")] string userId)
+        public IActionResult GetUnreadNotifications([FromHeader(Name = "userId")] string userId, NotificationEntity notificationEntity)
         {
-            // This is a placeholder for the actual implementation
-            // You would typically fetch unread notifications from a database or service
-            var unreadNotifications = new List<string> { "Unread Notification 1", "Unread Notification 2" };
+            var unreadNotifications = _notificationService.UnreadNotifications(userId, notificationEntity); // Example usage of the service
             return Ok(unreadNotifications);
         }
 
         [HttpGet]
-        public IActionResult GetUnreadNotificationCount([FromHeader(Name = "userId")] string userId)
+        public IActionResult GetUnreadNotificationCount([FromHeader(Name = "userId")] string userId, NotificationEntity notificationEntity)
         {
-            // This is a placeholder for the actual implementation
-            // You would typically fetch the count of unread notifications from a database or service
-            int unreadCount = 5; // Example count
+            var unreadCount = _notificationService.UnreadNotifications(userId, notificationEntity).Count;
             return Ok(unreadCount);
         }
 
         [HttpPut]
         public IActionResult MarkNotificationsAsRead([FromHeader(Name = "userId")] string userId, [FromQuery] string notificationId)
-        {
-            // This is a placeholder for the actual implementation
-            // You would typically update the status of notifications in a database or service
-            return Ok("Notifications marked as read");
-        }
+                                      => Ok( _notificationService.MarkNotificationsAsRead(userId, notificationId));
+
 
         [HttpPut]
         public IActionResult MarkAllNotificationsAsRead([FromHeader(Name = "userId")] string userId, [FromQuery] string notificationId)

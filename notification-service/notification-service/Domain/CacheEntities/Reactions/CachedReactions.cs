@@ -14,7 +14,7 @@ namespace Domain.CacheEntities.Reactions
     ///     كل الداتا اللي تربطنى ب ال كور داتابيز 
     ///     
     /// </summary>
-    public class Reactions
+    public class CachedReactions
     {
         public string AuthorId { get; set; } = string.Empty;
         public List<ReactionPostDetails> ReactionsOnPosts { get; set; } = [];
