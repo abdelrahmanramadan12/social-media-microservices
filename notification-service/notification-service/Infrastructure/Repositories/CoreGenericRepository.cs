@@ -2,26 +2,22 @@
 using Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Infrastructure.Repoitories
+namespace Infrastructure.Repositories
 {
     public class CoreGenericRepository<T>(CoreContext dbContext) : IGenericRepository<T> where T : class
     {
         private readonly CoreContext _dbContext = dbContext;
 
-        public async void AddAsync(T Entity)
+        public async Task AddAsync(T Entity)
                      => await _dbContext.Set<T>().AddAsync(Entity);
-        public void DeleteAsync(T Entity) => _dbContext.Remove(Entity);
+        public async Task DeleteAsync(T Entity)
+            => await Task.Run(() => _dbContext.Remove(Entity));
         public async Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate)
                                 => await _dbContext.Set<T>().AnyAsync(predicate);
-        public IQueryable<T> GetAll(string? userID = "", int flag = 1)
-                                    => _dbContext.Set<T>().AsNoTracking();
+        public Task<IQueryable<T>> GetAll(string? userID = "", int flag = 1)
+                                    => Task.Run(() => _dbContext.Set<T>().AsNoTracking());
         public IEnumerable<T> GetAllIncludingAsync(params Expression<Func<T, object>>[] includes)
         {
             IQueryable<T> query = _dbContext.Set<T>();
@@ -52,7 +48,9 @@ namespace Infrastructure.Repoitories
             }
             return await query.FirstOrDefaultAsync(predicate);
         }
-        public void UpdateAsync(T Entity, string? ID = "") => _dbContext.Set<T>().Update(Entity);
+        public Task UpdateAsync(T Entity, string? ID = "") =>
+            Task.Run(() => _dbContext.Set<T>().Update(Entity));
+
 
     }
 }

@@ -1,9 +1,4 @@
 ﻿using Domain.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Domain.CacheEntities.Reactions
 {
@@ -11,7 +6,7 @@ namespace Domain.CacheEntities.Reactions
     {
         public UserMostUsedData User { get; set; } = null!; // User data for the reaction, including user ID, profile image URL, and username
         public string CommentId { get; set; } = string.Empty;
-      
+
         //this should be aggregated once every day as the content of the post may change
         public string CommentContent { get; set; } = string.Empty; // Unique identifier for the reaction
 

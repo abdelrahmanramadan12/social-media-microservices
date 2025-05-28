@@ -1,11 +1,4 @@
-﻿using Domain.CacheEntities.Comments;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Domain.CacheEntities
+﻿namespace Domain.CacheEntities
 {
     public class CachedFollowed
     {

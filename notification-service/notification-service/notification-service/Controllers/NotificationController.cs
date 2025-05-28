@@ -1,6 +1,5 @@
 ﻿using Application.Interfaces;
 using Domain.Enums;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace notification_service.Controllers
@@ -34,7 +33,7 @@ namespace notification_service.Controllers
 
         [HttpPut]
         public IActionResult MarkNotificationsAsRead([FromHeader(Name = "userId")] string userId, [FromQuery] string notificationId)
-                                      => Ok( _notificationService.MarkNotificationsAsRead(userId, notificationId));
+                                      => Ok(_notificationService.MarkNotificationsAsRead(userId, notificationId));
 
 
         [HttpPut]
