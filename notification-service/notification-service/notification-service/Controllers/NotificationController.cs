@@ -32,40 +32,23 @@ namespace notification_service.Controllers
         }
 
         [HttpPut]
-        public IActionResult MarkNotificationsAsRead([FromHeader(Name = "userId")] string userId, [FromQuery] string notificationId)
+        public IActionResult MarkNotificationAsRead([FromHeader(Name = "userId")] string userId, [FromQuery] string notificationId)
                                       => Ok(_notificationService.MarkNotificationsAsRead(userId, notificationId));
 
 
         [HttpPut]
         public IActionResult MarkAllNotificationsAsRead([FromHeader(Name = "userId")] string userId, [FromQuery] string notificationId)
-        {
-            // This is a placeholder for the actual implementation
-            // You would typically update the status of all notifications in a database or service
-            return Ok("All notifications marked as read");
-        }
-
-        [HttpPut]
-        public IActionResult MarkNotificationAsRead([FromHeader(Name = "userId")] string userId, [FromQuery] string notificationId)
-        {
-            // This is a placeholder for the actual implementation
-            // You would typically update the status of a specific notification in a database or service
-            return Ok($"Notification {notificationId} marked as read for user {userId}");
-        }
+                                      => Ok(_notificationService.MarkAllNotificationsAsRead(userId));
 
         [HttpPut]
         public IActionResult MarkNotificationAsUnread([FromHeader(Name = "userId")] string userId, [FromQuery] string notificationId)
-        {
-            // This is a placeholder for the actual implementation
-            // You would typically update the status of a specific notification in a database or service
-            return Ok($"Notification {notificationId} marked as unread for user {userId}");
-        }
+                                             => Ok(_notificationService.MarkNotificationAsUnread(userId, notificationId));
+
 
         [HttpGet]
-
         public IActionResult GetNotificationTypes([FromHeader(Name = "userId")] string userId)
-        {
-            return Ok();
-        }
+                                                     => Ok(_notificationService.GetNotificationTypes(userId));
+
 
     }
 }

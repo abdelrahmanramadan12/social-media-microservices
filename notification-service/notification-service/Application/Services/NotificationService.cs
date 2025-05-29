@@ -22,5 +22,19 @@ namespace Application.Services
         {
             return false;
         }
+        public bool MarkAllNotificationsAsRead(string userId)
+        {             // Logic to mark all notifications as read for the user
+            return true;
+        }
+        public bool MarkNotificationAsUnread(string userId, string notificationEntity)
+        {
+            // Logic to mark a specific notification as unread for the user
+            return true;
+        }
+        public Task<List<NotificationEntity>> GetNotificationTypes(string userId)
+        {
+            // Logic to get notification types for the user
+            return Task.FromResult(new List<NotificationEntity>());
+        }
     }
 }
