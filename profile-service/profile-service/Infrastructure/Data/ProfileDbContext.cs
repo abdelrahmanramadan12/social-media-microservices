@@ -10,5 +10,17 @@ namespace Infrastructure.Data
 
         public DbSet<Profile> Profiles { get; set; }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Profile>(entity =>
+            {
+                // Index on UserId
+                entity.HasIndex(p => p.UserId);
+                // Unique constraint on UserName
+                entity.HasIndex(p => p.UserName).IsUnique();
+            });
+        }
     }
 }
