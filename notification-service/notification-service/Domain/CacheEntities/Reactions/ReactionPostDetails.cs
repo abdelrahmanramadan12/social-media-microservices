@@ -12,6 +12,5 @@ namespace Domain.CacheEntities.Reactions
 
         public ReactionType ReactionType { get; set; }  // List of reaction types (e.g., like, love, laugh, etc.)
         public DateTime CreatedAt { get; set; } // Timestamp of when the reaction was created
-
     }
 }
