@@ -1,11 +1,12 @@
-﻿using Domain.Entities;
+﻿using Application.DTOs;
+using Domain.Entities;
 using MongoDB.Bson;
 
 namespace Application.Abstractions
 {
     public interface IFeedRepository
     {
-        Task<Feed> GetFeedAsync(ObjectId feedId);
+        Task<Response<Feed>> FindUserFeedAsync(string userId);
         Task IncrementCommentsCountAsync(ObjectId postId, int number);
         Task IncrementReactsCountAsync(ObjectId postId, int number);
         Task PushToFeedAsync(Post post, string userId);

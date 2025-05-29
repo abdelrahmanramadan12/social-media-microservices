@@ -2,8 +2,8 @@
 
 namespace Application.Abstractions
 {
-    internal interface IProfileServiceClient
+    public interface IProfileServiceClient
     {
-        Task<ProfileDTO> GetProfileAsync(string userId);
+        Task<Response<ProfileDTO>> GetProfileAsync(string userId);
     }
 }

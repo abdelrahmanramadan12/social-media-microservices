@@ -2,8 +2,8 @@
 
 namespace Application.Abstractions
 {
-    internal interface IFollowServiceClient
+    public interface IFollowServiceClient
     {
-        Task<FollowsDTO> ListFollowersAsync(string userId);
+        Task<Response<FollowsDTO>> ListFollowersAsync(string userId);
     }
 }
