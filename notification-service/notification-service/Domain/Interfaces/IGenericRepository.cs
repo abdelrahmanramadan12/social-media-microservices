@@ -24,6 +24,7 @@ namespace Domain.Interfaces
                                                           IIncludableQueryable<T, object>>[] includes);
         Task<T?> GetSingleIncludingAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes);
         Task UpdateAsync(T Entity, string? ID = "");
+        //Task<List<T>> GetWhereAsync(Expression<Func<T, bool>> predicate);
 
     }
 }

@@ -17,7 +17,7 @@ namespace Infrastructure.Repositories
             => await Task.Run(() => _dbContext.Remove(Entity));
         public async Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate)
                                 => await _dbContext.Set<T>().AnyAsync(predicate);
-        public async Task<IQueryable<T>> GetAll(string? userID = "", NotificationEntity notificationEntity = NotificationEntity.All)
+        public async Task<IQueryable<T>> GetAll(string? userID = "")
                                 => await Task.Run(() => _dbContext.Set<T>().AsNoTracking());
         public IEnumerable<T> GetAllIncludingAsync(params Expression<Func<T, object>>[] includes)
         {
@@ -28,7 +28,7 @@ namespace Infrastructure.Repositories
             }
             return [.. query];
         }
-        public async Task<T?> GetAsync(int id, string? id2 = "", long number = 0) => await _dbContext.FindAsync<T>(id);
+        public async Task<T?> GetAsync(string id, string? id2 = "", long number = 0) => await _dbContext.FindAsync<T>(id);
         public async Task<T?> GetSingleDeepIncludingAsync(Expression<Func<T, bool>> predicate,
                                                             params Func<IQueryable<T>,
                                                             IIncludableQueryable<T, object>>[] includes)
@@ -51,6 +51,9 @@ namespace Infrastructure.Repositories
         }
         public Task UpdateAsync(T Entity, string? ID = "") =>
             Task.Run(() => _dbContext.Set<T>().Update(Entity));
+
+        //public async Task<List<T>> GetWhereAsync(Expression<Func<T, bool>> predicate)
+        //                                  => await _dbContext.Set<T>().AsNoTracking().Where(predicate).ToListAsync();
 
 
     }
