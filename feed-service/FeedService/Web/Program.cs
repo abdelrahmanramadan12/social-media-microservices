@@ -1,5 +1,5 @@
-
 using MongoDB.Driver;
+using Web.ServiceCollections;
 
 namespace Web
 {
@@ -16,6 +16,11 @@ namespace Web
             builder.Services.AddSingleton(sp =>
                 sp.GetRequiredService<IMongoClient>().GetDatabase(builder.Configuration.GetSection("DatabaseName").Value));
 
+            builder.Services.AddFeedServices();
+            builder.Services.AddServiceClients();
+            builder.Services.AddQueueListeners();
+
+            //builder.Services.AddHostedService<RabbitMqWorker>();
 
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
