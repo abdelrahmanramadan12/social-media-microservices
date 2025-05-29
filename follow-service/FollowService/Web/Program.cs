@@ -1,10 +1,11 @@
 using Infrastructure.Repositories;
-using Infrastructure.Repositories.Interfaces;
 using MongoDB.Driver;
 using Scalar.AspNetCore;
-using Services.Implementations;
-using Services.Interfaces;
+using Application.Implementations;
+using Application.Abstractions;
+using Workers.Listeners;
 using Workers;
+using Application.Events;
 
 namespace Web
 {
@@ -25,18 +26,19 @@ namespace Web
             builder.Services.AddSingleton(sp =>
                 sp.GetRequiredService<IMongoClient>().GetDatabase(builder.Configuration.GetSection("DatabaseName").Value));
 
-            builder.Services.AddScoped<IUserRepository, UserRepository>();
-            builder.Services.AddScoped<IFollowRepository, FollowRepository>();
-            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddSingleton<IUserRepository, UserRepository>();
+            builder.Services.AddSingleton<IFollowRepository, FollowRepository>();
+            builder.Services.AddSingleton<IUnitOfWork, UnitOfWork>();
 
             builder.Services.AddScoped<IFollowCommandService, FollowCommandService>();
             builder.Services.AddScoped<IFollowQueryService, FollowQueryService>();
-            builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddSingleton<IUserService, UserService>();
 
-            builder.Services.AddSingleton<IProfileCreatedListener, ProfileCreatedListener>();
-            builder.Services.AddSingleton<IProfileDeletedListener, ProfileDeletedListener>();
-            
-            //builder.Services.AddHostedService<RabbitMqWorker>();
+            builder.Services.AddSingleton<IQueueListener<ProfileEvent>, ProfileQueueListener>();
+            builder.Services.AddSingleton<IQueuePublisher<FollowEvent>, FollowQueuePublisher>();
+
+            //builder.Services.AddHostedService<QueueListenersWorker>();
+            //builder.Services.AddHostedService<QueuePublisherInitializer>();
 
             var app = builder.Build();
 

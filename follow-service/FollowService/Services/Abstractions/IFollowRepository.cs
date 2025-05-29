@@ -1,7 +1,7 @@
 ﻿using Domain.Entities;
 using MongoDB.Bson;
 
-namespace Infrastructure.Repositories.Interfaces
+namespace Application.Abstractions
 {
     public interface IFollowRepository
     {

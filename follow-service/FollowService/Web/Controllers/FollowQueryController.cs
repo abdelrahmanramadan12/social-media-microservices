@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Services.Interfaces;
+using Application.Abstractions;
 using Domain.DTOs;
 
 namespace Web.Controllers

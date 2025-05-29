@@ -1,40 +1,42 @@
-﻿using Domain.DTOs;
+﻿using Application.Abstractions;
+using Application.Events;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using Services.Interfaces;
 using System.Text;
 using System.Text.Json;
 
-namespace Services.Implementations
+namespace Workers.Listeners
 {
-    public class ProfileCreatedListener : IProfileCreatedListener
+    public class ProfileQueueListener : IQueueListener<ProfileEvent>
     {
         private IConnection? _connection;
         private IChannel? _channel;
         private string _userName;
         private string _password;
         private string _hostName;
+        private int _port;
         private string _queueName;
-        private readonly IServiceScopeFactory _scopeFactory;
+        private readonly IUserService _userService;
 
-        public ProfileCreatedListener(IConfiguration config, IServiceScopeFactory scopeFactory)
+        public ProfileQueueListener(IConfiguration config, IUserService userService)
         {
-            _userName = config.GetSection("ProfileCreatedMQ:UserName").Value;
-            _password = config.GetSection("ProfileCreatedMQ:Password").Value;
-            _hostName = config.GetSection("ProfileCreatedMQ:HostName").Value;
-            _queueName = config.GetSection("ProfileCreatedMQ:QueueName").Value;
-            _scopeFactory = scopeFactory;
+            _userName = config.GetSection("ProfileMQ:UserName").Value!;
+            _password = config.GetSection("ProfileMQ:Password").Value!;
+            _hostName = config.GetSection("ProfileMQ:HostName").Value!;
+            _queueName = config.GetSection("ProfileMQ:QueueName").Value!;
+            _port = Convert.ToInt32(config.GetSection("ProfileMQ:Port").Value);
+            _userService = userService;
         }
 
         public async Task InitializeAsync()
         {
             var factory = new ConnectionFactory
             {
-                //UserName = _userName,
-                //Password = _password,
-                HostName = _hostName
+                UserName = _userName,
+                Password = _password,
+                HostName = _hostName,
+                Port = _port
             };
 
             _connection = await factory.CreateConnectionAsync();
@@ -59,14 +61,18 @@ namespace Services.Implementations
             consumer.ReceivedAsync += async (model, args) =>
             {
                 var messageJson = Encoding.UTF8.GetString(args.Body.ToArray());
-                var userDto = JsonSerializer.Deserialize<UserDTO>(messageJson);
+                var profileEvent = JsonSerializer.Deserialize<ProfileEvent>(messageJson);
 
-                using var scope = _scopeFactory.CreateScope();
-                var _userService = scope.ServiceProvider.GetRequiredService<IUserService>();
-
-                if (userDto != null && !string.IsNullOrEmpty(userDto.UserId))
+                if (profileEvent != null)
                 {
-                    await _userService.AddUser(userDto.UserId);
+                    if (profileEvent.EventType == EventType.Create)
+                    {
+                        await _userService.AddUser(profileEvent.UserId);
+                    }
+                    else if (profileEvent.EventType == EventType.Delete)
+                    {
+                        await _userService.DeleteUser(profileEvent.UserId);
+                    }
                 }
             };
 

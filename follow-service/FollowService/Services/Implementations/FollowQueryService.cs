@@ -1,8 +1,7 @@
-﻿using Domain.DTOs;
-using Infrastructure.Repositories.Interfaces;
-using Services.Interfaces;
+﻿using Application.Abstractions;
+using Application.DTOs;
 
-namespace Services.Implementations
+namespace Application.Implementations
 {
     public class FollowQueryService : IFollowQueryService
     {

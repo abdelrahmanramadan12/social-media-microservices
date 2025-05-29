@@ -1,4 +1,4 @@
-﻿using Infrastructure.Repositories.Interfaces;
+﻿using Application.Abstractions;
 
 namespace Infrastructure.Repositories
 {

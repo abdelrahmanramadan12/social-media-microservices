@@ -1,8 +1,7 @@
 ﻿using Domain.Entities;
-using Infrastructure.Repositories.Interfaces;
-using Services.Interfaces;
+using Application.Abstractions;
 
-namespace Services.Implementations
+namespace Application.Implementations
 {
     public class UserService : IUserService
     {

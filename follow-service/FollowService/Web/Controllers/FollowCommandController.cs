@@ -1,6 +1,6 @@
 ﻿using Domain.DTOs;
 using Microsoft.AspNetCore.Mvc;
-using Services.Interfaces;
+using Application.Abstractions;
 
 namespace Web.Controllers
 {

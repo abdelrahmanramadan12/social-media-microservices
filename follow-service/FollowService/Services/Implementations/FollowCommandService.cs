@@ -1,12 +1,13 @@
 ﻿using Domain.Entities;
-using Infrastructure.Repositories.Interfaces;
-using Services.Interfaces;
+using Application.Abstractions;
+using Application.Events;
 
-namespace Services.Implementations
+namespace Application.Implementations
 {
     public class FollowCommandService : IFollowCommandService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IQueuePublisher<FollowEvent> _followPublisher;
 
         public FollowCommandService(IUnitOfWork unitOfWork)
         {
@@ -40,6 +41,16 @@ namespace Services.Implementations
                 };
 
                 await _unitOfWork.Follows.AddAsync(follow);
+
+                var args = new FollowEvent
+                {
+                    EventType = FollowEventType.Follow,
+                    FollowerId = follow.FollowerId,
+                    FollowingId = follow.FollowingId,
+                    Timestamp = follow.FollowedAt
+                };
+
+                await _followPublisher.PublishAsync(args);
             }
 
             return true;
@@ -52,6 +63,16 @@ namespace Services.Implementations
             if (follow != null)
             {
                 await _unitOfWork.Follows.DeleteAsync(follow.Id);
+
+                var args = new FollowEvent
+                {
+                    EventType = FollowEventType.Unfollow,
+                    FollowerId = follow.FollowerId,
+                    FollowingId = follow.FollowingId,
+                    Timestamp = DateTime.UtcNow
+                };
+
+                await _followPublisher.PublishAsync(args);
             }
         }
     }

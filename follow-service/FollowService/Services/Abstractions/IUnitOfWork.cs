@@ -1,4 +1,4 @@
-﻿namespace Infrastructure.Repositories.Interfaces
+﻿namespace Application.Abstractions
 {
     public interface IUnitOfWork
     {

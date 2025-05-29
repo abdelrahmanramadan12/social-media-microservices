@@ -1,6 +1,6 @@
-﻿using Domain.DTOs;
+﻿using Application.DTOs;
 
-namespace Services.Interfaces
+namespace Application.Abstractions
 {
     public interface IFollowQueryService
     {

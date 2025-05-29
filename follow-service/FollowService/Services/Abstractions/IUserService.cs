@@ -1,4 +1,4 @@
-﻿namespace Services.Interfaces
+﻿namespace Application.Abstractions
 {
     public interface IUserService
     {

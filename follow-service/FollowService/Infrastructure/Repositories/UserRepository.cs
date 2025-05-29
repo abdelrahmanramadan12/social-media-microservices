@@ -1,5 +1,5 @@
-﻿using Domain.Entities;
-using Infrastructure.Repositories.Interfaces;
+﻿using Application.Abstractions;
+using Domain.Entities;
 using MongoDB.Driver;
 
 namespace Infrastructure.Repositories
