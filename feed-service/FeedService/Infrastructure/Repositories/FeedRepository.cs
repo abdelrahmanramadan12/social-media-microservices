@@ -1,8 +1,8 @@
 ﻿using Application.Abstractions;
+using Application.DTOs;
 using Domain.Entities;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Infrastructure.Repositories
 {
@@ -15,9 +15,40 @@ namespace Infrastructure.Repositories
             _feeds = db.GetCollection<Feed>("feeds");
         }
 
-        public Task<Feed> GetFeedAsync(ObjectId feedId)
+        public async Task<Response<Feed>> FindUserFeedAsync(string userId)
         {
-            throw new NotImplementedException();
+            var filter = Builders<Feed>.Filter.Eq(f => f.UserId, userId);
+
+            try
+            {
+                var feed = await _feeds.Find(filter).FirstOrDefaultAsync();
+                if (feed == null)
+                {
+                    return new Response<Feed>()
+                    {
+                        Success = false,
+                        Value = null,
+                        Errors = [$"DB returned a null or invalid response"]
+                    };
+                } else
+                {
+                    return new Response<Feed>()
+                    {
+                        Success = true,
+                        Value = feed,
+                        Errors = []
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                return new Response<Feed>()
+                {
+                    Success = false,
+                    Value = null,
+                    Errors = [$"Unhandled exception: {ex.Message}"]
+                };
+            }
         }
 
         public async Task IncrementCommentsCountAsync(ObjectId postId, int number)
