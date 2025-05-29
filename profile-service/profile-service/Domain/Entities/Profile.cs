@@ -19,7 +19,7 @@
 
         public string? Bio { get; set; }
 
-        public int NoOfFollowers { get; set; }
-        public int NoOfFollowing { get; set; }
+        public int NoFollowers { get; set; }
+        public int NoFollowing { get; set; }
     }
 }

@@ -94,5 +94,46 @@ namespace Infrastructure.Repository
                 _context.Profiles.Remove(profile);
             }
         }
+
+        public async Task IncrementFollowingCountAsync(string userId)
+        {
+            var profile = await _context.Profiles.FirstOrDefaultAsync(p => p.UserId == userId);
+            if (profile != null)
+            {
+                profile.NoFollowing++;
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task IncrementFollowerCountAsync(string userId)
+        {
+            var profile = await _context.Profiles.FirstOrDefaultAsync(p => p.UserId == userId);
+            if (profile != null)
+            {
+                profile.NoFollowers++;
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task DecrementFollowingCountAsync(string userId)
+        {
+            var profile = await _context.Profiles.FirstOrDefaultAsync(p => p.UserId == userId);
+            if (profile != null && profile.NoFollowing > 0)
+            {
+                profile.NoFollowing--;
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task DecrementFollowerCountAsync(string userId)
+        {
+            var profile = await _context.Profiles.FirstOrDefaultAsync(p => p.UserId == userId);
+            if (profile != null && profile.NoFollowers > 0)
+            {
+                profile.NoFollowers--;
+                await _context.SaveChangesAsync();
+            }
+        }
+
     }
 }

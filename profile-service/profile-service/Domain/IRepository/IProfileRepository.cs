@@ -14,5 +14,12 @@ namespace Domain.IRepository
         Task Update(Profile profile);
         Task<bool> ExistsByUserIdAsync(string userId);
         Task DeleteAsync(string userId);
+
+
+        Task IncrementFollowingCountAsync(string userId);
+        Task IncrementFollowerCountAsync(string userId);
+        Task DecrementFollowingCountAsync(string userId);
+        Task DecrementFollowerCountAsync(string userId);
     }
+
 }
