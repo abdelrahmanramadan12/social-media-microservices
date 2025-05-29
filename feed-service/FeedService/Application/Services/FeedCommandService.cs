@@ -1,16 +1,17 @@
 ﻿using Application.Abstractions;
-using Application.DTOs;
+using Application.Events;
 using Domain.Entities;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Application.Services
 {
-    internal class FeedService
+    public class FeedCommandService : IFeedCommandService
     {
         private readonly IFeedRepository _feedRepository;
         private readonly IFollowServiceClient _followServiceClient;
         private readonly IProfileServiceClient _profileServiceClient;
 
-        public FeedService(
+        public FeedCommandService(
             IFeedRepository feedRepository,
             IFollowServiceClient followServiceClient,
             IProfileServiceClient profileServiceClient)
@@ -20,46 +21,49 @@ namespace Application.Services
             _profileServiceClient = profileServiceClient;
         }
 
-        public async Task PushToFeedsAsync(PostEventDTO postEvent)
+        public async Task PushToFeedsAsync(PostEvent postEvent)
         {
-            var followers = await _followServiceClient.ListFollowersAsync(postEvent.AuthorId);
+            var followersRes = await _followServiceClient.ListFollowersAsync(postEvent.AuthorId);
 
-            if (followers != null && followers.Follows.Count > 0)
+            if (followersRes.Success && followersRes.Value.Follows.Count > 0)
             {
-                var profile = await _profileServiceClient.GetProfileAsync(postEvent.AuthorId);
+                var profileRes = await _profileServiceClient.GetProfileAsync(postEvent.AuthorId);
 
-                // initialize author profile info
-                AuthorProfile authorProfile = new AuthorProfile
+                if (profileRes.Success)
                 {
-                    Id = profile.Id,
-                    UserName = profile.UserName,
-                    DisplayName = profile.DisplayName,
-                    ProfilePictureUrl = profile.ProfilePictureUrl
-                };
+                    // initialize author profile info
+                    AuthorProfile authorProfile = new AuthorProfile
+                    {
+                        Id = postEvent.AuthorId,
+                        UserName = profileRes.Value.UserName,
+                        DisplayName = profileRes.Value.DisplayName,
+                        ProfilePictureUrl = profileRes.Value.ProfilePictureUrl
+                    };
 
-                // initialize post
-                Post post = new Post
-                {
-                    AuthorProfile = authorProfile,
-                    PostId = postEvent.Id,
-                    Content = postEvent.Content,
-                    MediaList = postEvent.MediaList,
-                    CreatedAt = postEvent.Timestamp,
-                    IsEdited = postEvent.IsEdited,
-                    Privacy = postEvent.Privacy,
-                    IsLiked = false,
-                    CommentsCount = 0,
-                    ReactsCount = 0
-                };
+                    // initialize post
+                    Post post = new Post
+                    {
+                        AuthorProfile = authorProfile,
+                        PostId = postEvent.Id,
+                        Content = postEvent.Content,
+                        MediaList = postEvent.MediaList,
+                        CreatedAt = postEvent.Timestamp,
+                        IsEdited = postEvent.IsEdited,
+                        Privacy = postEvent.Privacy,
+                        IsLiked = false,
+                        CommentsCount = 0,
+                        ReactsCount = 0
+                    };
 
-                foreach (var follow in followers.Follows)
-                {
-                    await _feedRepository.PushToFeedAsync(post, follow);
+                    foreach (var follow in followersRes.Value.Follows)
+                    {
+                        await _feedRepository.PushToFeedAsync(post, follow);
+                    }
                 }
             }
         }
 
-        public async Task UpdateInFeedsAsync(PostEventDTO postEvent)
+        public async Task UpdateInFeedsAsync(PostEvent postEvent)
         {
             // initialize post
             Post post = new Post
@@ -74,12 +78,12 @@ namespace Application.Services
             await _feedRepository.UpdateContentAsync(post);
         }
 
-        public async Task RemoveFromFeedsAsync(PostEventDTO postEvent)
+        public async Task RemoveFromFeedsAsync(PostEvent postEvent)
         {
             await _feedRepository.RemovePostAsync(postEvent.Id);
         }
 
-        public async Task UpdateAuthorAsync(ProfileEventDTO profileEvent)
+        public async Task UpdateAuthorAsync(ProfileEvent profileEvent)
         {
             // initialize author profile info
             AuthorProfile authorProfile = new AuthorProfile
@@ -93,34 +97,34 @@ namespace Application.Services
             await _feedRepository.UpdateAuthorAsync(authorProfile);
         }
 
-        public async Task RemoveAuthorAsync(ProfileEventDTO profileEvent)
+        public async Task RemoveAuthorAsync(ProfileEvent profileEvent)
         {
             await _feedRepository.RemoveAuthorAsync(profileEvent.UserId);
         }
 
-        public async Task IncrementCommentsCountAsync(CommentEventDTO commentEvent)
+        public async Task IncrementCommentsCountAsync(CommentEvent commentEvent)
         {
             await _feedRepository.IncrementCommentsCountAsync(commentEvent.PostId, 1);
         }
 
-        public async Task DecrementCommentsCountAsync(CommentEventDTO commentEvent)
+        public async Task DecrementCommentsCountAsync(CommentEvent commentEvent)
         {
             await _feedRepository.IncrementCommentsCountAsync(commentEvent.PostId, -1);
         }
 
-        public async Task IncrementReactsCountAsync(ReactEventDTO reactEvent)
+        public async Task IncrementReactsCountAsync(ReactEvent reactEvent)
         {
             await _feedRepository.IncrementReactsCountAsync(reactEvent.PostId, 1);
             await _feedRepository.SetLikedAsync(reactEvent.UserId, reactEvent.PostId, true);
         }
 
-        public async Task DecrementReactsCountAsync(ReactEventDTO reactEvent)
+        public async Task DecrementReactsCountAsync(ReactEvent reactEvent)
         {
             await _feedRepository.IncrementReactsCountAsync(reactEvent.PostId, -1);
             await _feedRepository.SetLikedAsync(reactEvent.UserId, reactEvent.PostId, false);
         }
 
-        public async Task RemoveUnfollowedPostsAsync(FollowEventDTO followEvent)
+        public async Task RemoveUnfollowedPostsAsync(FollowEvent followEvent)
         {
             await _feedRepository.RemoveUnfollowedPostsAsync(followEvent.FollowerId, followEvent.FollowingId);
         }
