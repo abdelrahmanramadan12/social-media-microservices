@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Application.DTOs
 {
-    internal class FollowsDTO
+    public class FollowsDTO
     {
         public List<string> Follows { get; set; }
     }
