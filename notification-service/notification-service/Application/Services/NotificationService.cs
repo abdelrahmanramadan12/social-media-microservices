@@ -5,8 +5,6 @@ using Domain.CacheEntities.Comments;
 using Domain.CacheEntities.Reactions;
 using Domain.Enums;
 using Domain.Interfaces;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
 
 namespace Application.Services
 {
@@ -400,9 +398,21 @@ namespace Application.Services
 
             throw new ArgumentException("Invalid notification type provided.");
         }
-        
-        public bool MarkNotificationsAsRead(string userId, string notificationEntity)
+
+        public bool MarkNotificationAsRead(string userId, NotificationEntity notificationEntity, string notificationId)
         {
+            if (notificationEntity == NotificationEntity.Follow)
+            {
+                var NotificationBasedOnType = _unitOfWork.CacheRepository<CachedFollowed>()
+                                                                                    .GetAsync(userId).Result?.Followers;
+
+                if (NotificationBasedOnType == null || NotificationBasedOnType.Count == 0)
+                    return false;
+
+
+                //var notification = NotificationBasedOnType.FirstOrDefault(x => x.UsersId == notificationId);
+
+            }
             return false;
         }
         public bool MarkAllNotificationsAsRead(string userId)
