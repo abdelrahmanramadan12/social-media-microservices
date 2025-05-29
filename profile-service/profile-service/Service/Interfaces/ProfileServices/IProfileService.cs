@@ -1,7 +1,7 @@
 ﻿using Domain.DTOs;
 using Domain.Entities;
 
-namespace Service.Interfaces
+namespace Service.Interfaces.ProfileServices
 {
     public interface IProfileService
     {

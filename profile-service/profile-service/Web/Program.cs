@@ -3,8 +3,13 @@ using Domain.IRepository;
 using Infrastructure.Data;
 using Infrastructure.Repository;
 using Microsoft.EntityFrameworkCore;
-using Service.Implementations;
-using Service.Interfaces;
+using Service.Implementations.FollowServices;
+using Service.Implementations.ProfileServices;
+using Service.Implementations.RabbitMqServices;
+using Service.Implementations.RabbitMQServices;
+using Service.Interfaces.FollowServices;
+using Service.Interfaces.ProfileServices;
+using Service.Interfaces.RabbitMqServices;
 
 namespace Web
 {
@@ -25,6 +30,12 @@ namespace Web
 
             builder.Services.AddScoped<IProfileRepository, ProfileRepository>();
             builder.Services.AddScoped<IProfileService, ProfileService>();
+            builder.Services.AddScoped<IFollowCounterService, FollowCounterService>();
+
+            builder.Services.AddScoped<IFollowListener, FollowListener>();
+
+            builder.Services.AddScoped<IProfilePublisher, ProfilePublisher>();
+            builder.Services.AddScoped<IRabbitMqPublisher, RabbitMqPublisher>();
 
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();

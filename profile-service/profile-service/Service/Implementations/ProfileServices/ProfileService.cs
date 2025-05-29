@@ -1,17 +1,22 @@
 ﻿using Domain.DTOs;
 using Domain.Entities;
+using Domain.Events;
 using Domain.IRepository;
-using Service.Interfaces;
+using Service.Interfaces.ProfileServices;
+using Service.Interfaces.RabbitMqServices;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace Service.Implementations
+namespace Service.Implementations.ProfileServices
 {
     public class ProfileService :IProfileService
     {
 
         private readonly IProfileRepository _profileRepository;
-        public ProfileService(IProfileRepository profileRepository)
+        private readonly IProfilePublisher _profilePublisher;
+        public ProfileService(IProfileRepository profileRepository ,IProfilePublisher profilePublisher)
         {
             _profileRepository = profileRepository;
+            _profilePublisher = profilePublisher;
         }
 
         public async Task<ProfileResponseDto?> GetByUserIdAsync(string userId)
@@ -186,6 +191,21 @@ namespace Service.Implementations
             {
                 await _profileRepository.AddAsync(profile);
                 response.profile = profile;
+
+                // Publish the profile creation event
+                var profileEvent = new ProfileEvent
+                {
+                    EventType = ProfileEventType.ProfileAdded,
+                    User= new SimpleUserDto
+                    {
+                        UserId = profile.UserId,
+                        UserName = profile.UserName??"User",
+                        DisplayName = profile.FirstName + " " + profile.LastName,
+                        ProfilePictureUrl = profile.ProfileUrl
+                    },
+
+                };
+                await _profilePublisher.PublishAsync(profileEvent);
             }
             return response;
         }
@@ -214,8 +234,24 @@ namespace Service.Implementations
                 else
                 {
                     profile.UserId = userId;
-                    _profileRepository.Update(profile);
+                    await _profileRepository.Update(profile);
                     response.profile = profile;
+
+                    // Publish the profile Updated event
+                    var profileEvent = new ProfileEvent
+                    {
+                        EventType = ProfileEventType.ProfileUpdated,
+                        User = new SimpleUserDto
+                        {
+                            UserId = profile.UserId,
+                            UserName = profile.UserName,
+                            DisplayName = profile.FirstName + " " + profile.LastName,
+                            ProfilePictureUrl = profile.ProfileUrl
+                        },
+
+                    };
+                    await _profilePublisher.PublishAsync(profileEvent);
+
                 }
             }
             return response;
@@ -228,6 +264,18 @@ namespace Service.Implementations
                 return false;
             }
             await _profileRepository.DeleteAsync(userId);
+
+            // Publish the profile Deleted event
+            var profileEvent = new ProfileEvent
+            {
+                EventType = ProfileEventType.ProfileDeleted,
+                User = new SimpleUserDto
+                {
+                    UserId = userId
+                },
+
+            };
+            await _profilePublisher.PublishAsync(profileEvent);
             return true;
         }
     }
