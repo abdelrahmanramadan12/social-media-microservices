@@ -13,7 +13,7 @@ namespace Domain.Entities
     {
         public ObjectId PostId { get; set; }
         public string Content { get; set; }
-        public ICollection<MediaItem> MediaList { get; set; }
+        public List<MediaItem> MediaList { get; set; }
         public int ReactsCount { get; set; }
         public int CommentsCount { get; set; }
         public bool IsEdited { get; set; }

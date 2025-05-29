@@ -6,6 +6,6 @@ namespace Domain.Entities
     {
         public ObjectId Id { get; set; }
         public string UserId { get; set; }
-        public ICollection<Post> Timeline { get; set; }
+        public List<Post> Timeline { get; set; }
     }
 }
