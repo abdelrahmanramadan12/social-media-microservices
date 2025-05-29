@@ -6,5 +6,6 @@ namespace Application.DTOs
         public T Item { get; set; }
         public List<T> ItemList { get; set; }
         public List<string> Errors { get; set; }
+        public string NextPostHashId { get; set; }
     }
 }
