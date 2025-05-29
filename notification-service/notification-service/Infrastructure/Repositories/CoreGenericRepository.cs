@@ -1,4 +1,5 @@
-﻿using Application.Interfaces;
+﻿using Domain.Enums;
+using Domain.Interfaces;
 using Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
@@ -16,8 +17,8 @@ namespace Infrastructure.Repositories
             => await Task.Run(() => _dbContext.Remove(Entity));
         public async Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate)
                                 => await _dbContext.Set<T>().AnyAsync(predicate);
-        public Task<IQueryable<T>> GetAll(string? userID = "", int flag = 1)
-                                    => Task.Run(() => _dbContext.Set<T>().AsNoTracking());
+        public async Task<IQueryable<T>> GetAll(string? userID = "", NotificationEntity notificationEntity = NotificationEntity.All)
+                                => await Task.Run(() => _dbContext.Set<T>().AsNoTracking());
         public IEnumerable<T> GetAllIncludingAsync(params Expression<Func<T, object>>[] includes)
         {
             IQueryable<T> query = _dbContext.Set<T>();

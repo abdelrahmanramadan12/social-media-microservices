@@ -1,4 +1,5 @@
-﻿using Application.Interfaces;
+﻿using Domain.Enums;
+using Domain.Interfaces;
 using Microsoft.EntityFrameworkCore.Query;
 using Newtonsoft.Json;
 using StackExchange.Redis;
@@ -53,12 +54,13 @@ namespace Infrastructure.Repositories
             return entities.Any(predicate.Compile());
         }
 
-        public async Task<IQueryable<T>> GetAll(string? userID = "", int flag = 1)
+        public async Task<IQueryable<T>> GetAll(string? userID = "")
         {
             var keys = await _redisDb.SetMembersAsync($"{_collectionName}:keys").ConfigureAwait(false);
             if (keys.Length == 0) return new List<T>().AsQueryable();
 
-            var values = await _redisDb.StringGetAsync(keys.Select(k => (RedisKey)(string)k).ToArray()).ConfigureAwait(false);
+            var values = await _redisDb.StringGetAsync(keys.Select(k => (RedisKey)(string)k).ToArray())
+                                                                                .ConfigureAwait(false);
 
             var entities = values
                 .Select(v => JsonConvert.DeserializeObject<T>(v, _serializerSettings))
@@ -76,7 +78,7 @@ namespace Infrastructure.Repositories
             return entities.AsQueryable();
         }
 
-        public async Task<T?> GetAsync(int id, string? id2 = "", long number = 0)
+        public async Task<T?> GetAsync(string id, string? id2 = "", long number = 0)
         {
             var key = GetRedisKey(id.ToString());
             var serializedEntity = await _redisDb.StringGetAsync(key).ConfigureAwait(false);
