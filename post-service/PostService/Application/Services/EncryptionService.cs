@@ -6,11 +6,16 @@ namespace Application.Services
 {
     public class EncryptionService : IEncryptionService
     {
-        private const string Utf8Key = "SometimesILoveC#";
+        private readonly string _key;
+
+        public EncryptionService(string key)
+        {
+            _key = key;
+        }
 
         public string Encrypt(string plainText)
         {
-            byte[] keyBytes = Encoding.UTF8.GetBytes(Utf8Key);
+            byte[] keyBytes = Encoding.UTF8.GetBytes(_key);
             using Aes aes = Aes.Create();
             aes.Key = keyBytes;
             aes.GenerateIV();
@@ -28,7 +33,7 @@ namespace Application.Services
         public string Decrypt(string encryptedBase64)
         {
             byte[] fullCipher = Convert.FromBase64String(encryptedBase64);
-            byte[] keyBytes = Encoding.UTF8.GetBytes(Utf8Key);
+            byte[] keyBytes = Encoding.UTF8.GetBytes(_key);
 
             using Aes aes = Aes.Create();
             aes.Key = keyBytes;
@@ -42,6 +47,5 @@ namespace Application.Services
             using StreamReader reader = new(cs);
             return reader.ReadToEnd();
         }
-
     }
 }

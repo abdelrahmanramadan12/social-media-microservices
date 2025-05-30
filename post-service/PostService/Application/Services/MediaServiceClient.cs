@@ -1,73 +1,79 @@
 using Application.DTOs;
 using Application.IServices;
+using Microsoft.AspNetCore.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
-namespace MyCompany.MediaSdk;
+namespace Application.Services;
 
-internal sealed class MediaServiceClient : IMediaServiceClient
+public class MediaServiceClient : IMediaServiceClient
 {
     private readonly HttpClient _http;
+    private const string BASE_ROUTE = "api/internal/media";
 
     public MediaServiceClient(HttpClient http)
     {
-        this._http = http;
+        _http = http;
     }
 
     public async Task<MediaUploadResponse> UploadMediaAsync(MediaUploadRequest request, CancellationToken ct = default)
     {
-        using var form = BuildMultipartContent(request);
-        var response = await _http.PostAsync("media/upload", form, ct);
-        return await ReadAs<MediaUploadResponse>(response, ct);
+        using var form = new MultipartFormDataContent();
+
+        // Add files
+        foreach (var file in request.Files)
+        {
+            var streamContent = new StreamContent(file.OpenReadStream());
+            streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(
+                string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType);
+            form.Add(streamContent, "Files", file.FileName);
+        }
+
+        // Add media type
+        form.Add(new StringContent(request.MediaType.ToString()), "MediaType");
+
+        var response = await _http.PostAsync(BASE_ROUTE, form, ct);
+        response.EnsureSuccessStatusCode();
+        
+        return await response.Content.ReadFromJsonAsync<MediaUploadResponse>(cancellationToken: ct) 
+            ?? throw new InvalidOperationException("Failed to deserialize media upload response");
     }
 
-    public async Task<MediaUploadResponse> EditMediaAsync(MediaUploadRequest mediaUploaRequest, IEnumerable<string> currentUrls, CancellationToken ct = default)
+    public async Task<MediaUploadResponse> EditMediaAsync(MediaUploadRequest mediaUploadRequest, IEnumerable<string> currentUrls, CancellationToken ct = default)
     {
-        using var form = BuildMultipartContent(mediaUploaRequest);
+        using var form = new MultipartFormDataContent();
 
+        // Add files
+        foreach (var file in mediaUploadRequest.Files)
+        {
+            var streamContent = new StreamContent(file.OpenReadStream());
+            streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(
+                string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType);
+            form.Add(streamContent, "Files", file.FileName);
+        }
+
+        // Add media type
+        form.Add(new StringContent(mediaUploadRequest.MediaType.ToString()), "MediaType");
+
+        // Add current URLs
         foreach (var url in currentUrls)
         {
             form.Add(new StringContent(url), "MediaUrls");
         }
 
-        var response = await _http.PostAsync("media/edit", form, ct);
-        return await ReadAs<MediaUploadResponse>(response, ct);
+        var response = await _http.PutAsync(BASE_ROUTE, form, ct);
+        response.EnsureSuccessStatusCode();
+        
+        return await response.Content.ReadFromJsonAsync<MediaUploadResponse>(cancellationToken: ct)
+            ?? throw new InvalidOperationException("Failed to deserialize media edit response");
     }
 
     public async Task<bool> DeleteMediaAsync(IEnumerable<string> urls, CancellationToken ct = default)
     {
-        var response = await _http.PostAsJsonAsync("media/delete", urls, ct);
-        return await ReadAs<bool>(response, ct);
-    }
-
-
-    // Helper Methods
-    private MultipartFormDataContent BuildMultipartContent(MediaUploadRequest req)
-    {
-        var form = new MultipartFormDataContent();
-
-        // Add files
-        foreach (var file in req.Files)
-        {
-            var streamContent = new StreamContent(file.OpenReadStream());
-            streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(
-                string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType);
-
-            // The controller’s action parameter is named "files"
-            form.Add(streamContent, "files", file.FileName);
-        }
-
-        // Add media type
-        form.Add(new StringContent(req.MediaType.ToString()), "mediaType");
-        return form;
-    }
-
-    private static async Task<T> ReadAs<T>(HttpResponseMessage resp, CancellationToken ct)
-    {
-        resp.EnsureSuccessStatusCode();
-        var result = await resp.Content.ReadFromJsonAsync<T>(cancellationToken: ct);
-
-        return result ?? throw new InvalidOperationException(
-            $"Response body for {typeof(T).Name} was empty or not valid JSON.");
+        var request = new DeleteMediaRequest { Urls = urls.ToList() };
+        var response = await _http.DeleteAsync($"{BASE_ROUTE}?urls={string.Join(",", urls)}", ct);
+        response.EnsureSuccessStatusCode();
+        
+        return await response.Content.ReadFromJsonAsync<bool>(cancellationToken: ct);
     }
 }

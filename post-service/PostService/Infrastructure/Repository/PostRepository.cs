@@ -2,7 +2,6 @@ using Domain.Entities;
 using Domain.Enums;
 using Domain.IRepository;
 using Domain.ValueObjects;
-using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
@@ -14,16 +13,13 @@ namespace Infrastructure.Repository
 {
     public class PostRepository : IPostRepository
     {
-        private readonly string _connectionString;
-        private readonly string _dataBaseName;
         private readonly IMongoCollection<Post> _posts;
         private readonly FilterDefinition<Post> NotDeletedFilter = Builders<Post>.Filter.Eq(p => p.IsDeleted, false);
-        public PostRepository(IConfiguration configuration)
+
+        public PostRepository(string connectionString, string databaseName)
         {
-            _connectionString = configuration.GetConnectionString("DefaultConnection")!;
-            _dataBaseName = configuration.GetSection("DatabaseName").Value!;
-            var client = new MongoClient(_connectionString);
-            var database = client.GetDatabase(_dataBaseName);
+            var client = new MongoClient(connectionString);
+            var database = client.GetDatabase(databaseName);
             _posts = database.GetCollection<Post>("Posts");
         }
 
