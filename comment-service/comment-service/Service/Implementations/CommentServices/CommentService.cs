@@ -50,7 +50,7 @@ namespace Service.Implementations.CommentServices
             var dto = new PagedCommentsDto
             {
                 Comments = comments.Select(ToDto),
-                NextCommentIdHash = nextCursor
+                Next = nextCursor
             };
 
             return dto;
@@ -58,7 +58,7 @@ namespace Service.Implementations.CommentServices
         }
 
 
-        public async Task<CommentResponseDto> CreateCommentAsync(CreateCommentRequestDto dto)
+        public async Task<CommentDto> CreateCommentAsync(CreateCommentRequestDto dto)
         {
             ///====> call post/follow service to check the ability to add comment in this post  --> based on privacy
             /// if allowed
@@ -101,7 +101,7 @@ namespace Service.Implementations.CommentServices
             return ToDto(comment);
         }
 
-        public async Task<CommentResponseDto?> UpdateCommentAsync(EditCommentRequestDto dto)
+        public async Task<CommentDto?> UpdateCommentAsync(EditCommentRequestDto dto)
         {
             var comment = await _commentRepository.GetByIdAsync(dto.CommentId);
             if (comment == null)
@@ -147,10 +147,29 @@ namespace Service.Implementations.CommentServices
             return true;
         }
 
+        public async Task<CommentResponseDto?> GetCommentAsync(string commentId)
+        {
+            var comment = await _commentRepository.GetByIdAsync(commentId);
+            if (comment == null)
+                return  new CommentResponseDto
+                {
+                    Data = null,
+                    Messages = new List<string> { "Comment not found." },
+                    Success = false
+                };
+
+
+            var dto = new CommentResponseDto
+            {
+                Success = true,
+                Data = ToDto(comment)
+            };
+            return dto;
+        }
 
         //-----------------------------------------------------
         // Helper method to convert Comment to CommentResponseDto
-        private CommentResponseDto ToDto(Comment c) => new()
+        private CommentDto ToDto(Comment c) => new()
         {
             CommentId = c.Id.ToString(),
             PostId = c.PostId,

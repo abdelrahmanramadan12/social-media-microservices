@@ -1,13 +1,11 @@
-﻿using System.Xml.Linq;
-using Domain.DTOs;
+﻿using Domain.DTOs;
 using Domain.IRepository;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.WebUtilities;
 using Service.Interfaces.CommentServices;
 
 namespace Web.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/public/[controller]")]
     [ApiController]
     public class CommentController : ControllerBase
     {
@@ -19,23 +17,12 @@ namespace Web.Controllers
             _commentService = commentService;
         }
 
-        [HttpGet("{postId}")]
-        public async Task<IActionResult> Get(
-            [FromRoute] string postId,
-            [FromQuery] string? next = null)
-        {
-            var comments = await _commentService.ListCommentsAsync(postId, next);
-
-            return Ok(comments);
-        }
-
-
         [HttpPost]
         public async Task<IActionResult> Create(
         [FromForm] CreateCommentRequestDto createCommentRequestDto,
         [FromHeader(Name = "userId")] string userId)
         {
-            createCommentRequestDto.UserId=userId;
+            createCommentRequestDto.UserId = userId;
 
             try
             {
@@ -55,28 +42,28 @@ namespace Web.Controllers
         public async Task<IActionResult> EditComment(
         [FromForm] EditCommentRequestDto editCommentRequestDto,
         [FromHeader(Name = "userId")] string userId)
+        {
+
+            try
             {
-                
-                try
-                {
-                editCommentRequestDto.UserId = userId;        
+                editCommentRequestDto.UserId = userId;
 
-                    var result = await _commentService.UpdateCommentAsync(editCommentRequestDto);
-                    if (result == null)
-                        return NotFound();
+                var result = await _commentService.UpdateCommentAsync(editCommentRequestDto);
+                if (result == null)
+                    return NotFound();
 
-                    return Ok(result);
-                }
-                catch (UnauthorizedAccessException ex)
-                {
-                    return BadRequest(ex.Message);
-                }
+                return Ok(result);
             }
+            catch (UnauthorizedAccessException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
 
 
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(string id, [FromHeader (Name = "userId")] string userId)
+        public async Task<IActionResult> Delete(string id, [FromHeader(Name = "userId")] string userId)
         {
             try
             {
