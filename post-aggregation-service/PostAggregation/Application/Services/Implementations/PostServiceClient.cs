@@ -1,3 +1,4 @@
+using Application.Configuration;
 using Application.DTOs;
 using Application.DTOs.Post;
 using Application.Services.Interfaces;
@@ -8,10 +9,13 @@ namespace Application.Services.Implementations
     public class PostServiceClient : IpostServiceClient
     {
         private readonly HttpClient _httpClient;
+        private readonly PostServiceSettings _settings;
 
-        public PostServiceClient(HttpClient httpClient)
+        public PostServiceClient(HttpClient httpClient, PostServiceSettings settings)
         {
             _httpClient = httpClient;
+            _settings = settings;
+            _httpClient.BaseAddress = new Uri(_settings.BaseUrl);
         }
 
         public async Task<ServiceResponse<PostResponseDTO>> GetPostByIdAsync(string postId)
