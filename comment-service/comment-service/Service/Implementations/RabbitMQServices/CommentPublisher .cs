@@ -4,18 +4,18 @@ using Service.Interfaces.RabbitMQServices;
 
 namespace Service.Implementations.RabbitMQServices
 {
-    public class CommentDeletedPublisher: ICommentDeletedPublisher
+    public class CommentPublisher : ICommentPublisher
     {
         private readonly IRabbitMqPublisher _bus;
         private readonly string _queueName;
 
-        public CommentDeletedPublisher(IRabbitMqPublisher bus, IConfiguration config)
+        public CommentPublisher(IRabbitMqPublisher bus, IConfiguration config)
         {
             _bus = bus;
-            _queueName = config["RabbitMQQueues:CommentDeleted"];
+            _queueName = config["RabbitMQQueues:CommentCreated"];
         }
-
-        public Task PublishAsync(CommentDeletedEvent evt, CancellationToken ct = default)
+        public Task PublishAsync(CommentEvent evt, CancellationToken ct = default)
             => _bus.PublishAsync(evt, _queueName, ct);
+
     }
 }

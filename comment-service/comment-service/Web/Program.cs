@@ -36,16 +36,13 @@ namespace Web
 
             // Register services
             builder.Services.AddScoped<ICommentService, CommentService>();
-            builder.Services.AddScoped<IPostDeletedService, PostDeletedService>();
-            builder.Services.AddScoped<IPostAddedService, PostAddedService>();
+            builder.Services.AddScoped<IPostService, PostService>();
 
             // Register RabbitMQ services
             builder.Services.AddSingleton<IRabbitMqPublisher, RabbitMqPublisher>();
-            builder.Services.AddSingleton<ICommentCreatedPublisher, CommentCreatedPublisher>();
-            builder.Services.AddSingleton<ICommentDeletedPublisher, CommentDeletedPublisher>();
+            builder.Services.AddSingleton<ICommentPublisher, CommentPublisher>();
 
-            builder.Services.AddSingleton<IPostDeletedListener, PostDeletedListener>();
-            builder.Services.AddSingleton<IPostAddedListener, PostAddedListener>();
+            builder.Services.AddSingleton<IPostListener, PostListener>();
 
             //builder.Services.AddHostedService<RabbitMqWorker>();
 

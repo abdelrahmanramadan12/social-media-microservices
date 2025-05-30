@@ -1,4 +1,5 @@
-﻿using Domain.DTOs;
+﻿using System.Linq.Expressions;
+using Domain.DTOs;
 using Domain.Entities;
 using Domain.Events;
 using Domain.IRepository;
@@ -12,14 +13,12 @@ namespace Service.Implementations.CommentServices
     {
         private readonly ICommentRepository _commentRepository;
         private readonly IPostRepository _postRepository;
-        private readonly ICommentDeletedPublisher _commentDeletedPublisher;
-        private readonly ICommentCreatedPublisher _commentCreatedPublisher;
+        private readonly ICommentPublisher _commentPublisher;
 
-        public CommentService(ICommentRepository commentRepository, ICommentDeletedPublisher commentDeletedPublisher, ICommentCreatedPublisher commentCreatedPublisher)
+        public CommentService(ICommentRepository commentRepository, ICommentPublisher commentPublisher)
         {
             _commentRepository = commentRepository;
-            _commentDeletedPublisher = commentDeletedPublisher;
-            _commentCreatedPublisher = commentCreatedPublisher;
+            _commentPublisher = commentPublisher;
         }
 
         public async Task<PagedCommentsDto> ListCommentsAsync(string postId, string? nextCommentId = null)
@@ -84,15 +83,19 @@ namespace Service.Implementations.CommentServices
             var post = await _postRepository.GetPostByIdAsync(comment.PostId);
 
             // Notify the post service about the new comment
-            await _commentCreatedPublisher.PublishAsync(new CommentCreatedEvent
+            await _commentPublisher.PublishAsync(new CommentEvent
             {
-                PostId = comment.PostId,
-                Content = comment.Content,
-                MediaURL = comment?.MediaUrl,
-                CommentAuthorId = comment.AuthorId,
-                CreatedAt = comment.CreatedAt,
-                PostAuthorId = post.AuthorId,
-                IsEdited = false
+                EventType = CommentEventType.Created,
+                Data = new CommentData
+                {
+
+                    CommentId = comment.Id.ToString(),
+                    PostId = comment.PostId,
+                    CommentAuthorId = comment.AuthorId,
+                    Content = comment.Content ?? "",
+                    CreatedAt = comment.CreatedAt,
+                    PostAuthorId= post?.AuthorId ?? string.Empty   
+                }
             });
 
             return ToDto(comment);
@@ -130,9 +133,16 @@ namespace Service.Implementations.CommentServices
             await _commentRepository.DeleteAsync(commentId);
 
             // Notify the post service about the deleted comment
-            await _commentDeletedPublisher.PublishAsync(new CommentDeletedEvent
+            await _commentPublisher.PublishAsync(new CommentEvent
             {
-                PostId = comment.PostId,
+
+                EventType = CommentEventType.Deleted,
+                Data = new CommentData
+                {
+                    CommentId = comment.Id.ToString(),
+                    PostId = comment.PostId,
+                }
+
             });
             return true;
         }
