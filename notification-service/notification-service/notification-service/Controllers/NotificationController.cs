@@ -11,26 +11,26 @@ namespace notification_service.Controllers
     {
         private readonly INotificationService _notificationService = notificationService;
 
-        [HttpGet]
-        public IActionResult GetNotificationsByType([FromHeader(Name = "userId")] string userId, [FromQuery] NotificationEntity notificationType)
-        {
-            _notificationService.GetNotificationsByType(userId, notificationType);
-            return Ok();
-        }
+        //[HttpGet]
+        //public IActionResult GetNotificationsByType([FromHeader(Name = "userId")] string userId, [FromQuery] NotificationEntity notificationType)
+        //{
+        //    _notificationService.GetNotificationsByType(userId, notificationType);
+        //    return Ok();
+        //}
 
-        [HttpGet]
-        public IActionResult GetUnreadNotifications([FromHeader(Name = "userId")] string userId, NotificationEntity notificationEntity)
-        {
-            var unreadNotifications = _notificationService.UnreadNotifications(userId, notificationEntity); // Example usage of the service
-            return Ok(unreadNotifications);
-        }
+        //[HttpGet]
+        //public IActionResult GetUnreadNotifications([FromHeader(Name = "userId")] string userId, NotificationEntity notificationEntity)
+        //{
+        //    var unreadNotifications = _notificationService.UnreadNotifications(userId, notificationEntity); // Example usage of the service
+        //    return Ok(unreadNotifications);
+        //}
 
-        [HttpGet]
-        public IActionResult GetUnreadNotificationCount([FromHeader(Name = "userId")] string userId, NotificationEntity notificationEntity)
-        {
-            var unreadCount = _notificationService.UnreadNotifications(userId, notificationEntity).Count;
-            return Ok(unreadCount);
-        }
+        //[HttpGet]
+        //public IActionResult GetUnreadNotificationCount([FromHeader(Name = "userId")] string userId, NotificationEntity notificationEntity)
+        //{
+        //    var unreadCount = _notificationService.UnreadNotifications(userId, notificationEntity).Count;
+        //    return Ok(unreadCount);
+        //}
 
 
         [HttpPost("mark-all-notifications-as-read")]
@@ -65,9 +65,8 @@ namespace notification_service.Controllers
             return Ok();
         }
 
-        [HttpGet]
-        public IActionResult GetNotificationTypes()
-                                                     => Ok(_notificationService.GetNotificationTypes());
+        [HttpGet("get-notifications-types")]
+        public IActionResult GetNotificationTypes() => Ok(_notificationService.GetNotificationTypes());
 
 
     }
