@@ -25,7 +25,7 @@ namespace Presentation.Controllers.Public
                 return HandleServiceError(res);
             }
 
-            return CreatedAtAction("Create", new { res.DataItem });
+            return Created($"api/public/posts/{res.DataItem.PostId}", res.DataItem);
         }
 
         [HttpPut]

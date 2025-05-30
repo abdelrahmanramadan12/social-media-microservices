@@ -22,8 +22,9 @@ namespace Application.Services
             MappingResult<PostResponseDTO> mappingResult = new MappingResult<PostResponseDTO>();
 
             // Mapping Media
-            if (post.MediaList.Count() > 0)
+            if (post.MediaList != null && post.MediaList.Count() > 0)
             {
+                postResponseDTO.MediaUrls = new List<string>();
                 post.MediaList.ForEach(media =>
                 {
                     postResponseDTO.MediaUrls.Add(media.MediaUrl);
@@ -49,7 +50,7 @@ namespace Application.Services
             var mediaUploadResponse = new MediaUploadResponse();
             var mediaUploadRequest = new MediaUploadRequest();
 
-            if ((!postInputDTO.HasMedia) || (postInputDTO.Media.Count() <= 0))
+            if (!postInputDTO.HasMedia || postInputDTO.Media == null || !postInputDTO.Media.Any())
             {
                 mediaUploadResponse.Success = false;
                 return mediaUploadResponse;
@@ -92,7 +93,7 @@ namespace Application.Services
         {
             var response = new ServiceResponse<Post>();
 
-            var existingMediaUrls = postToUpdate.MediaList.Select(m => m.MediaUrl).ToList();
+            var existingMediaUrls = postToUpdate.MediaList?.Select(m => m.MediaUrl).ToList() ?? new List<string>();
             var inputMediaUrls = postInputDto.MediaUrls ?? new List<string>();
             var urlsToBeDeleted = existingMediaUrls
                 .Where(url => !inputMediaUrls.Contains(url))
@@ -100,8 +101,8 @@ namespace Application.Services
 
             bool hasNewMedia = postInputDto.Media != null && postInputDto.Media.Any();
             bool hasDeletedMedia = urlsToBeDeleted.Any();
-            bool isMediaListEmpty = !postToUpdate.MediaList.Any();
-            bool mediaTypeChanged = postToUpdate.MediaList.Any() &&
+            bool isMediaListEmpty = postToUpdate.MediaList == null || !postToUpdate.MediaList.Any();
+            bool mediaTypeChanged = postToUpdate.MediaList != null && postToUpdate.MediaList.Any() &&
                                      postInputDto.MediaType != postToUpdate.MediaList.First().MediaType;
 
             // Case 1: No new media submitted

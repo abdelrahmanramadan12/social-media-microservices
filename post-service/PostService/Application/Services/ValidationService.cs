@@ -41,7 +41,7 @@ namespace Application.Services
                 return result;
             }
 
-            if (postInputDto.AuthorId != userId)
+            if (post.AuthorId != userId)
             {
                 result.Errors.Add("Invalid Operation! you don't have the permession to edit this postInputDto!");
                 result.ErrorType = ErrorType.UnAuthorized;

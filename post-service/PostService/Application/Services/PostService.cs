@@ -32,7 +32,7 @@ namespace Application.Services
                 res.ErrorType = validationResult.ErrorType;
                 return res;
             }
-            post.AuthorId = postInputDto.AuthorId;
+            post.AuthorId = userId;
             post.Content = postInputDto.Content;
             post.Privacy = postInputDto.Privacy;
 
@@ -67,14 +67,15 @@ namespace Application.Services
             }
 
             // Map Post => PostResponse
-            MappingResult<PostResponseDTO> mappingResult =  _helperService.MapPostToPostResponseDto(post);
+            MappingResult<PostResponseDTO> mappingResult = _helperService.MapPostToPostResponseDto(post);
             if (!mappingResult.Success)
             {
                 res.Errors = mappingResult.Errors;
+                res.ErrorType = mappingResult.ErrorType;
                 return res;
             }
-            res.DataItem = mappingResult.Item;
 
+            res.DataItem = mappingResult.Item;
             return res;
         }
 

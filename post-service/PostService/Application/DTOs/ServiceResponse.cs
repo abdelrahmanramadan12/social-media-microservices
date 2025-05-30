@@ -19,8 +19,8 @@ namespace Application.DTOs
     {
         public T DataItem { get; set; }
         public List<T> DataList { get; set; }
-        public bool IsValid => Errors.Count > 0;
-        public ErrorType ErrorType { get; set; }
+        public bool IsValid => !Errors.Any();
+        public ErrorType ErrorType { get; set; } = ErrorType.None;
         public List<string> Errors { get; set; } = new List<string>();
     }
 }
