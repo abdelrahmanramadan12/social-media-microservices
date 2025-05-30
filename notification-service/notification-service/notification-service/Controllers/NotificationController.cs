@@ -101,7 +101,8 @@ namespace notification_service.Controllers
 
         #endregion
 
-       
+        //for testing purposes
+
         #region MarkNotificationsAsRead
         [HttpPut]
         public IActionResult MarkFollowingNotificationAsRead([FromHeader(Name = "userId")] string userId, [FromQuery] string notificationId)
