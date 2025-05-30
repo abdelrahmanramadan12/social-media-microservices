@@ -1,5 +1,6 @@
 ﻿using Domain.Enums;
 using Domain.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Newtonsoft.Json;
 using StackExchange.Redis;
@@ -117,6 +118,11 @@ namespace Infrastructure.Repositories
         {
             throw new NotImplementedException();
         }
+        //public async Task<List<T>> GetWhereAsync(Expression<Func<T, bool>> predicate)
+        //{
+        //    var all = await GetAll();
+        //    return [.. all.Where(predicate.Compile())];
+        //}
 
         private string GetRedisKey(string id)
         {

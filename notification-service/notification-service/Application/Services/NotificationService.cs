@@ -12,124 +12,36 @@ using System.Threading.Tasks;
 
 namespace Application.Services
 {
-
     public class NotificationService(IUnitOfWork unitOfWork1) : INotificationService
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork1;
 
-        // add source user Id
-        public List<NotificationsDTO> GetNotificationsByType(string userId, NotificationEntity notificationType)
+        #region GetNotifications
+        public List<NotificationsDTO> GetAllNotifications(string userId)
         {
             List<NotificationsDTO> notificationDto = [];
-            if (string.IsNullOrEmpty(userId))
+
+            notificationDto.AddRange(GetFollowNotification(userId));
+            notificationDto.AddRange(GetCommentNotification(userId));
+            notificationDto.AddRange(GetReactionNotification(userId));
+            if (notificationDto.Count == 0)
                 return [];
-           
-            if (notificationType == NotificationEntity.All)
-            {
 
-                //////////////////////////////////////////////////////////////////////////////////////////////////
-                //////////////////////////////////////////// Following ///////////////////////////////////////////
-                //////////////////////////////////////////////////////////////////////////////////////////////////
+            return notificationDto;
+        }
+        public List<NotificationsDTO> GetFollowNotification(string userId)
+        {
+            List<NotificationsDTO> notificationDto = [];
 
-                var cachedFollowed = _unitOfWork.CacheRepository<CachedFollowed>()
-                                                                                   .GetAsync(userId);
-                if (cachedFollowed == null)
-                    return [];
-                var FollowedNotifications = cachedFollowed.Result?.Followers;
-                if (FollowedNotifications == null || FollowedNotifications.Count == 0)
-                    return [];
-
-                notificationDto = [.. FollowedNotifications.Select(x => new NotificationsDTO
-                {
-                    SourceUserImageUrl = x.ProfileImageUrls,
-                    IsRead=x.Seen,
-                    CreatedTime= DateTime.Now,
-                    EntityId = x.UsersId, // Assuming UsersId is the ID of the user who followed
-                    EntityName = NotificationEntity.Follow,
-                    NotificatoinPreview = $"{x.UserNames} started following you.",
-                    SourceUsername= x.UserNames, // Assuming UserNames is the name of the user who followed
-
-                })];
-
-                //////////////////////////////////////////////////////////////////////////////////////////////////
-                //////////////////////////////////////////// Comments ////////////////////////////////////////////
-                //////////////////////////////////////////////////////////////////////////////////////////////////
-
-                var CachedComments = _unitOfWork.CacheRepository<CachedComments>()
-                                                                                   .GetAsync(userId);
-                if (cachedFollowed == null)
-                    return [];
-                var CommentNotifications = CachedComments.Result?.CommnetDetails;
-                if (CommentNotifications == null || CommentNotifications.Count == 0)
-                    return [];
-
-                notificationDto = [.. CommentNotifications.Select(x => new NotificationsDTO
-                {
-                    SourceUserImageUrl = x.User.ProfileImageUrls,
-                    IsRead=x.User.Seen,
-                    CreatedTime= DateTime.Now,
-                    EntityId = x.CommentId, // Assuming EntityId is the ID of the comment entity
-                    EntityName = NotificationEntity.Comment,
-                    NotificatoinPreview = $"{x.User.UserNames} commented on your post.",
-                    SourceUsername= x.User.UserNames // Assuming UserNames is the name of the user who commented
-                })];
-
-                //////////////////////////////////////////////////////////////////////////////////////////////////
-                /////////////////////////////////////// Reactions on posts ///////////////////////////////////////
-                //////////////////////////////////////////////////////////////////////////////////////////////////
-
-                var CachedReactions = _unitOfWork.CacheRepository<CachedReactions>()
+            var NotificationBasedOnType = _unitOfWork.CacheRepository<CachedFollowed>()
                                                                                   .GetAsync(userId);
-                if (CachedReactions == null)
-                    return [];
-                var ReactionOnPostsNotifications = CachedReactions.Result?.ReactionsOnPosts;
-                if (ReactionOnPostsNotifications == null || ReactionOnPostsNotifications.Count == 0)
-                    return [];
+            if (NotificationBasedOnType == null)
+                return [];
+            var FollowedNotifications = NotificationBasedOnType.Result?.Followers;
+            if (FollowedNotifications == null || FollowedNotifications.Count == 0)
+                return [];
 
-
-                notificationDto.AddRange([.. ReactionOnPostsNotifications.Select(x => new NotificationsDTO
-                {
-                    SourceUserImageUrl = x.User.ProfileImageUrls,
-                    IsRead=x.User.Seen,
-                    CreatedTime= DateTime.Now,
-                    EntityId = x.PostId, // Assuming EntityId is the ID of the reaction entity
-                    EntityName = NotificationEntity.React,
-                    NotificatoinPreview = $"{x.User.UserNames} reacted to your post.",
-                    SourceUsername= x.User.UserNames // Assuming UserNames is the name of the user who reacted
-                })]);
-
-                //////////////////////////////////////////////////////////////////////////////////////////////////
-                /////////////////////////////////////// Reactions on comment /////////////////////////////////////
-                //////////////////////////////////////////////////////////////////////////////////////////////////
-
-                var ReactionOnCommentNotifications = CachedReactions.Result?.ReactionsOnComments;
-
-                if (ReactionOnCommentNotifications == null || ReactionOnCommentNotifications.Count == 0)
-                    return [];
-
-                notificationDto.AddRange(ReactionOnCommentNotifications?.Select(x => new NotificationsDTO
-                {
-                    SourceUserImageUrl = x.User.ProfileImageUrls,
-                    IsRead = x.User.Seen,
-                    CreatedTime = DateTime.Now,
-                    EntityId = x.CommentId, // Assuming EntityId is the ID of the comment entity
-                    EntityName = NotificationEntity.React,
-                    NotificatoinPreview = $"{x.User.UserNames} reacted to your comment.",
-                    SourceUsername = x.User.UserNames // Assuming UserNames is the name of the user who reacted
-                }).ToList() ?? []);
-            }
-
-            else if (notificationType == NotificationEntity.Follow)
-            {
-                var NotificationBasedOnType = _unitOfWork.CacheRepository<CachedFollowed>()
-                                                                                    .GetAsync(userId);
-                if (NotificationBasedOnType == null)
-                    return [];
-                var FollowedNotifications = NotificationBasedOnType.Result?.Followers;
-                if (FollowedNotifications == null || FollowedNotifications.Count == 0)
-                    return [];
-
-                notificationDto = [.. FollowedNotifications.Select(x => new NotificationsDTO
+            notificationDto = [.. FollowedNotifications.Select(x => new NotificationsDTO
                 {
                     SourceUserImageUrl = x.ProfileImageUrls,
                     IsRead=x.Seen,
@@ -140,19 +52,20 @@ namespace Application.Services
                     SourceUsername= x.UserNames // Assuming UserNames is the name of the user who followed
 
                 })];
-                return notificationDto;
-            }
+            return notificationDto;
+        }
+        public List<NotificationsDTO> GetCommentNotification(string userId)
+        {
+            List<NotificationsDTO> notificationDto = [];
 
-            else if (notificationType == NotificationEntity.Comment)
-            {
-                var NotificationBasedOnType = _unitOfWork.CacheRepository<CachedComments>()
-                                                                                    .GetAsync(userId);
-                if (NotificationBasedOnType == null)
-                    return [];
-                var CommentNotifications = NotificationBasedOnType.Result?.CommnetDetails;
-                if (CommentNotifications == null || CommentNotifications.Count == 0)
-                    return [];
-                notificationDto = [.. CommentNotifications.Select(x => new NotificationsDTO
+            var NotificationBasedOnType = _unitOfWork.CacheRepository<CachedComments>()
+                                                                                   .GetAsync(userId);
+            if (NotificationBasedOnType == null)
+                return [];
+            var CommentNotifications = NotificationBasedOnType.Result?.CommnetDetails;
+            if (CommentNotifications == null || CommentNotifications.Count == 0)
+                return [];
+            notificationDto = [.. CommentNotifications.Select(x => new NotificationsDTO
                 {
                     SourceUserImageUrl = x.User.ProfileImageUrls,
                     IsRead=x.User.Seen,
@@ -162,20 +75,21 @@ namespace Application.Services
                     NotificatoinPreview = $"{x.User.UserNames} commented on your post.",
                     SourceUsername= x.User.UserNames // Assuming UserNames is the name of the user who commented
                 })];
-                return notificationDto;
-            }
+            return notificationDto;
+        }
+        public List<NotificationsDTO> GetReactionNotification(string userId)
+        {
+            List<NotificationsDTO> notificationDto = [];
 
-            else if (notificationType == NotificationEntity.React)
-            {
-                var NotificationBasedOnType = _unitOfWork.CacheRepository<CachedReactions>()
-                                                                                    .GetAsync(userId);
-                if (NotificationBasedOnType == null)
-                    return [];
-                var ReactionOnPostsNotifications = NotificationBasedOnType.Result?.ReactionsOnPosts;
-                if (ReactionOnPostsNotifications == null || ReactionOnPostsNotifications.Count == 0)
-                    return [];
-                
-                notificationDto = [.. ReactionOnPostsNotifications.Select(x => new NotificationsDTO
+            var NotificationBasedOnType = _unitOfWork.CacheRepository<CachedReactions>()
+                                                                                  .GetAsync(userId);
+            if (NotificationBasedOnType == null)
+                return [];
+            var ReactionOnPostsNotifications = NotificationBasedOnType.Result?.ReactionsOnPosts;
+            if (ReactionOnPostsNotifications == null || ReactionOnPostsNotifications.Count == 0)
+                return [];
+
+            notificationDto = [.. ReactionOnPostsNotifications.Select(x => new NotificationsDTO
                 {
                     SourceUserImageUrl = x.User.ProfileImageUrls,
                     IsRead=x.User.Seen,
@@ -186,30 +100,181 @@ namespace Application.Services
                     SourceUsername= x.User.UserNames // Assuming UserNames is the name of the user who reacted
                 })];
 
-                var ReactionOnCommentNotifications = NotificationBasedOnType.Result?.ReactionsOnComments;
-                var ReactionOnCommentDto = ReactionOnCommentNotifications?.Select(x => new NotificationsDTO
+            var ReactionOnCommentNotifications = NotificationBasedOnType.Result?.ReactionsOnComments;
+            var ReactionOnCommentDto = ReactionOnCommentNotifications?.Select(x => new NotificationsDTO
+            {
+                SourceUserImageUrl = x.User.ProfileImageUrls,
+                IsRead = x.User.Seen,
+                CreatedTime = DateTime.Now,
+                EntityId = x.CommentId, // Assuming EntityId is the ID of the comment entity
+                EntityName = NotificationEntity.React,
+                NotificatoinPreview = $"{x.User.UserNames} reacted to your comment.",
+                SourceUsername = x.User.UserNames // Assuming UserNames is the name of the user who reacted
+            }).ToList() ?? [];
+
+            notificationDto.AddRange(ReactionOnCommentDto);
+
+            return notificationDto;
+        }
+        #endregion
+
+        #region GetUnreadNotifications
+        public List<NotificationsDTO> GetAllUnseenNotification(string userId)
+        {
+            List<NotificationsDTO> notificationDto = [];
+            notificationDto.AddRange(GetUnreadFollowedNotifications(userId));
+            notificationDto.AddRange(GetUnreadCommentNotifications(userId));
+            notificationDto.AddRange(GetUnreadReactionsNotifications(userId));
+            if (notificationDto.Count == 0)
+                return [];
+            return notificationDto;
+        }
+        public List<NotificationsDTO> GetUnreadFollowedNotifications(string userId)
+        {
+            List<NotificationsDTO> notificationDto = [];
+
+            var NotificationBasedOnType = _unitOfWork.CacheRepository<CachedFollowed>()
+                                                                                               .GetAsync(userId);
+            if (NotificationBasedOnType == null)
+                return [];
+            var FollowedNotifications = NotificationBasedOnType.Result?.Followers;
+            if (FollowedNotifications == null || FollowedNotifications.Count == 0)
+                return [];
+
+            var UnseenFollowedNotifications = FollowedNotifications.Where(x => x.Seen == false).ToList();
+
+            notificationDto = [..UnseenFollowedNotifications.Select(x => new NotificationsDTO
+                {
+                    SourceUserImageUrl = x.ProfileImageUrls,
+                    IsRead = x.Seen,
+                    CreatedTime = DateTime.Now,
+                    EntityId = x.UsersId, // Assuming UsersId is the ID of the user who followed
+                    EntityName = NotificationEntity.Follow,
+                    NotificatoinPreview = $"{x.UserNames} started following you.",
+                    SourceUsername = x.UserNames // Assuming UserNames is the name of the user who followed
+
+                })];
+            return notificationDto;
+        }
+        public List<NotificationsDTO> GetUnreadCommentNotifications(string userId)
+        {
+            List<NotificationsDTO> notificationDto = [];
+            var NotificationBasedOnType = _unitOfWork.CacheRepository<CachedComments>()
+                                                                                   .GetAsync(userId);
+            if (NotificationBasedOnType == null)
+                return [];
+            var CommentNotifications = NotificationBasedOnType.Result?.CommnetDetails.Where(x => x.User.Seen == false).ToList();
+            if (CommentNotifications == null || CommentNotifications.Count == 0)
+                return [];
+            notificationDto = [..CommentNotifications.Select(x => new NotificationsDTO
                 {
                     SourceUserImageUrl = x.User.ProfileImageUrls,
                     IsRead = x.User.Seen,
                     CreatedTime = DateTime.Now,
                     EntityId = x.CommentId, // Assuming EntityId is the ID of the comment entity
+                    EntityName = NotificationEntity.Comment,
+                    NotificatoinPreview = $"{x.User.UserNames} commented {x.Content[..Math.Min(20,x.Content.Length)]} on your post.",
+                    SourceUsername = x.User.UserNames // Assuming UserNames is the name of the user who commented
+                })];
+            return notificationDto;
+
+        }
+        public List<NotificationsDTO> GetUnreadReactionsNotifications(string userId)
+        {
+            List<NotificationsDTO> notificationDto = [];
+            var NotificationBasedOnType = _unitOfWork.CacheRepository<CachedReactions>()
+                                                                                .GetAsync(userId);
+            if (NotificationBasedOnType == null)
+                return [];
+            var UnseenReactionOnPostsNotifications = NotificationBasedOnType.Result?.ReactionsOnPosts
+                                                                                                    .Where(x => x.User.Seen == false).ToList();
+            if (UnseenReactionOnPostsNotifications == null || UnseenReactionOnPostsNotifications.Count == 0)
+                return [];
+
+            notificationDto = [.. UnseenReactionOnPostsNotifications.Select(x => new NotificationsDTO
+                {
+                    SourceUserImageUrl = x.User.ProfileImageUrls,
+                    IsRead=x.User.Seen,
+                    CreatedTime= DateTime.Now,
+                    EntityId = x.PostId, // Assuming EntityId is the ID of the reaction entity
                     EntityName = NotificationEntity.React,
-                    NotificatoinPreview = $"{x.User.UserNames} reacted to your comment.",
-                    SourceUsername = x.User.UserNames // Assuming UserNames is the name of the user who reacted
-                }).ToList() ?? [];
+                    NotificatoinPreview = $"{x.User.UserNames} reacted to your post.",
+                    SourceUsername= x.User.UserNames // Assuming UserNames is the name of the user who reacted
+                })];
 
-                notificationDto.AddRange(ReactionOnCommentDto);
+            var UnseenReactionOnCommentNotifications = NotificationBasedOnType.Result?.ReactionsOnComments
+                                                                                                        .Where(x => x.User.Seen == false).ToList();
 
-                return notificationDto;
+            var ReactionOnCommentDto = UnseenReactionOnCommentNotifications?.Select(x => new NotificationsDTO
+            {
+                SourceUserImageUrl = x.User.ProfileImageUrls,
+                IsRead = x.User.Seen,
+                CreatedTime = DateTime.Now,
+                EntityId = x.CommentId, // Assuming EntityId is the ID of the comment entity
+                EntityName = NotificationEntity.React,
+                NotificatoinPreview = $"{x.User.UserNames} reacted to your comment.",
+                SourceUsername = x.User.UserNames // Assuming UserNames is the name of the user who reacted
+            }).ToList() ?? [];
 
-            }
+            notificationDto.AddRange(ReactionOnCommentDto);
 
-            throw new ArgumentException("Invalid notification type provided.");
+            return notificationDto;
+
+        }
+        #endregion
+
+        #region MarkNotificationsAsRead
+        public async Task<bool> MarkFollowingNotificationAsRead(string userId, string notificationId)
+        {
+            var NotificationBasedOnType = _unitOfWork.CacheRepository<CachedFollowed>()
+                                                                                .GetAsync(userId).Result;
+            if (NotificationBasedOnType == null)
+                return false;
+
+            var FollowedNotifications = NotificationBasedOnType?.Followers;
+
+            if (FollowedNotifications == null || FollowedNotifications.Count == 0)
+                return false;
+
+
+            var notification = FollowedNotifications.FirstOrDefault(x => x.Id == notificationId);
+            notification!.Seen = true; // Mark the notification as read
+            await _unitOfWork.CacheRepository<CachedFollowed>().UpdateAsync(NotificationBasedOnType!, notificationId);
+
+            return true;
+        }
+        public async Task<bool> MarkCommentNotificationAsRead(string userId, string notificationId)
+        {
+            var NotificationBasedOnType = _unitOfWork.CacheRepository<CachedComments>()
+                                                                                   .GetAsync(userId).Result;
+            if (NotificationBasedOnType == null)
+                return false;
+            var CommentNotifications = NotificationBasedOnType?.CommnetDetails;
+            if (CommentNotifications == null || CommentNotifications.Count == 0)
+                return false;
+            var notification = CommentNotifications.FirstOrDefault(x => x.User.Id == notificationId);
+            notification!.User.Seen = true; // Mark the notification as read
+            await _unitOfWork.CacheRepository<CachedComments>().UpdateAsync(NotificationBasedOnType!, notificationId);
+            return true;
+
         }
 
-        public List<NotificationsDTO> UnreadNotifications(string userId, NotificationEntity notificationEntity)
+        public async Task<bool> MarkReactionNotificationAsRead(string userId, string notificationId)
         {
-            return new List<NotificationsDTO>();
+            var NotificationBasedOnType = _unitOfWork.CacheRepository<CachedReactions>()
+                                                                                  .GetAsync(userId).Result;
+            if (NotificationBasedOnType == null)
+                return false;
+
+            var ReactionOnPostsNotifications = NotificationBasedOnType?.ReactionsOnPosts;
+            if (ReactionOnPostsNotifications == null || ReactionOnPostsNotifications.Count == 0)
+                return await MarkCommentNotificationAsRead(userId, notificationId); // Fallback to comment notification if no post reactions found
+
+
+            var notification = ReactionOnPostsNotifications.FirstOrDefault(x => x.User.Id == notificationId);
+            notification!.User.Seen = true; // Mark the notification as read
+            await _unitOfWork.CacheRepository<CachedReactions>().UpdateAsync(NotificationBasedOnType!, notificationId);
+            return true;
         }
 
 
@@ -252,6 +317,8 @@ namespace Application.Services
                  
 
         }
+        #endregion
+
         public async Task<bool> MarkNotificationsCommentAsRead(string userId,string CommentId)
         {
 
