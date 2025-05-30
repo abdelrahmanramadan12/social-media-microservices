@@ -9,12 +9,12 @@ namespace react_service.Application.Interfaces.Repositories
 {
     public interface IReactionPostRepository
     {
-        Task<List<ReactionPost>> GetReactsOfPostAsync(string postId, string  nextReactIdHash);
-        Task<string> CreateReaction(ReactionPost reaction);
+        Task<List<string>> FilterPostsReactedByUserAsync(List<string> postIds, string userId);
+        Task<List<ReactionPost>> GetReactsOfPostAsync(string postId, string nextReactIdHash);
+        Task<List<ReactionPost>> GetPostsReactedByUserAsync(string userId, string nextReactIdHash);
         Task<bool> DeleteReactionAsync(string postId, string userId);
-        public Task<bool> DeleteReactionsByPostId(string postId);
-
-        public Task<List<string>> FilterPostsReactedByUserAsync(List<string> postIds, string userId);
+        Task<string> AddReactionAsync(ReactionPost reaction);
+        Task<bool> DeleteReactionsByPostId(string postId);
 
 
     }

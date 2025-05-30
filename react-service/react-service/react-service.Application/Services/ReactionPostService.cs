@@ -75,7 +75,7 @@ namespace react_service.Application.Services
             //var newReaction = new ReactionPublishDTO { PostId = reation.PostId, ReactorId = userId, EventType = EventType.ReactionPostCreated };
             //reactionPublisher.Publish(newReaction);
             reactionObj.UserId = userId;
-            return await reactionRepository.CreateReaction(reactionObj);
+            return await reactionRepository.AddReactionAsync(reactionObj);
         }
 
         public async Task<bool> DeleteReactionAsync(string postId, string userId)
@@ -96,6 +96,31 @@ namespace react_service.Application.Services
 
 
         }
+        public async Task<PagedReactsResponse> GetPostsReactedByUserAsync(string userId, string? nextReactIdHash)
+        {
+            string lastSeenId;
+            if (nextReactIdHash == null || nextReactIdHash?.Trim() == "")
+            {
+                lastSeenId = "";
+            }
+            else
+            {
+                lastSeenId = PaginationHelper.DecodeCursor(nextReactIdHash!);
+            }
+
+            var reactionList = (await reactionRepository.GetPostsReactedByUserAsync(userId, lastSeenId)).ToList();
+
+            bool hasMore = reactionList.Count > (paginationSetting.Value.DefaultPageSize - 1);
+
+            var response = mapper.Map<PagedReactsResponse>(reactionList);
+
+            var lastId = hasMore ? reactionList.Last().Id : null;
+            response.HasMore = hasMore;
+            response.NextCursor = lastId != null ? PaginationHelper.GenerateCursor(lastId) : null;
+
+            return response;
+        }
+
         public async Task<bool> DeleteReactionsByPostId(string postId)
         {
             #region validation

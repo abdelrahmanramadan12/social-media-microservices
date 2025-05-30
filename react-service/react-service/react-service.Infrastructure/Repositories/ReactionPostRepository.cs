@@ -78,7 +78,29 @@ namespace react_service.Infrastructure.Repositories
             return await _collection.Find(r => r.PostId == postId).FirstOrDefaultAsync();
         }
 
-        public async Task<string> CreateReaction(ReactionPost reaction)
+        public async Task<List<ReactionPost>> GetPostsReactedByUserAsync(string userId, string nextReactIdHash)
+        {
+            var filterBuilder = Builders<ReactionPost>.Filter;
+            var filters = new List<FilterDefinition<ReactionPost>>
+            {
+                filterBuilder.Eq(r => r.UserId, userId)
+            };
+
+            if (!string.IsNullOrEmpty(nextReactIdHash))
+            {
+                filters.Add(filterBuilder.Lt(r => r.Id, nextReactIdHash));
+            }
+
+            var filter = filterBuilder.And(filters);
+
+            return await _collection
+                .Find(filter)
+                .SortByDescending(r => r.PostCreatedTime)
+                .Limit(PaginationSetting.Value.DefaultPageSize)
+                .ToListAsync();
+        }
+
+        public async Task<string> AddReactionAsync(ReactionPost reaction)
         {
             // var session = await mongoClient.StartSessionAsync(); 
 

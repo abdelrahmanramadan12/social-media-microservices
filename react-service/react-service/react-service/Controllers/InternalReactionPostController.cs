@@ -30,6 +30,17 @@ namespace react_service.Controllers
             return Ok(reactedPosts);
         }   
 
+        [HttpGet("user/{userId}")]
+        public async Task<IActionResult> GetPostsReactedByUser(string userId, [FromQuery] string? nextReactIdHash)
+        {
+            if (string.IsNullOrEmpty(userId))
+            {
+                return BadRequest("User ID cannot be null or empty.");
+            }
+            var result = await _reactionService.GetPostsReactedByUserAsync(userId, nextReactIdHash);
+            return Ok(result);
+        }
+
         [HttpPost]
         public async Task<IActionResult> GetReactsOfPost([FromBody] GetReactsOfPostRequest request)
         {
@@ -40,5 +51,7 @@ namespace react_service.Controllers
             var result = await _reactionService.GetReactsOfPostAsync(request.PostId, request.NextReactIdHash);
             return Ok(result);
         }
+
+        
     }
 }
