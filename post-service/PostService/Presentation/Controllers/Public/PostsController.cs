@@ -18,11 +18,10 @@ namespace Presentation.Controllers.Public
 
 
         // Endpoints
-
         [HttpGet("{postId}")]
-        public async Task<IActionResult> GetPost(string postId, [FromHeader(Name = "userId")] string userId)
+        public async Task<IActionResult> GetPost(string postId)
         {
-            ServiceResponse<PostResponseDTO> res = await _postService.GetPostByIdAsync(userId, postId);
+            ServiceResponse<PostResponseDTO> res = await _postService.GetPostByIdAsync(postId);
             if (!res.IsValid)
             {
                 return HandleServiceError(res);
@@ -31,7 +30,7 @@ namespace Presentation.Controllers.Public
         }
 
         [HttpGet("user/{profileUserId}")]
-        public async Task<IActionResult> GetProfilePostList(string profileUserId, [FromHeader(Name = "userId")] string userId, [FromQuery] string? next)
+        public async Task<IActionResult> GetProfilePostList(string profileUserId, [FromBody] string userId, [FromBody] string? next)
         {
             // Encrypt the Key if exists
             if (!string.IsNullOrWhiteSpace(next))
@@ -54,31 +53,15 @@ namespace Presentation.Controllers.Public
             return Ok(new { data = res.DataList, next = (string?)null });
         }
 
-        [HttpGet("reacted")]
-        public async Task<IActionResult> GetReactedPostList([FromHeader(Name = "userId")] string userId, [FromQuery] string? next)
+        [HttpGet]
+        public async Task<IActionResult> GetPostList([FromBody] string userId, [FromBody] List<string> PostIds)
         {
-            // Encrypt the Key if exists
-            if (!string.IsNullOrWhiteSpace(next))
-                next = _encryptionService.Decrypt(next);
-
-            const int pageSize = 15 + 1;
-            ServiceResponse<PostResponseDTO> res = await _postService.GetReactedPostListAsync(userId, pageSize, next);
+            ServiceResponse<PostResponseDTO> res = await _postService.GetPostListAsync(userId, PostIds);
 
             if (!res.IsValid)
                 return HandleServiceError(res);
 
-            if (res.DataList?.Count >= pageSize)
-            {
-                var lastPost = res.DataList[^1];
-                res.DataList.RemoveAt(res.DataList.Count - 1);
-                string nextPostIdEncrpted = _encryptionService.Encrypt(lastPost.PostId);
-                return Ok(new { data = res.DataList, next = nextPostIdEncrpted });
-            }
-
-            return Ok(new { data = res.DataList, next = (string?)null });
-
-
-            return null!;
+            return Ok(new { data = res.DataList });
         }
 
         [HttpPost]

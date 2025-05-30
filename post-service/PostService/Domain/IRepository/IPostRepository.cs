@@ -14,6 +14,7 @@ namespace Domain.IRepository
 
         // Read
         Task<Post> GetPostAsync(string postId);
+        Task<List<Post>> GetPostList(string userId, List<string> postIds);
 
         // Read List
         Task<List<Post>> GetUserPostsAsync(string userId, int pageSize, string? cursorPostId);

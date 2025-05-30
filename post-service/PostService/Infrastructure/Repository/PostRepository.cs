@@ -69,6 +69,23 @@ namespace Infrastructure.Repository
             return await post.FirstOrDefaultAsync();
         }
 
+        public async Task<List<Post>> GetPostList(string userId, List<string> postIds)
+        {
+            // Create filter for the post IDs
+            var postIdsFilter = Builders<Post>.Filter.In(p => p.Id, postIds);
+            
+            // Combine with not deleted filter
+            var filter = postIdsFilter & NotDeletedFilter;
+
+            // Get all matching posts
+            var posts = await _posts.Find(filter).ToListAsync();
+
+            // Filter out OnlyMe posts where user is not the author
+            return posts.Where(post => 
+                post.Privacy != Privacy.OnlyMe || post.AuthorId == userId
+            ).ToList();
+        }
+
         public async Task<List<Post>> GetUserPostsAsync(string userId, int pageSize, string? cursorPostId)
         {
 

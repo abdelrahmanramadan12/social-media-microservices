@@ -1,6 +1,7 @@
 using Application.DTOs;
 using Application.IServices;
 using Domain.Entities;
+using Domain.Enums;
 using Domain.IRepository;
 using Domain.ValueObjects;
 
@@ -66,7 +67,7 @@ namespace Application.Services
             }
 
             // Map Post => PostResponse
-            MappingResult<PostResponseDTO> mappingResult = await _helperService.MapPostToPostResponseDto(post, post.AuthorId, false, true);
+            MappingResult<PostResponseDTO> mappingResult =  _helperService.MapPostToPostResponseDto(post);
             if (!mappingResult.Success)
             {
                 res.Errors = mappingResult.Errors;
@@ -103,17 +104,10 @@ namespace Application.Services
             return response;
         }
 
-        public async Task<ServiceResponse<PostResponseDTO>> GetPostByIdAsync(string userId, string postId)
+        public async Task<ServiceResponse<PostResponseDTO>> GetPostByIdAsync(string postId)
         {
             var response = new ServiceResponse<PostResponseDTO>();
             var postResponse = new PostResponseDTO();
-
-            if (string.IsNullOrEmpty(userId))
-            {
-                response.ErrorType = ErrorType.BadRequest;
-                response.Errors.Add($"Invalid Request! You are not authorized");
-                return response;
-            }
 
             if (string.IsNullOrEmpty(postId))
             {
@@ -128,19 +122,9 @@ namespace Application.Services
                 response.Errors.Add($"Invalid Request! Post {postId} doesn't or it has been deleted!");
                 return response;
             }
-            var accessResult = await _helperService.CheckPostAccess(userId, post);
-            if (!accessResult.IsValid)
-            {
-                response.Errors = accessResult.Errors;
-                response.ErrorType = accessResult.ErrorType;
-                return response;
-            }
 
             // Mapping -> PostResponseDto
-            // IsLiked ??
-            // Assign the author profile
-
-            var mappingResult = await _helperService.MapPostToPostResponseDto(post, userId, true, true);
+            var mappingResult = _helperService.MapPostToPostResponseDto(post);
             if (!mappingResult.Success)
             {
                 response.Errors = mappingResult.Errors;
@@ -162,37 +146,40 @@ namespace Application.Services
                 response.DataList = new List<PostResponseDTO>();
                 return response;
             }
-            List<string> postIds = profilePosts.Select(profilePostIds => profilePostIds.ToString()).ToList();
 
-
-            var reactedPostListResponsePromise = _helperService.GetReactedPostList(postIds, userId);
-            var profileResponsePromise = _helperService.GetProfilesResponse(new List<string>() { targetUserId });
-
-            var reactedPostListResponse = await reactedPostListResponsePromise;
-            var profileResponse = await profileResponsePromise;
-
-            // GET: fetch the profile of the users
-            if (!reactedPostListResponse.Success)
-            {
-                response.Errors.Add("Failed to load the reactions!");
-                response.ErrorType = ErrorType.InternalServerError;
-                return response;
-            }
-            if (!profileResponse.Success)
-            {
-                response.Errors.Add("Failed to load the user profile!");
-                response.ErrorType = ErrorType.InternalServerError;
-                return response;
-            }
+            // Filter out OnlyMe posts where user is not the author
+            profilePosts = profilePosts.Where(post => 
+                post.Privacy != Privacy.OnlyMe || post.AuthorId == userId
+            ).ToList();
 
             // Aggregate: 
-            response.DataList = _helperService.AgregatePostResponseList(profilePosts, profileResponse.postAuthorProfiles, reactedPostListResponse.ReactedPosts);
+            response.DataList = _helperService.AgregatePostResponseList(profilePosts);
             return response;
         }
 
-        public Task<ServiceResponse<PostResponseDTO>> GetReactedPostListAsync(string userId, int pageSize, string cursorPostId)
+        public async Task<ServiceResponse<PostResponseDTO>> GetPostListAsync(string userId, List<string> PostIds)
         {
-            throw new NotImplementedException();
+            var response = new ServiceResponse<PostResponseDTO>();
+
+            // Validate userId
+            if (string.IsNullOrEmpty(userId))
+            {
+                response.ErrorType = ErrorType.UnAuthorized;
+                response.Errors.Add("Invalid Request! Missing the User Id");
+                return response;
+            }
+
+            response.DataList = new List<PostResponseDTO>();
+            List<Post> reactedPosts = await _postRepository.GetPostList(userId, PostIds);
+            if (reactedPosts == null || !reactedPosts.Any())
+            {
+                response.DataList = new List<PostResponseDTO>();
+                return response;
+            }
+
+            // Map to DTOs
+            response.DataList = _helperService.AgregatePostResponseList(reactedPosts);
+            return response;
         }
 
         public async Task<ServiceResponse<PostResponseDTO>> UpdatePostAsync(string userId, PostInputDTO postInputDto)
@@ -226,7 +213,7 @@ namespace Application.Services
             // Add to the DB
             var updateResult = await _postRepository.UpdatePostAsync(postToUpdate.Id, postToUpdate, postInputDto.HasMedia);
 
-            var postResponseDto = await _helperService.MapPostToPostResponseDto(postToUpdate, postToUpdate.AuthorId, true, true);
+            var postResponseDto = _helperService.MapPostToPostResponseDto(postToUpdate);
             response.DataItem = postResponseDto.Item;
             return response!;
         }
