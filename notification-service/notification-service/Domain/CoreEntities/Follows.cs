@@ -17,5 +17,8 @@ namespace Domain.CoreEntities
         public string MyId { get; set; } = string.Empty;  
 
         public List<string> FollowersId { get; set; } = [];   // List of IDs that follow me
+
+        //  Track notifs which Author read relate to follow entity 
+        public List<string> FollowsNotifReadByAuthor { get; set; } = [];
     }
 }

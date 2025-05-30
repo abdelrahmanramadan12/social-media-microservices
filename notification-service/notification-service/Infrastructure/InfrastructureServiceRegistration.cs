@@ -21,7 +21,6 @@ namespace Infrastructure
             services.AddScoped<IGenericRepository<CachedComments>, CacheGenericRepository<CachedComments>>();
             services.AddScoped<IGenericRepository<CachedReactions>, CacheGenericRepository<CachedReactions>>();
             services.AddScoped<IGenericRepository<CachedFollowed>, CacheGenericRepository<CachedFollowed>>();
-
             return services;
         }
     }

@@ -13,5 +13,10 @@ namespace Domain.CoreEntities
         public List<string> ReactionsOnCommentId { get; set; } = [];
         public List<string> ReactionsOnPostId { get; set; } = [];
 
+        // Tracks if the reaction has been seen by the post/comment owner
+        public List<string> CommentReactionsNotifReadByAuthor { get; set; } = []; // List of reaction items, each containing user ID and reaction type
+
+        public List<string> PostReactionsNotifReadByAuthor { get; set; } = []; // List of reaction items, each containing user ID and reaction type
+
     }
 }

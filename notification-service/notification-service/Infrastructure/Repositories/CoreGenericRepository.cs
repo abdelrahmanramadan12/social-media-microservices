@@ -19,6 +19,12 @@ namespace Infrastructure.Repositories
                                 => await _dbContext.Set<T>().AnyAsync(predicate);
         public async Task<IQueryable<T>> GetAll(string? userID = "", NotificationEntity notificationEntity = NotificationEntity.All)
                                 => await Task.Run(() => _dbContext.Set<T>().AsNoTracking());
+
+        public Task<IQueryable<T>> GetAll(string? userID = "")
+        {
+            throw new NotImplementedException();
+        }
+
         public IEnumerable<T> GetAllIncludingAsync(params Expression<Func<T, object>>[] includes)
         {
             IQueryable<T> query = _dbContext.Set<T>();
@@ -29,6 +35,17 @@ namespace Infrastructure.Repositories
             return [.. query];
         }
         public async Task<T?> GetAsync(int id, string? id2 = "", long number = 0) => await _dbContext.FindAsync<T>(id);
+
+        public Task<T?> GetAsync(string id, string? id2 = "", long number = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<T?> GetSingleAsync(Expression<Func<T, bool>> predicate)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<T?> GetSingleDeepIncludingAsync(Expression<Func<T, bool>> predicate,
                                                             params Func<IQueryable<T>,
                                                             IIncludableQueryable<T, object>>[] includes)
@@ -51,7 +68,11 @@ namespace Infrastructure.Repositories
         }
         public Task UpdateAsync(T Entity, string? ID = "") =>
             Task.Run(() => _dbContext.Set<T>().Update(Entity));
-
+        public async Task AddRangeAsync(IEnumerable<T> entities)
+        {
+            await _dbContext.Set<T>().AddRangeAsync(entities);
+            // Note: This doesn't call SaveChanges - follows your pattern of separate update
+        }
 
     }
 }

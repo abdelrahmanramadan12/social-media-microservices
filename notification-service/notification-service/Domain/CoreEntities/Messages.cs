@@ -17,5 +17,6 @@ namespace Domain.CoreEntities
         public string SourceUserId { get; set; } = string.Empty;
 
         public string DestinationUserId { get; set; } = string.Empty;
+        public bool IsRead { get; set; }  // Indicates if the message has been read    
     }
 }

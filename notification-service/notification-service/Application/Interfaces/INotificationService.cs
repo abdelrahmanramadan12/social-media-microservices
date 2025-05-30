@@ -7,9 +7,12 @@ namespace Application.Interfaces
     {
         List<NotificationsDTO> GetNotificationsByType(string userId, NotificationEntity notificationType);
         List<NotificationsDTO> UnreadNotifications(string userId, NotificationEntity notificationEntity);
-        bool MarkNotificationsAsRead(string userId, string notificationEntity);
-        bool MarkAllNotificationsAsRead(string userId);
-        bool MarkNotificationAsUnread(string userId, string notificationEntity);
-        Task<List<NotificationEntity>> GetNotificationTypes(string userId);
+
+        Task<List<NotificationEntity>> GetNotificationTypes();
+        public Task<bool> MarkAllNotificationsAsRead(string userId);
+        public Task<bool> MarkNotificationsReactionCommentAsRead(string userId, string reactionId);
+        public Task<bool> MarkNotificationsReactionPostAsRead(string userId, string reactionId);
+        public Task<bool> MarkNotificationsCommentAsRead(string userId, string CommentId);
+        public Task<bool> MarkNotificationsFollowAsRead(string userId, string userFollowedId);
     }
 }

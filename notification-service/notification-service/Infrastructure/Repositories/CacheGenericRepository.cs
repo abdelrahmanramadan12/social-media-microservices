@@ -140,5 +140,9 @@ namespace Infrastructure.Repositories
             throw new InvalidOperationException($"Entity of type {typeof(T).Name} must have an identifier property like 'Id', 'UserId', or 'AuthorId'.");
         }
 
+        public Task AddRangeAsync(IEnumerable<T> entities)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

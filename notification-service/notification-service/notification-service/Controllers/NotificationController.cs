@@ -1,6 +1,7 @@
 ﻿using Application.Interfaces;
 using Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
+using System.Runtime.InteropServices;
 
 namespace notification_service.Controllers
 {
@@ -31,23 +32,42 @@ namespace notification_service.Controllers
             return Ok(unreadCount);
         }
 
-        [HttpPut]
-        public IActionResult MarkNotificationAsRead([FromHeader(Name = "userId")] string userId, [FromQuery] string notificationId)
-                                      => Ok(_notificationService.MarkNotificationsAsRead(userId, notificationId));
 
+        [HttpPost("mark-all-notifications-as-read")]
+        public IActionResult MarkAllNotificationsAsRead([FromHeader(Name = "userId")] string userId)
+        {
+            _notificationService.MarkAllNotificationsAsRead(userId);
+            return Ok();
+        }
+        [HttpPost("mark-notifications-reaction-comment-as-read")]
+        public IActionResult MarkNotificationsReactionCommentAsRead([FromHeader(Name = "userId")] string userId, [FromQuery] string reactionId)
+        {
+            _notificationService.MarkNotificationsReactionCommentAsRead(userId, reactionId);
+            return Ok();
+        }
+        [HttpPost("mark-notifications-reaction-post-as-read")]
+        public IActionResult MarkNotificationsReactionPostAsRead([FromHeader(Name = "userId")] string userId, [FromQuery] string  reactionId)
+        {
+            _notificationService.MarkNotificationsReactionPostAsRead(userId,  reactionId);
+            return Ok();
+        }
+        [HttpPost("mark-notifications-comment-as-read")]
 
-        [HttpPut]
-        public IActionResult MarkAllNotificationsAsRead([FromHeader(Name = "userId")] string userId, [FromQuery] string notificationId)
-                                      => Ok(_notificationService.MarkAllNotificationsAsRead(userId));
-
-        [HttpPut]
-        public IActionResult MarkNotificationAsUnread([FromHeader(Name = "userId")] string userId, [FromQuery] string notificationId)
-                                             => Ok(_notificationService.MarkNotificationAsUnread(userId, notificationId));
-
+        public IActionResult MarkNotificationsCommentAsRead([FromHeader(Name = "userId")] string userId, [FromQuery] string commentId)
+        {
+            _notificationService.MarkNotificationsCommentAsRead(userId, commentId);
+            return Ok();
+        }
+        [HttpPost("mark-notifications-follow-as-read")]
+        public IActionResult MarkNotificationsFollowAsRead([FromHeader(Name = "userId")] string userId, [FromQuery] string followerId)
+        {
+            _notificationService.MarkNotificationsFollowAsRead(userId, followerId);
+            return Ok();
+        }
 
         [HttpGet]
-        public IActionResult GetNotificationTypes([FromHeader(Name = "userId")] string userId)
-                                                     => Ok(_notificationService.GetNotificationTypes(userId));
+        public IActionResult GetNotificationTypes()
+                                                     => Ok(_notificationService.GetNotificationTypes());
 
 
     }
