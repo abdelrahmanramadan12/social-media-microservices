@@ -281,17 +281,10 @@ namespace Application.Services
         public async Task<bool> MarkNotificationsFollowAsRead(string userId, string userFollowedId)
         {
             // cache repo Found , null , not Found 
-            var usercached = await _unitOfWork.CacheRepository<CachedFollowed>().GetSingleAsync(x => x.UserId == userId);
-            if (usercached == null)
-            {
-                throw new ArgumentException("UserId not Found  in Cash");
-            }
-            var userFollowed = usercached.Followers.FirstOrDefault(i => i.UsersId == userFollowedId);
-            if (userFollowed == null)
-            {
-                throw new ArgumentException("user userFollowedId not Found in Cash");
-
-            }
+            var usercached = await _unitOfWork.CacheRepository<CachedFollowed>().GetSingleAsync(x => x.UserId == userId)
+                                                             ?? throw new ArgumentException("UserId not Found  in Cash");
+            var userFollowed = usercached.Followers.FirstOrDefault(i => i.UsersId == userFollowedId)
+                                                             ?? throw new ArgumentException("user userFollowedId not Found in Cash");
             userFollowed.Seen = true;
             await _unitOfWork.CacheRepository<CachedFollowed>().UpdateAsync(usercached, usercached.UserId);
 

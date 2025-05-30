@@ -22,7 +22,17 @@ builder.Services.Configure<RedisSettings>(builder.Configuration.GetSection("Redi
 builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 {
     var settings = sp.GetRequiredService<IOptions<RedisSettings>>().Value;
-    return ConnectionMultiplexer.Connect(settings.ConnectionString);
+
+    var configOptions = new ConfigurationOptions
+    {
+        EndPoints = { { settings.Host, settings.Port } },
+        User = settings.User,
+        Password = settings.Password,
+        Ssl = true,
+        AbortOnConnectFail = false
+    };
+
+    return ConnectionMultiplexer.Connect(configOptions);
 });
 
 builder.Services.AddStackExchangeRedisCache(options =>
