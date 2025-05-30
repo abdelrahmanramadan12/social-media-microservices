@@ -1,11 +1,11 @@
-﻿using Domain.Entities;
+﻿using Domain.Enums;
 using Domain.Events;
 using Domain.IRepository;
 using Service.Interfaces.PostServices;
 
 namespace Service.Implementations.PostServices
 {
-    public class PostService: IPostService
+    public class PostService : IPostService
     {
         private readonly IPostRepository _postRepo;
         private readonly ICommentRepository _commentRepo;
@@ -21,14 +21,14 @@ namespace Service.Implementations.PostServices
             {
                 throw new ArgumentNullException(nameof(post), "Post event cannot be null.");
             }
-            if(post.EventType==postEventType.PostAdded)
+            if (post.EventType == postEventType.PostAdded)
             {
 
 
                 var existingPost = _postRepo.GetPostByIdAsync(post.Data.PostId);
                 if (existingPost != null)
                 {
-                    return ;
+                    return;
                 }
                 // Add the new post
                 var newPost = new Domain.Entities.Post

@@ -1,10 +1,7 @@
-﻿namespace Domain.Events
+﻿using Domain.Enums;
+
+namespace Domain.Events
 {
-    public enum postEventType
-    {
-        PostAdded,
-        PostDeleted
-    }
     public class PostEvent
     {
         public postEventType EventType { get; set; }

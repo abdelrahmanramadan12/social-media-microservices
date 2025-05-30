@@ -1,10 +1,8 @@
-﻿namespace Domain.Events
+﻿using Domain.Enums;
+
+namespace Domain.Events
 {
-    public enum CommentEventType
-    {
-        Created,
-        Deleted
-    }
+
     public class CommentEvent
     {
         public CommentEventType EventType { get; set; }

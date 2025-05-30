@@ -3,9 +3,11 @@ using Infrastructure.Repositories;
 using MongoDB.Driver;
 using Scalar.AspNetCore;
 using Service.Implementations.CommentServices;
+using Service.Implementations.MediaServices;
 using Service.Implementations.PostServices;
 using Service.Implementations.RabbitMQServices;
 using Service.Interfaces.CommentServices;
+using Service.Interfaces.MediaServices;
 using Service.Interfaces.PostServices;
 using Service.Interfaces.RabbitMQServices;
 
@@ -37,6 +39,7 @@ namespace Web
             // Register services
             builder.Services.AddScoped<ICommentService, CommentService>();
             builder.Services.AddScoped<IPostService, PostService>();
+            builder.Services.AddScoped<IMediaServiceClient, MediaServiceClient>();
 
             // Register RabbitMQ services
             builder.Services.AddSingleton<IRabbitMqPublisher, RabbitMqPublisher>();

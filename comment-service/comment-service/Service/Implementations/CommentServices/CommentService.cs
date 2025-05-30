@@ -1,6 +1,6 @@
-﻿using System.Linq.Expressions;
-using Domain.DTOs;
+﻿using Domain.DTOs;
 using Domain.Entities;
+using Domain.Enums;
 using Domain.Events;
 using Domain.IRepository;
 using MongoDB.Bson;
@@ -94,7 +94,7 @@ namespace Service.Implementations.CommentServices
                     CommentAuthorId = comment.AuthorId,
                     Content = comment.Content ?? "",
                     CreatedAt = comment.CreatedAt,
-                    PostAuthorId= post?.AuthorId ?? string.Empty   
+                    PostAuthorId = post?.AuthorId ?? string.Empty
                 }
             });
 
@@ -151,7 +151,7 @@ namespace Service.Implementations.CommentServices
         {
             var comment = await _commentRepository.GetByIdAsync(commentId);
             if (comment == null)
-                return  new CommentResponseDto
+                return new CommentResponseDto
                 {
                     Data = null,
                     Messages = new List<string> { "Comment not found." },
