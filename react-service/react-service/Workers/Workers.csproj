@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\reat-service.Application\reat-service.Application.csproj" />
+    <ProjectReference Include="..\react-service.Application\react-service.Application.csproj" />
   </ItemGroup>
 
 </Project>

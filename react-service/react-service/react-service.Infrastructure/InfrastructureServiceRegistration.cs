@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
 using react_service.Infrastructure.Mongodb;
 using System;
@@ -7,10 +7,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
-using reat_service.Application.Interfaces.Services;
-using reat_service.Application.Services;
+using react_service.Application.Interfaces.Services;
+using react_service.Application.Services;
 using react_service.Infrastructure.Repositories;
-using reat_service.Application.Interfaces.Repositories;
+using react_service.Application.Interfaces.Repositories;
 
 namespace react_service.Infrastructure
 {

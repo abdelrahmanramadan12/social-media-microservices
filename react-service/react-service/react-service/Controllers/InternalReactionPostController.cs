@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using reat_service.Application.DTO.ReactionPost.Request;
-using reat_service.Application.Interfaces.Services;
+using react_service.Application.DTO.ReactionPost.Request;
+using react_service.Application.Interfaces.Services;
 
 namespace react_service.Controllers
 {

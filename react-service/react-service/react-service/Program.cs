@@ -3,12 +3,12 @@ using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using react_service.Infrastructure;
 using react_service.Infrastructure.Mongodb;
-using reat_service.Application;
-using reat_service.Application.Interfaces.Listeners;
-using reat_service.Application.Interfaces.Publishers;
-using reat_service.Application.Mapper;
-using reat_service.Application.Pagination;
-using reat_service.Application.Services;
+using react_service.Application;
+using react_service.Application.Interfaces.Listeners;
+using react_service.Application.Interfaces.Publishers;
+using react_service.Application.Mapper;
+using react_service.Application.Pagination;
+using react_service.Application.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);

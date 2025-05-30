@@ -1,11 +1,11 @@
-﻿
+
 
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using react_service.Domain.Entites;
 using react_service.Infrastructure.Mongodb;
-using reat_service.Application.Interfaces.Repositories;
-using reat_service.Application.Pagination;
+using react_service.Application.Interfaces.Repositories;
+using react_service.Application.Pagination;
 using System.Xml.XPath;
 
 namespace react_service.Infrastructure.Repositories

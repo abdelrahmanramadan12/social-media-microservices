@@ -7,14 +7,14 @@
     <RootNamespace>react_service</RootNamespace>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup>                                                              
     <PackageReference Include="MongoDB.Driver" Version="3.4.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\react-service.Infrastructure\react-service.Infrastructure.csproj" />
-    <ProjectReference Include="..\reat-service.Application\reat-service.Application.csproj" />
+    <ProjectReference Include="..\react-service.Application\react-service.Application.csproj" />
   </ItemGroup>
 
 </Project>

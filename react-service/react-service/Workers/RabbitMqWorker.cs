@@ -1,5 +1,5 @@
-﻿using Microsoft.Extensions.Hosting;
-using reat_service.Application.Interfaces.Listeners;
+using Microsoft.Extensions.Hosting;
+using react_service.Application.Interfaces.Listeners;
 
 namespace Workers
 {
