@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 
 namespace Infrastructure.Repositories
 {
-    public class CoreGenericRepository<T> : IGenericRepository<T> where T : class
+    public class CoreGenericRepository<T> : ICoreGenericRepository<T> where T : class
     {
         private readonly IMongoCollection<T> _collection;
 
@@ -42,7 +42,7 @@ namespace Infrastructure.Repositories
             return await _collection.Find(predicate).AnyAsync();
         }
 
-        public Task<IQueryable<T>> GetAll(string? userID = "", NotificationEntity notificationEntity = NotificationEntity.All)
+        public Task<IQueryable<T>> GetAll(string? userID = "")
         {
             return Task.FromResult(_collection.AsQueryable());
         }
@@ -89,21 +89,6 @@ namespace Infrastructure.Repositories
             var idValue = idProperty.GetValue(entity)?.ToString();
             var filter = Builders<T>.Filter.Eq("Id", idValue);
             await _collection.ReplaceOneAsync(filter, entity);
-        }
-
-        public Task<IQueryable<T>> GetAll(string? userID = "")
-        {
-            throw new NotImplementedException();
-        }
-
-        IEnumerable<T> IGenericRepository<T>.GetAllIncludingAsync(params Expression<Func<T, object>>[] includes)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<T?> GetSingleDeepIncludingAsync(Expression<Func<T, bool>> predicate, params Func<IQueryable<T>, IIncludableQueryable<T, object>>[] includes)
-        {
-            throw new NotImplementedException();
         }
     }
 }

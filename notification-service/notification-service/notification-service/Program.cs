@@ -1,6 +1,5 @@
 using Application;
 using Infrastructure;
-using Infrastructure.Context;
 using Infrastructure.Mongodb;
 using Infrastructure.Redis;
 using Microsoft.Extensions.Options;
@@ -25,6 +24,7 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
     var settings = sp.GetRequiredService<IOptions<RedisSettings>>().Value;
     return ConnectionMultiplexer.Connect(settings.ConnectionString);
 });
+
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = builder.Configuration.GetValue<string>("RedisSettings:ConnectionString");

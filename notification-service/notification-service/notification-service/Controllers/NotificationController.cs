@@ -10,7 +10,7 @@ namespace notification_service.Controllers
     public class NotificationController(INotificationService notificationService) : ControllerBase
     {
         private readonly INotificationService _notificationService = notificationService;
-        
+
         #region GetNotifications
         /// <summary>
         /// Retrieves all notifications for the specified user.
@@ -22,66 +22,32 @@ namespace notification_service.Controllers
         /// <returns>An <see cref="IActionResult"/> containing a collection of notifications for the specified user. Returns an
         /// empty collection if no notifications are found.</returns>
 
-        [HttpGet]
+        [HttpGet("AllNotifications")]
         public IActionResult GetAllNotifications([FromHeader(Name = "userId")] string userId)
         {
             var notifications = _notificationService.GetAllNotifications(userId); // Example usage of the service
             return Ok(notifications);
         }
 
-        [HttpGet]
+        [HttpGet("FollowNotification")]
         public IActionResult GetFollowNotification([FromHeader(Name = "userId")] string userId)
         {
             var followNotifications = _notificationService.GetFollowNotification(userId); // Example usage of the service
             return Ok(followNotifications);
         }
 
-        //[HttpGet]
-        //public IActionResult GetReactionsNotification([FromHeader(Name = "userId")] string userId)
-        //{
-        //    var likeNotifications = _notificationService.GetReactionNotification(userId); // Example usage of the service
-        //    return Ok();
-        //}
-
-        //[HttpGet]
-        //public IActionResult GetUnreadNotifications([FromHeader(Name = "userId")] string userId, NotificationEntity notificationEntity)
-        //{
-        //    var unreadNotifications = _notificationService.UnreadNotifications(userId, notificationEntity); // Example usage of the service
-        //    return Ok(unreadNotifications);
-        //}
-
-        //[HttpGet]
-        //public IActionResult GetUnreadNotificationCount([FromHeader(Name = "userId")] string userId, NotificationEntity notificationEntity)
-        //{
-        //    var unreadCount = _notificationService.UnreadNotifications(userId, notificationEntity).Count;
-        //    return Ok(unreadCount);
-        //}
-
-
-        [HttpPost("mark-all-notifications-as-read")]
-        public IActionResult MarkAllNotificationsAsRead([FromHeader(Name = "userId")] string userId)
-        {
-            _notificationService.MarkAllNotificationsAsRead(userId);
-            return Ok();
-        }
-        [HttpPost("mark-notifications-reaction-comment-as-read")]
-        public IActionResult MarkNotificationsReactionCommentAsRead([FromHeader(Name = "userId")] string userId, [FromQuery] string reactionId)
-        {
-            _notificationService.MarkNotificationsReactionCommentAsRead(userId, reactionId);
-            return Ok();
-        }
-        [HttpPost("mark-notifications-reaction-post-as-read")]
-        public IActionResult MarkNotificationsReactionPostAsRead([FromHeader(Name = "userId")] string userId, [FromQuery] string  reactionId)
-        {
-            _notificationService.MarkNotificationsReactionPostAsRead(userId,  reactionId);
-            return Ok(likeNotifications);
-        }
-
-        [HttpGet]
+        [HttpGet("CommentsNotification")]
         public IActionResult GetCommentsNotification([FromHeader(Name = "userId")] string userId)
         {
             var mentionNotifications = _notificationService.GetCommentNotification(userId); // Example usage of the service
             return Ok(mentionNotifications);
+        }
+
+        [HttpGet("ReactionsNotification")]
+        public IActionResult GetReactionsNotification([FromHeader(Name = "userId")] string userId)
+        {
+            var likeNotifications = _notificationService.GetReactionNotification(userId); // Example usage of the service
+            return Ok(likeNotifications);
         }
 
 
@@ -99,33 +65,38 @@ namespace notification_service.Controllers
         /// <returns>An <see cref="IActionResult"/> containing a collection of unread notifications for the user. If no unread
         /// notifications exist, the collection will be empty.</returns>
 
-        [HttpGet]
+        [HttpGet("AllUnreadNotifications")]
         public IActionResult GetAllUnreadNotifications([FromHeader(Name = "userId")] string userId)
         {
             var unreadNotifications = _notificationService.GetAllUnseenNotification(userId); // Example usage of the service
             return Ok(unreadNotifications);
         }
 
-        [HttpGet]
+        [HttpGet("UnreadReactionsNotifications")]
         public IActionResult GetUnreadReactionsNotifications([FromHeader(Name = "userId")] string userId)
         {
             var unreadReactionsNotifications = _notificationService.GetUnreadReactionsNotifications(userId); // Example usage of the service
             return Ok(unreadReactionsNotifications);
         }
 
-        [HttpGet]
+        [HttpGet("UnreadCommentNotifications")]
         public IActionResult GetUnreadCommentNotifications([FromHeader(Name = "userId")] string userId)
         {
             var unreadCommentNotifications = _notificationService.GetUnreadCommentNotifications(userId); // Example usage of the service
             return Ok(unreadCommentNotifications);
         }
 
-        [HttpGet]
+        [HttpGet("UnreadFollowedNotifications")]
         public IActionResult GetUnreadFollowedNotifications([FromHeader(Name = "userId")] string userId)
         {
-            _notificationService.MarkNotificationsCommentAsRead(userId, commentId);
-            return Ok();
+            var unreadFollowedNotifications = _notificationService.GetUnreadFollowedNotifications(userId); // Example usage of the service
+            return Ok(unreadFollowedNotifications);
         }
+
+        #endregion
+
+
+        #region MarkNotificationsAsRead
         [HttpPost("mark-notifications-follow-as-read")]
         public IActionResult MarkNotificationsFollowAsRead([FromHeader(Name = "userId")] string userId, [FromQuery] string followerId)
         {
@@ -133,9 +104,34 @@ namespace notification_service.Controllers
             return Ok();
         }
 
-        [HttpGet("get-notifications-types")]
-        public IActionResult GetNotificationTypes() => Ok(_notificationService.GetNotificationTypes());
+        [HttpPost("mark-all-notifications-as-read")]
+        public IActionResult MarkAllNotificationsAsRead([FromHeader(Name = "userId")] string userId)
+        {
+            _notificationService.MarkAllNotificationsAsRead(userId);
+            return Ok();
+        }
 
+        [HttpPost("mark-notifications-reaction-comment-as-read")]
+        public IActionResult MarkNotificationsReactionCommentAsRead([FromHeader(Name = "userId")] string userId, [FromQuery] string reactionId)
+        {
+            _notificationService.MarkNotificationsReactionCommentAsRead(userId, reactionId);
+            return Ok();
+        }
+
+        [HttpPost("mark-notifications-reaction-post-as-read")]
+        public IActionResult MarkNotificationsReactionPostAsRead([FromHeader(Name = "userId")] string userId, [FromQuery] string reactionId)
+        {
+            _notificationService.MarkNotificationsReactionPostAsRead(userId, reactionId);
+            return Ok();
+        }
+
+        #endregion
+
+
+        [HttpGet("get-notifications-types")]
+        public IActionResult GetNotificationTypes()
+                                                => Ok(_notificationService.GetNotificationTypes());
 
     }
 }
+

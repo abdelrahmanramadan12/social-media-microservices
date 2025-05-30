@@ -13,8 +13,9 @@ namespace Infrastructure
     {
         public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
         {
+
             services.AddScoped<IUnitOfWork, UnitOfWork>();
-           
+            
             return services;
         }
     }

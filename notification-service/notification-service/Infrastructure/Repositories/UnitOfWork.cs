@@ -9,14 +9,14 @@ namespace Infrastructure.Repositories
 {
     public class UnitOfWork(IMongoClient mongoClient, IConnectionMultiplexer redisConnection) : IUnitOfWork
     {
-        public IGenericRepository<T> CoreRepository<T>() where T : class
+        public ICoreGenericRepository<T> CoreRepository<T>() where T : class
         {
             // Use the class name of T as the collection name
             var collectionName = typeof(T).Name;
             return new CoreGenericRepository<T>(mongoClient, "YourDbName", collectionName);
         }
 
-        public IGenericRepository<T> CacheRepository<T>() where T : class
+        public ICacheGenericRepository<T> CacheRepository<T>() where T : class
         {
             return new CacheGenericRepository<T>(redisConnection);
         }

@@ -8,7 +8,7 @@ using System.Linq.Expressions;
 
 namespace Infrastructure.Repositories
 {
-    public class CacheGenericRepository<T>(IConnectionMultiplexer redisConnection) : IGenericRepository<T> where T : class
+    public class CacheGenericRepository<T>(IConnectionMultiplexer redisConnection) : ICacheGenericRepository<T> where T : class
     {
         private readonly IDatabase _redisDb = redisConnection.GetDatabase();
         private readonly string _collectionName = typeof(T).Name.ToLowerInvariant();
@@ -104,20 +104,20 @@ namespace Infrastructure.Repositories
             await _redisDb.SetAddAsync($"{_collectionName}:keys", key).ConfigureAwait(false);
         }
 
-        public IEnumerable<T> GetAllIncludingAsync(params Expression<Func<T, object>>[] includes)
-        {
-            throw new NotImplementedException();
-        }
+        //public IEnumerable<T> GetAllIncludingAsync(params Expression<Func<T, object>>[] includes)
+        //{
+        //    throw new NotImplementedException();
+        //}
 
-        public Task<T?> GetSingleDeepIncludingAsync(Expression<Func<T, bool>> predicate, params Func<IQueryable<T>, IIncludableQueryable<T, object>>[] includes)
-        {
-            throw new NotImplementedException();
-        }
+        //public Task<T?> GetSingleDeepIncludingAsync(Expression<Func<T, bool>> predicate, params Func<IQueryable<T>, IIncludableQueryable<T, object>>[] includes)
+        //{
+        //    throw new NotImplementedException();
+        //}
 
-        public Task<T?> GetSingleIncludingAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes)
-        {
-            throw new NotImplementedException();
-        }
+        //public Task<T?> GetSingleIncludingAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes)
+        //{
+        //    throw new NotImplementedException();
+        //}
         //public async Task<List<T>> GetWhereAsync(Expression<Func<T, bool>> predicate)
         //{
         //    var all = await GetAll();
@@ -146,9 +146,9 @@ namespace Infrastructure.Repositories
             throw new InvalidOperationException($"Entity of type {typeof(T).Name} must have an identifier property like 'Id', 'UserId', or 'AuthorId'.");
         }
 
-        public Task AddRangeAsync(IEnumerable<T> entities)
-        {
-            throw new NotImplementedException();
-        }
+        //public Task AddRangeAsync(IEnumerable<T> entities)
+        //{
+        //    throw new NotImplementedException();
+        //}
     }
 }

@@ -6,9 +6,7 @@ using Domain.CacheEntities.Reactions;
 using Domain.CoreEntities;
 using Domain.Enums;
 using Domain.Interfaces;
-using System.ComponentModel.Design;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
 
 namespace Application.Services
 {
@@ -94,7 +92,7 @@ namespace Application.Services
                     SourceUserImageUrl = x.User.ProfileImageUrls,
                     IsRead=x.User.Seen,
                     CreatedTime= DateTime.Now,
-                    EntityId = x.PostId, // Assuming EntityId is the ID of the reaction entity
+                    EntityId = x.ReactionId, // Assuming EntityId is the ID of the reaction entity
                     EntityName = NotificationEntity.React,
                     NotificatoinPreview = $"{x.User.UserNames} reacted to your post.",
                     SourceUsername= x.User.UserNames // Assuming UserNames is the name of the user who reacted
@@ -106,7 +104,7 @@ namespace Application.Services
                 SourceUserImageUrl = x.User.ProfileImageUrls,
                 IsRead = x.User.Seen,
                 CreatedTime = DateTime.Now,
-                EntityId = x.CommentId, // Assuming EntityId is the ID of the comment entity
+                EntityId = x.ReactionId, // Assuming EntityId is the ID of the comment entity
                 EntityName = NotificationEntity.React,
                 NotificatoinPreview = $"{x.User.UserNames} reacted to your comment.",
                 SourceUsername = x.User.UserNames // Assuming UserNames is the name of the user who reacted
@@ -224,66 +222,67 @@ namespace Application.Services
         #endregion
 
         #region MarkNotificationsAsRead
-        public async Task<bool> MarkFollowingNotificationAsRead(string userId, string notificationId)
-        {
-            var NotificationBasedOnType = _unitOfWork.CacheRepository<CachedFollowed>()
-                                                                                .GetAsync(userId).Result;
-            if (NotificationBasedOnType == null)
-                return false;
+        //public async Task<bool> MarkFollowingNotificationAsRead(string userId, string notificationId)
+        //{
+        //    var NotificationBasedOnType = _unitOfWork.CacheRepository<CachedFollowed>()
+        //                                                                        .GetAsync(userId).Result;
+        //    if (NotificationBasedOnType == null)
+        //        return false;
 
-            var FollowedNotifications = NotificationBasedOnType?.Followers;
+        //    var FollowedNotifications = NotificationBasedOnType?.Followers;
 
-            if (FollowedNotifications == null || FollowedNotifications.Count == 0)
-                return false;
-
-
-            var notification = FollowedNotifications.FirstOrDefault(x => x.Id == notificationId);
-            notification!.Seen = true; // Mark the notification as read
-            await _unitOfWork.CacheRepository<CachedFollowed>().UpdateAsync(NotificationBasedOnType!, notificationId);
-
-            return true;
-        }
-        public async Task<bool> MarkCommentNotificationAsRead(string userId, string notificationId)
-        {
-            var NotificationBasedOnType = _unitOfWork.CacheRepository<CachedComments>()
-                                                                                   .GetAsync(userId).Result;
-            if (NotificationBasedOnType == null)
-                return false;
-            var CommentNotifications = NotificationBasedOnType?.CommnetDetails;
-            if (CommentNotifications == null || CommentNotifications.Count == 0)
-                return false;
-            var notification = CommentNotifications.FirstOrDefault(x => x.User.Id == notificationId);
-            notification!.User.Seen = true; // Mark the notification as read
-            await _unitOfWork.CacheRepository<CachedComments>().UpdateAsync(NotificationBasedOnType!, notificationId);
-            return true;
-
-        }
-
-        public async Task<bool> MarkReactionNotificationAsRead(string userId, string notificationId)
-        {
-            var NotificationBasedOnType = _unitOfWork.CacheRepository<CachedReactions>()
-                                                                                  .GetAsync(userId).Result;
-            if (NotificationBasedOnType == null)
-                return false;
-
-            var ReactionOnPostsNotifications = NotificationBasedOnType?.ReactionsOnPosts;
-            if (ReactionOnPostsNotifications == null || ReactionOnPostsNotifications.Count == 0)
-                return await MarkCommentNotificationAsRead(userId, notificationId); // Fallback to comment notification if no post reactions found
+        //    if (FollowedNotifications == null || FollowedNotifications.Count == 0)
+        //        return false;
 
 
-            var notification = ReactionOnPostsNotifications.FirstOrDefault(x => x.User.Id == notificationId);
-            notification!.User.Seen = true; // Mark the notification as read
-            await _unitOfWork.CacheRepository<CachedReactions>().UpdateAsync(NotificationBasedOnType!, notificationId);
-            return true;
-        }
+        //    var notification = FollowedNotifications.FirstOrDefault(x => x.Id == notificationId);
+        //    notification!.Seen = true; // Mark the notification as read
+        //    await _unitOfWork.CacheRepository<CachedFollowed>().UpdateAsync(NotificationBasedOnType!, notificationId);
+
+        //    return true;
+        //}
+        //public async Task<bool> MarkCommentNotificationAsRead(string userId, string notificationId)
+        //{
+        //    var NotificationBasedOnType = _unitOfWork.CacheRepository<CachedComments>()
+        //                                                                           .GetAsync(userId).Result;
+        //    if (NotificationBasedOnType == null)
+        //        return false;
+        //    var CommentNotifications = NotificationBasedOnType?.CommnetDetails;
+        //    if (CommentNotifications == null || CommentNotifications.Count == 0)
+        //        return false;
+        //    var notification = CommentNotifications.FirstOrDefault(x => x.User.Id == notificationId);
+        //    notification!.User.Seen = true; // Mark the notification as read
+        //    await _unitOfWork.CacheRepository<CachedComments>().UpdateAsync(NotificationBasedOnType!, notificationId);
+        //    return true;
+
+        //}
+
+        //public async Task<bool> MarkReactionNotificationAsRead(string userId, string notificationId)
+        //{
+        //    var NotificationBasedOnType = _unitOfWork.CacheRepository<CachedReactions>()
+        //                                                                          .GetAsync(userId).Result;
+        //    if (NotificationBasedOnType == null)
+        //        return false;
+
+        //    var ReactionOnPostsNotifications = NotificationBasedOnType?.ReactionsOnPosts;
+        //    if (ReactionOnPostsNotifications == null || ReactionOnPostsNotifications.Count == 0)
+        //        return await MarkCommentNotificationAsRead(userId, notificationId); // Fallback to comment notification if no post reactions found
+
+
+        //    var notification = ReactionOnPostsNotifications.FirstOrDefault(x => x.User.Id == notificationId);
+        //    notification!.User.Seen = true; // Mark the notification as read
+        //    await _unitOfWork.CacheRepository<CachedReactions>().UpdateAsync(NotificationBasedOnType!, notificationId);
+        //    return true;
+        //}
 
 
         // mark notifications as read for follow , comment , reaction post , reaction commen -------------------
-        public async Task<bool> MarkNotificationsFollowAsRead(string userId , string userFollowedId )
+
+        public async Task<bool> MarkNotificationsFollowAsRead(string userId, string userFollowedId)
         {
             // cache repo Found , null , not Found 
-            var usercached = await  _unitOfWork.CacheRepository<CachedFollowed>().GetSingleAsync(x => x.UserId ==  userId);
-            if (usercached == null) 
+            var usercached = await _unitOfWork.CacheRepository<CachedFollowed>().GetSingleAsync(x => x.UserId == userId);
+            if (usercached == null)
             {
                 throw new ArgumentException("UserId not Found  in Cash");
             }
@@ -299,13 +298,7 @@ namespace Application.Services
             var userCore = await _unitOfWork.CoreRepository<Follows>()
                 .GetSingleIncludingAsync(
                     f => f.Id == userId,
-                    i => i.FollowsNotifReadByAuthor);
-
-            if (userCore ==  null)
-            {
-                throw new ArgumentException("UserId not Found in Core");
-              
-            }
+                    i => i.FollowsNotifReadByAuthor) ?? throw new ArgumentException("UserId not Found in Core");
 
             if (!userCore.FollowsNotifReadByAuthor.Any(r => r == userFollowedId))
             {
@@ -314,44 +307,34 @@ namespace Application.Services
                 await _unitOfWork.SaveChangesAsync();
             }
             return true;
-                 
+
 
         }
         #endregion
 
-        public async Task<bool> MarkNotificationsCommentAsRead(string userId,string CommentId)
+        public async Task<bool> MarkNotificationsCommentAsRead(string userId, string CommentId)
         {
 
             // cache repo Found , null , not Found 
             var usercached = await _unitOfWork.CacheRepository<CachedComments>().GetSingleAsync(x => x.UserId == userId);
-    
-            if (usercached == null) 
+
+            if (usercached == null)
             {
                 throw new ArgumentException("UserId not Found  in Cash");
             }
-            var userComment = usercached.CommnetDetails.FirstOrDefault(i => i.CommentId ==  CommentId );
-            if (userComment == null)
+            var userComment = usercached.CommnetDetails.FirstOrDefault(i => i.CommentId == CommentId)
+                                                                                ?? throw new ArgumentException("user CommentId not Found in Cash");
+            if (!userComment.User.Seen)
             {
-                throw new ArgumentException("user CommentId not Found in Cash");
-
-            }
-            if (!userComment.IsRead)
-            {
-                userComment.IsRead = true;
+                userComment.User.Seen = true;
                 await _unitOfWork.CacheRepository<CachedComments>().UpdateAsync(usercached, usercached.UserId);
             }
-        
+
 
             var userCore = await _unitOfWork.CoreRepository<Comment>()
                 .GetSingleIncludingAsync(
                     f => f.Id == userId,
-                    f => f.CommentNotifReadByAuthor);
-
-            if (userCore == null)
-            {
-                throw new ArgumentException("UserId not Found in Core");
-
-            }
+                    f => f.CommentNotifReadByAuthor) ?? throw new ArgumentException("UserId not Found in Core");
 
             if (!userCore.CommentNotifReadByAuthor.Any(r => r == CommentId))
             {
@@ -367,35 +350,25 @@ namespace Application.Services
         {
 
             // cache repo Found , null , not Found 
-            var usercached = await _unitOfWork.CacheRepository<CachedReactions>().GetSingleAsync(x => x.AuthorId== userId);
+            var usercached = await _unitOfWork.CacheRepository<CachedReactions>().GetSingleAsync(x => x.AuthorId == userId);
 
             if (usercached == null)
             {
                 throw new ArgumentException("UserId not Found  in Cash");
             }
-            var userReactPost = usercached.ReactionsOnPosts.FirstOrDefault(i => i.ReactionId == reactionId);
-            if (userReactPost == null)
+            var userReactPost = usercached.ReactionsOnPosts.FirstOrDefault(i => i.ReactionId == reactionId)
+                                                                                ?? throw new ArgumentException("user ReactionPost not Found in Cash");
+            if (!userReactPost.User.Seen)
             {
-                throw new ArgumentException("user ReactionPost not Found in Cash");
-
-            }
-            if (!userReactPost.IsRead)
-            {
-                userReactPost.IsRead = true;
-                await _unitOfWork.CacheRepository<CachedReactions>().UpdateAsync(usercached,usercached.AuthorId);
+                userReactPost.User.Seen = true;
+                await _unitOfWork.CacheRepository<CachedReactions>().UpdateAsync(usercached, usercached.AuthorId);
             }
 
 
             var userCore = await _unitOfWork.CoreRepository<Reaction>()
                 .GetSingleIncludingAsync(
                     f => f.Id == userId,
-                    f => f.PostReactionsNotifReadByAuthor);
-
-            if (userCore == null)
-            {
-                throw new ArgumentException("UserId not Found in Core");
-
-            }
+                    f => f.PostReactionsNotifReadByAuthor) ?? throw new ArgumentException("UserId not Found in Core");
 
             if (!userCore.PostReactionsNotifReadByAuthor.Any(r => r == reactionId))
             {
@@ -412,21 +385,15 @@ namespace Application.Services
         {
 
             // cache repo Found , null , not Found 
-            var usercached = await _unitOfWork.CacheRepository<CachedReactions>().GetSingleAsync(x => x.AuthorId == userId);
+            var usercached = await _unitOfWork.CacheRepository<CachedReactions>().GetSingleAsync(x => x.AuthorId == userId)
+                                                                                    ?? throw new ArgumentException("UserId not Found  in Cash");
 
-            if (usercached == null)
-            {
-                throw new ArgumentException("UserId not Found  in Cash");
-            }
-            var userReactComment = usercached.ReactionsOnComments.FirstOrDefault(i => i.ReactionId == reactionId);
-            if (userReactComment == null)
-            {
-                throw new ArgumentException("userReactComment not Found in Cash");
+            var userReactComment = usercached.ReactionsOnComments.FirstOrDefault(i => i.ReactionId == reactionId)
+                                                                                ?? throw new ArgumentException("userReactComment not Found in Cash");
 
-            }
-            if (!userReactComment.IsRead)
+            if (!userReactComment.User.Seen)
             {
-                userReactComment.IsRead = true;
+                userReactComment.User.Seen = true;
                 await _unitOfWork.CacheRepository<CachedReactions>().UpdateAsync(usercached, usercached.AuthorId);
             }
 
@@ -434,13 +401,7 @@ namespace Application.Services
             var userCore = await _unitOfWork.CoreRepository<Reaction>()
                 .GetSingleIncludingAsync(
                     f => f.Id == userId,
-                    f => f.CommentReactionsNotifReadByAuthor);
-
-            if (userCore == null)
-            {
-                throw new ArgumentException("UserId not Found in Core");
-
-            }
+                    f => f.CommentReactionsNotifReadByAuthor) ?? throw new ArgumentException("UserId not Found in Core");
 
             if (!userCore.CommentReactionsNotifReadByAuthor.Any(r => r == reactionId))
             {
@@ -474,30 +435,28 @@ namespace Application.Services
         {
             // Cache update
             var userCached = await _unitOfWork.CacheRepository<CachedReactions>()
-                .GetSingleAsync(x => x.AuthorId == userId);
-            if (userCached == null)
-            {
-                throw new ArgumentException($"User {userId} not found in cache");
-            }
-            if ((userCached.ReactionsOnPosts == null || !userCached.ReactionsOnPosts.Any())  && (userCached.ReactionsOnComments == null || !userCached.ReactionsOnComments.Any()) )
+                .GetSingleAsync(x => x.AuthorId == userId) ?? throw new ArgumentException($"User {userId} not found in cache");
+
+            if ((userCached.ReactionsOnPosts == null || userCached.ReactionsOnPosts.Count == 0) &&
+                (userCached.ReactionsOnComments == null || userCached.ReactionsOnComments.Count == 0))
             {
                 return true; // No reactions to mark as read
             }
             bool anyUnread = false;
-            foreach (var reaction in userCached.ReactionsOnPosts)
+            foreach (var reaction in userCached.ReactionsOnPosts!)
             {
-                if (!reaction.IsRead)
+                if (!reaction.User.Seen)
                 {
-                    reaction.IsRead = true;
+                    reaction.User.Seen = true;
                     anyUnread = true;
                 }
             }
-        
+
             foreach (var reaction in userCached.ReactionsOnComments)
             {
-                if (!reaction.IsRead)
+                if (!reaction.User.Seen)
                 {
-                    reaction.IsRead = true;
+                    reaction.User.Seen = true;
                     anyUnread = true;
                 }
             }
@@ -513,19 +472,12 @@ namespace Application.Services
                 r => r.CommentReactionsNotifReadByAuthor
             };
             var userCore = await _unitOfWork.CoreRepository<Reaction>()
-                .GetSingleIncludingAsync(r => r.Id == userId, includes.ToArray());
-            if (userCore == null)
-            {
-                throw new ArgumentException($"User {userId} not found in core database");
-            }
-            if (userCore.PostReactionsNotifReadByAuthor == null)
-            {
-                userCore.PostReactionsNotifReadByAuthor = [];
-            }
-            if (userCore.CommentReactionsNotifReadByAuthor == null)
-            {
-                userCore.CommentReactionsNotifReadByAuthor = [];
-            }
+                .GetSingleIncludingAsync(r => r.Id == userId, [.. includes])
+                                            ?? throw new ArgumentException($"User {userId} not found in core database");
+
+            userCore.PostReactionsNotifReadByAuthor ??= [];
+            userCore.CommentReactionsNotifReadByAuthor ??= [];
+
             bool needsUpdate = false;
             foreach (var reaction in userCached.ReactionsOnPosts)
             {
@@ -556,14 +508,9 @@ namespace Application.Services
         {
             // Cache update
             var userCached = await _unitOfWork.CacheRepository<CachedFollowed>()
-                .GetSingleAsync(x => x.UserId == userId);
+                .GetSingleAsync(x => x.UserId == userId) ?? throw new ArgumentException($"User {userId} not found in cache");
 
-            if (userCached == null)
-            {
-                throw new ArgumentException($"User {userId} not found in cache");
-            }
-
-            if (userCached.Followers == null || !userCached.Followers.Any())
+            if (userCached.Followers == null || userCached.Followers.Count == 0)
             {
                 return true; // No notifications to mark as read
             }
@@ -592,14 +539,9 @@ namespace Application.Services
             };
 
             var userCore = await _unitOfWork.CoreRepository<Follows>()
-                .GetSingleIncludingAsync(f => f.Id == userId, includes.ToArray());
-
-            if (userCore == null)
-            {
-                throw new ArgumentException($"User {userId} not found in core database");
-            }
-
-            if (userCore.FollowersId == null || !userCore.FollowersId.Any())
+                .GetSingleIncludingAsync(f => f.Id == userId, [.. includes])
+                                            ?? throw new ArgumentException($"User {userId} not found in core database");
+            if (userCore.FollowersId == null || userCore.FollowersId.Count == 0)
             {
                 return true; // No followers to process
             }
@@ -622,20 +564,15 @@ namespace Application.Services
 
             return true;
         }
-     
+
 
         public async Task<bool> MarkAllNotificationsCommentAsRead(string userId)
         {
             // Cache update
             var userCached = await _unitOfWork.CacheRepository<CachedComments>()
-                .GetSingleAsync(x => x.UserId == userId);
+                .GetSingleAsync(x => x.UserId == userId) ?? throw new ArgumentException($"User {userId} not found in cache");
 
-            if (userCached == null)
-            {
-                throw new ArgumentException($"User {userId} not found in cache");
-            }
-
-            if (userCached.CommnetDetails == null || !userCached.CommnetDetails.Any())
+            if (userCached.CommnetDetails == null || userCached.CommnetDetails.Count == 0)
             {
                 return true; // No comment notifications to mark as read
             }
@@ -643,9 +580,9 @@ namespace Application.Services
             bool anyUnread = false;
             foreach (var comment in userCached.CommnetDetails)
             {
-                if (!comment.IsRead)
+                if (!comment.User.Seen)
                 {
-                    comment.IsRead = true;
+                    comment.User.Seen = true;
                     anyUnread = true;
                 }
             }
@@ -664,21 +601,14 @@ namespace Application.Services
             };
 
             var userCore = await _unitOfWork.CoreRepository<Comment>()
-                .GetSingleIncludingAsync(c => c.Id == userId, includes.ToArray());
+                .GetSingleIncludingAsync(c => c.Id == userId, [.. includes])
+                                        ?? throw new ArgumentException($"User {userId} not found in core database");
 
-            if (userCore == null)
-            {
-                throw new ArgumentException($"User {userId} not found in core database");
-            }
-
-            if (userCore.UserID_CommentId == null || !userCore.UserID_CommentId.Any())
+            if (userCore.UserID_CommentId == null || userCore.UserID_CommentId.Count == 0)
             {
                 return true; // No comments to process
             }
-
-            bool needsUpdate = false;
-
-            if (userCore.UserID_CommentId?.Any() == true)
+            if (userCore.UserID_CommentId?.Count == 0)
             {
                 // Get all unique comment IDs from dictionaries
                 var allCommentIds = userCore.UserID_CommentId
@@ -691,10 +621,10 @@ namespace Application.Services
                     .Except(userCore.CommentNotifReadByAuthor ?? Enumerable.Empty<string>())
                     .ToList();
 
-                if (newReadComments.Any())
+                if (newReadComments.Count != 0)
                 {
                     // Use AddRange instead of individual Add calls
-                    userCore.CommentNotifReadByAuthor.AddRange(newReadComments);
+                    userCore.CommentNotifReadByAuthor?.AddRange(newReadComments);
 
                     // Update the entity
                     await _unitOfWork.CoreRepository<Comment>().UpdateAsync(userCore);
@@ -702,26 +632,16 @@ namespace Application.Services
                 }
             }
 
-
             return true;
         }
 
-        public async  Task<bool> MarkNotificationAsUnread(string userId, string notificationId)
-        {
-            // Logic to mark a specific notification as unread for the user
-            return true;
-        }
-        public Task<List<NotificationEntity>> GetNotificationTypes()
+        public async Task<List<NotificationEntity>> GetNotificationTypes()
         {
             var types = Enum.GetValues(typeof(NotificationEntity))
                             .Cast<NotificationEntity>()
                             .ToList();
 
-            return Task.FromResult(types);
+            return await Task.FromResult(types);
         }
-
-
-
-
     }
 }
