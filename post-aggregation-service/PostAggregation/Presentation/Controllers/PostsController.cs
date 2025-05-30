@@ -23,5 +23,16 @@ namespace Presentation.Controllers
             }
             return BadRequest();
         }
+
+        [HttpGet("user/posts")]
+        public async Task<IActionResult> GetReactedPosts([FromHeader(Name = "userId")] string userId, [FromQuery] string? next)
+        {
+            var response = await _postAggregationService.GetReactedPosts(userId, next);
+            if (response.Success)
+            {
+                return Ok(new { data = response.ItemList, next = response.NextPostHashId });
+            }
+            return BadRequest();
+        }
     }
 }

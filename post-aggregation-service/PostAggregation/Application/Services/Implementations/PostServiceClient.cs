@@ -1,52 +1,147 @@
+using Application.DTOs;
 using Application.DTOs.Post;
 using Application.Services.Interfaces;
 using System.Net.Http.Json;
 
-public class PostServiceClient : IpostServiceClient
+namespace Application.Services.Implementations
 {
-    private readonly HttpClient _httpClient;
-
-    public PostServiceClient(HttpClient httpClient)
+    public class PostServiceClient : IpostServiceClient
     {
-        _httpClient = httpClient;
+        private readonly HttpClient _httpClient;
+
+        public PostServiceClient(HttpClient httpClient)
+        {
+            _httpClient = httpClient;
+        }
+
+        public async Task<ServiceResponse<PostResponseDTO>> GetPostByIdAsync(string postId)
+        {
+            var result = new ServiceResponse<PostResponseDTO>();
+
+            try
+            {
+                var response = await _httpClient.GetAsync($"api/internal/posts/{postId}");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    result.IsValid = false;
+                    result.Errors = new List<string> { $"HTTP Error: {response.StatusCode}" };
+                    return result;
+                }
+
+                var responseData = await response.Content.ReadFromJsonAsync<ApiResponse<PostResponseDTO>>();
+
+                if (responseData?.Data != null)
+                {
+                    result.IsValid = true;
+                    result.DataItem = responseData.Data;
+                }
+                else
+                {
+                    result.IsValid = false;
+                    result.Errors = new List<string> { "Null response from post service." };
+                }
+            }
+            catch (Exception ex)
+            {
+                result.IsValid = false;
+                result.Errors = new List<string> { ex.Message };
+            }
+
+            return result;
+        }
+
+        public async Task<ServiceResponse<PostResponseDTO>> GetProfilePostListAsync(string userId, string profileUserId, int pageSize, string nextCursor)
+        {
+            var result = new ServiceResponse<PostResponseDTO>();
+
+            try
+            {
+                var request = new GetProfilePostListRequest
+                {
+                    UserId = userId,
+                    NextCursor = nextCursor
+                };
+
+                var response = await _httpClient.PostAsJsonAsync($"api/internal/posts/user/{profileUserId}", request);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    result.IsValid = false;
+                    result.Errors = new List<string> { $"HTTP Error: {response.StatusCode}" };
+                    return result;
+                }
+
+                var responseData = await response.Content.ReadFromJsonAsync<ApiResponse<List<PostResponseDTO>>>();
+
+                if (responseData?.Data != null)
+                {
+                    result.IsValid = true;
+                    result.DataList = responseData.Data;
+                    result.NextCursor = responseData.Next;
+                }
+                else
+                {
+                    result.IsValid = false;
+                    result.Errors = new List<string> { "Null response from post service." };
+                }
+            }
+            catch (Exception ex)
+            {
+                result.IsValid = false;
+                result.Errors = new List<string> { ex.Message };
+            }
+
+            return result;
+        }
+
+        public async Task<ServiceResponse<PostResponseDTO>> GetPostListAsync(string userId, List<string> postIds)
+        {
+            var result = new ServiceResponse<PostResponseDTO>();
+
+            try
+            {
+                var request = new GetPostListRequest
+                {
+                    UserId = userId,
+                    PostIds = postIds
+                };
+
+                var response = await _httpClient.PostAsJsonAsync("api/internal/posts/list", request);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    result.IsValid = false;
+                    result.Errors = new List<string> { $"HTTP Error: {response.StatusCode}" };
+                    return result;
+                }
+
+                var responseData = await response.Content.ReadFromJsonAsync<ApiResponse<List<PostResponseDTO>>>();
+
+                if (responseData?.Data != null)
+                {
+                    result.IsValid = true;
+                    result.DataList = responseData.Data;
+                }
+                else
+                {
+                    result.IsValid = false;
+                    result.Errors = new List<string> { "Null response from post service." };
+                }
+            }
+            catch (Exception ex)
+            {
+                result.IsValid = false;
+                result.Errors = new List<string> { ex.Message };
+            }
+
+            return result;
+        }
     }
 
-    public async Task<ProfilePostsResponse> GetProfilePosts(ProfilePostsRequest request)
+    internal class ApiResponse<T>
     {
-        var result = new ProfilePostsResponse
-        {
-            Posts = new List<Post>(),
-            Errors = new List<string>()
-        };
-
-        try
-        {
-            // Replace with your actual endpoint
-            var response = await _httpClient.PostAsJsonAsync("https://sm-posts-service.com/api/posts/profile", request);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                result.Success = false;
-                result.Errors.Add($"HTTP Error: {response.StatusCode}");
-                return result;
-            }
-
-            var responseData = await response.Content.ReadFromJsonAsync<ProfilePostsResponse>();
-
-            if (responseData is not null)
-            {
-                return responseData;
-            }
-
-            result.Success = false;
-            result.Errors.Add("Null response from post service.");
-        }
-        catch (Exception ex)
-        {
-            result.Success = false;
-            result.Errors.Add(ex.Message);
-        }
-
-        return result;
+        public T Data { get; set; }
+        public string Next { get; set; }
     }
 }

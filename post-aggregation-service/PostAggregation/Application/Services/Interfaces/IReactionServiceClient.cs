@@ -9,6 +9,6 @@ namespace Application.Services.Interfaces
 {
     public interface IReactionServiceClient
     {
-        Task<ReactedPostListResponse> GetReactedPostsAsync(ReactedPostListRequest request);
+        Task<ReactedPostListResponse> GetReactedPostsAsync(FilteredReactedPostListRequest request);
     }
 }

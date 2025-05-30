@@ -10,5 +10,6 @@ namespace Application.Services.Interfaces
     public interface IPostAggregationService
     {
         public Task<ServiceResponseDTO<PostAggregationDTO>> GetProfilePosts(string userId, string targetUser, string nextPostHashId);
+        public Task<ServiceResponseDTO<PostAggregationDTO>> GetReactedPosts(string userId, string nextPostHashId);
     }
 }

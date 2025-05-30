@@ -11,7 +11,7 @@ namespace Application.Services.Implementations
         {
             _httpClient = httpClient;
         }
-        public async Task<ReactedPostListResponse> GetReactedPostsAsync(ReactedPostListRequest request)
+        public async Task<ReactedPostListResponse> GetReactedPostsAsync(FilteredReactedPostListRequest request)
         {
             try
             {

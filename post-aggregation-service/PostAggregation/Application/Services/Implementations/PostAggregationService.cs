@@ -67,7 +67,7 @@ namespace Application.Services.Implementations
 
             var postIds = postsResult.Posts.Select(p => p.PostId).ToList();
 
-            var reactedTask = _reactionServiceClient.GetReactedPostsAsync(new ReactedPostListRequest
+            var reactedTask = _reactionServiceClient.GetReactedPostsAsync(new FilteredReactedPostListRequest
             {
                 UserId = userId,
                 PostIds = postIds
@@ -94,6 +94,12 @@ namespace Application.Services.Implementations
             response.NextPostHashId = postsResult.NextPostHashId;
             response.Success = true;
             return response;
+        }
+
+        public Task<ServiceResponseDTO<PostAggregationDTO>> GetReactedPosts(string userId, string nextPostHashId)
+        {
+
+            return null!;
         }
 
         private List<PostAggregationDTO> MapToPostAggregationDTOList( List<Post> posts, List<string> likedPostIds, List<PostAuthorProfile> authorProfiles)

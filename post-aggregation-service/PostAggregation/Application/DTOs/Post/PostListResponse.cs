@@ -1,6 +1,6 @@
 namespace Application.DTOs.Post
 {
-    public class ProfilePostsResponse
+    public class PostListResponse
     {
         public bool Success { get; set; }
         public string NextPostHashId { get; set; }
