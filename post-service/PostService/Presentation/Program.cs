@@ -4,7 +4,6 @@ using Application.Services;
 using Domain.IRepository;
 using Infrastructure.Repository;
 using Microsoft.Extensions.Options;
-using MyCompany.MediaSdk;
 
 var builder = WebApplication.CreateBuilder(args);
 
