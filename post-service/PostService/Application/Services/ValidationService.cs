@@ -43,7 +43,7 @@ namespace Application.Services
 
             if (post.AuthorId != userId)
             {
-                result.Errors.Add("Invalid Operation! you don't have the permession to edit this postInputDto!");
+                result.Errors.Add("Invalid Operation! you don't have the permission to edit this post!");
                 result.ErrorType = ErrorType.UnAuthorized;
                 return result;
             }
@@ -81,16 +81,15 @@ namespace Application.Services
             var result = new ValidationResult();
             if (post.Media == null)
             {
-                result.Errors.Add("Invalid media or it has been corrupted. try again later");
+                result.Errors.Add("Invalid media or it has been corrupted. Try again later.");
                 result.ErrorType = ErrorType.BadRequest;
             }
-            if (post.Media.Count() > 0)
+            if (post.Media.Count() > 4)
             {
-                result.Errors.Add("Invalid Request! The max number of media items you can upload per post is four (4) items");
+                result.Errors.Add("Invalid Request! The maximum number of media items you can upload per post is four (4) items.");
                 result.ErrorType = ErrorType.BadRequest;
             }
             return result;
         }
-
     }
 }
