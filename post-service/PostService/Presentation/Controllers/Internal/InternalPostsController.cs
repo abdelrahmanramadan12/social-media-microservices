@@ -1,22 +1,21 @@
 using Application.DTOs;
 using Application.IServices;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Presentation.Controllers.Public
+namespace Presentation.Controllers.Internal
 {
-    [Route("api/public/[controller]")]
+    [Route("api/internal/posts")]
     [ApiController]
-    public class PostsController : ControllerBase
+    public class InternalPostsController : ControllerBase
     {
         private readonly IPostService _postService;
         private readonly IEncryptionService _encryptionService;
-        public PostsController(IPostService postSerive, IEncryptionService encryptionService)
+        public InternalPostsController(IPostService postSerive, IEncryptionService encryptionService)
         {
             this._postService = postSerive;
             this._encryptionService = encryptionService;
         }
-
-
         // Endpoints
         [HttpGet("{postId}")]
         public async Task<IActionResult> GetPost(string postId)
@@ -29,15 +28,15 @@ namespace Presentation.Controllers.Public
             return Ok(new { data = res.DataItem });
         }
 
-        [HttpGet("user/{profileUserId}")]
-        public async Task<IActionResult> GetProfilePostList(string profileUserId, [FromBody] string userId, [FromBody] string? next)
+        [HttpPost("user/{profileUserId}")]
+        public async Task<IActionResult> GetProfilePostList(string profileUserId, [FromBody] GetProfilePostListRequest request)
         {
             // Encrypt the Key if exists
-            if (!string.IsNullOrWhiteSpace(next))
-                next = _encryptionService.Decrypt(next);
+            if (!string.IsNullOrWhiteSpace(request.NextCursor))
+                request.NextCursor = _encryptionService.Decrypt(request.NextCursor);
 
             const int pageSize = 15 + 1;
-            ServiceResponse<PostResponseDTO> res = await _postService.GetProfilePostListAsync(userId, profileUserId, pageSize, next);
+            ServiceResponse<PostResponseDTO> res = await _postService.GetProfilePostListAsync(request.UserId, profileUserId, pageSize, request.NextCursor);
 
             if (!res.IsValid)
                 return HandleServiceError(res);
@@ -53,49 +52,15 @@ namespace Presentation.Controllers.Public
             return Ok(new { data = res.DataList, next = (string?)null });
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetPostList([FromBody] string userId, [FromBody] List<string> PostIds)
+        [HttpPost("list")]
+        public async Task<IActionResult> GetPostList([FromBody] GetPostListRequest request)
         {
-            ServiceResponse<PostResponseDTO> res = await _postService.GetPostListAsync(userId, PostIds);
+            ServiceResponse<PostResponseDTO> res = await _postService.GetPostListAsync(request.UserId, request.PostIds);
 
             if (!res.IsValid)
                 return HandleServiceError(res);
 
             return Ok(new { data = res.DataList });
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> AddPost([FromForm] PostInputDTO postDto, [FromHeader(Name = "userId")] string userId)
-        {
-            ServiceResponse<PostResponseDTO> res = await _postService.AddPostAsync(userId, postDto);
-            if (!res.IsValid)
-            {
-                return HandleServiceError(res);
-            }
-
-            return CreatedAtAction("Create", new { res.DataItem });
-        }
-
-        [HttpPut]
-        public async Task<IActionResult> UpdatePost([FromForm] PostInputDTO postDto, [FromHeader(Name = "userId")] string userId)
-        {
-            ServiceResponse<PostResponseDTO> res = await _postService.UpdatePostAsync(userId, postDto);
-            if (!res.IsValid)
-            {
-                return HandleServiceError(res);
-            }
-
-            return NoContent();
-        }
-
-        [HttpDelete]
-        public async Task<IActionResult> DeletePost([FromBody] string postId, [FromHeader(Name = "userId")] string userId)
-        {
-            var res = await _postService.DeletePostAsync(userId, postId);
-            if (!res.IsValid)
-                return HandleServiceError(res);
-
-            return NoContent();
         }
 
 
