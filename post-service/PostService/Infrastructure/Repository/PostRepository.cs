@@ -40,7 +40,6 @@ namespace Infrastructure.Repository
             await _posts.InsertOneAsync(post);
 
             return post;
-
         }
 
         public async Task<bool> DeletePostAsync(string postId, string postAuthorId)
@@ -84,29 +83,23 @@ namespace Infrastructure.Repository
 
         public async Task<List<Post>> GetUserPostsAsync(string userId, int pageSize, string? cursorPostId)
         {
-
             var filter = Builders<Post>.Filter.Eq(p => p.AuthorId, userId) & NotDeletedFilter;
 
-            if (string.IsNullOrEmpty(cursorPostId))
+            if (!string.IsNullOrEmpty(cursorPostId))
             {
-                filter &= Builders<Post>.Filter.Lt(p => p.CreatedAt, DateTime.Now);
-                var lastPost = await _posts.Find(filter).FirstOrDefaultAsync();
-                if (lastPost == null) return [];
-            }else
-            {
-                var lastPostFilter = Builders<Post>.Filter.Eq(p => p.Id, cursorPostId);
-                var lastPost = await (await _posts.FindAsync(lastPostFilter)).FirstOrDefaultAsync();
-                filter &= Builders<Post>.Filter.Lt(p => p.CreatedAt, lastPost.CreatedAt);
-                if (lastPost == null) return [];
+                var lastPost = await GetPostAsync(cursorPostId);
+                if (lastPost != null)
+                {
+                    filter &= Builders<Post>.Filter.Lt(p => p.CreatedAt, lastPost.CreatedAt);
+                }
             }
 
-            var posts = await _posts.Find(filter)
-                                    .SortByDescending(p => p.CreatedAt)
-                                    .Limit(pageSize)
-                                    .ToListAsync();
-            return posts;
-
+            return await _posts.Find(filter)
+                .SortByDescending(p => p.CreatedAt)
+                .Limit(pageSize)
+                .ToListAsync();
         }
+
 
         public async Task<Post?> UpdatePostAsync(string postId, Post newPost, bool HasMedia)
         {
