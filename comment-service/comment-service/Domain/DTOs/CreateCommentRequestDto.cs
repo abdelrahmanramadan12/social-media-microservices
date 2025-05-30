@@ -10,6 +10,6 @@ namespace Domain.DTOs
         public string? UserId { get; set; }
         public bool HasMedia { get; set; }
         public MediaType MediaType { get; set; }
-        public IEnumerable<IFormFile>? Media { get; set; }
+        public IFormFile Media { get; set; }
     }
 }

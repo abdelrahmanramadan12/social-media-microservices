@@ -20,14 +20,11 @@ namespace Service.Implementations.MediaServices
         {
             using var form = new MultipartFormDataContent();
 
-            // Add files
-            foreach (var file in request.Files)
-            {
-                var streamContent = new StreamContent(file.OpenReadStream());
-                streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(
-                    string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType);
-                form.Add(streamContent, "Files", file.FileName);
-            }
+            // Add single file
+            var streamContent = new StreamContent(request.File.OpenReadStream());
+            streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(
+                string.IsNullOrWhiteSpace(request.File.ContentType) ? "application/octet-stream" : request.File.ContentType);
+            form.Add(streamContent, "File", request.File.FileName);
 
             // Add media type
             form.Add(new StringContent(request.MediaType.ToString()), "MediaType");
@@ -36,24 +33,21 @@ namespace Service.Implementations.MediaServices
             response.EnsureSuccessStatusCode();
 
             return await response.Content.ReadFromJsonAsync<MediaUploadResponseDto>(cancellationToken: ct)
-                ?? throw new InvalidOperationException("Failed to deserialize media upload response");
+                   ?? throw new InvalidOperationException("Failed to deserialize media upload response");
         }
 
-        public async Task<MediaUploadResponseDto> EditMediaAsync(MediaUploadRequestDto mediaUploadRequest, IEnumerable<string> currentUrls, CancellationToken ct = default)
+        public async Task<MediaUploadResponseDto> EditMediaAsync(MediaUploadRequestDto newFile, IEnumerable<string> currentUrls, CancellationToken ct = default)
         {
             using var form = new MultipartFormDataContent();
 
-            // Add files
-            foreach (var file in mediaUploadRequest.Files)
-            {
-                var streamContent = new StreamContent(file.OpenReadStream());
-                streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(
-                    string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType);
-                form.Add(streamContent, "Files", file.FileName);
-            }
+            // Add single file
+            var streamContent = new StreamContent(newFile.File.OpenReadStream());
+            streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(
+                string.IsNullOrWhiteSpace(newFile.File.ContentType) ? "application/octet-stream" : newFile.File.ContentType);
+            form.Add(streamContent, "File", newFile.File.FileName);
 
             // Add media type
-            form.Add(new StringContent(mediaUploadRequest.MediaType.ToString()), "MediaType");
+            form.Add(new StringContent(newFile.MediaType.ToString()), "MediaType");
 
             // Add current URLs
             foreach (var url in currentUrls)
@@ -65,51 +59,33 @@ namespace Service.Implementations.MediaServices
             response.EnsureSuccessStatusCode();
 
             return await response.Content.ReadFromJsonAsync<MediaUploadResponseDto>(cancellationToken: ct)
-                ?? throw new InvalidOperationException("Failed to deserialize media edit response");
+                   ?? throw new InvalidOperationException("Failed to deserialize media edit response");
         }
 
         public async Task<bool> DeleteMediaAsync(IEnumerable<string> urls, CancellationToken ct = default)
         {
-            var request = new DeleteMediaRequestDto { Urls = urls.ToList() };
             var response = await _http.DeleteAsync($"{BASE_ROUTE}?urls={string.Join(",", urls)}", ct);
             response.EnsureSuccessStatusCode();
 
             return await response.Content.ReadFromJsonAsync<bool>(cancellationToken: ct);
         }
 
-
-        /// helper functions
         public async Task<MediaUploadResponseDto> AssignMediaToPostInput(CreateCommentRequestDto commentInputDTO)
         {
             var mediaUploadResponse = new MediaUploadResponseDto();
-            var mediaUploadRequest = new MediaUploadRequestDto();
 
-            if (!commentInputDTO.HasMedia || commentInputDTO.Media == null || !commentInputDTO.Media.Any())
+            if (!commentInputDTO.HasMedia || commentInputDTO.Media == null)
             {
                 mediaUploadResponse.Success = false;
                 return mediaUploadResponse;
             }
 
-            mediaUploadRequest.usageCategory = UsageCategory.Post;
-            mediaUploadRequest.Files = commentInputDTO.Media;
-
-            switch (commentInputDTO.MediaType)
+            var mediaUploadRequest = new MediaUploadRequestDto
             {
-                case MediaType.Video:
-                    mediaUploadRequest.MediaType = MediaType.Video;
-                    break;
-                case MediaType.Image:
-                    mediaUploadRequest.MediaType = MediaType.Image;
-                    break;
-                case MediaType.Audio:
-                    mediaUploadRequest.MediaType = MediaType.Audio;
-                    break;
-                case MediaType.Document:
-                    mediaUploadRequest.MediaType = MediaType.Document;
-                    break;
-                default:
-                    break;
-            }
+                File = commentInputDTO.Media,
+                usageCategory = UsageCategory.Post,
+                MediaType = commentInputDTO.MediaType
+            };
 
             try
             {
@@ -122,6 +98,5 @@ namespace Service.Implementations.MediaServices
                 return mediaUploadResponse;
             }
         }
-
     }
 }

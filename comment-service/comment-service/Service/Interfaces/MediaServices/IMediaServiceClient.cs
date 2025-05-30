@@ -5,17 +5,17 @@ namespace Service.Interfaces.MediaServices
     public interface IMediaServiceClient
     {
         /// <summary>
-        /// Uploads media files to the media service.
+        /// Uploads a single media file to the media service.
         /// </summary>
         Task<MediaUploadResponseDto> UploadMediaAsync(
             MediaUploadRequestDto request,
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Edits existing media by uploading new files and optionally deleting old ones.
+        /// Edits existing media by uploading a new file and optionally deleting old ones.
         /// </summary>
         Task<MediaUploadResponseDto> EditMediaAsync(
-            MediaUploadRequestDto newFiles,
+            MediaUploadRequestDto newFile,
             IEnumerable<string> currentUrls,
             CancellationToken cancellationToken = default);
 
@@ -27,9 +27,7 @@ namespace Service.Interfaces.MediaServices
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        ///  
         /// Assigns media to a post input, typically used when creating a comment with media.
-        /// 
         /// </summary>
         Task<MediaUploadResponseDto> AssignMediaToPostInput(CreateCommentRequestDto commentInputDTO);
     }
