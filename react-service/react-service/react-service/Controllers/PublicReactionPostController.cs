@@ -15,17 +15,6 @@ namespace react_service.Controllers
             _reactionService = reactionService;
         }
 
-        [HttpGet("{postId}")]
-        public async Task<IActionResult> GetReactsByPost(string postId, [FromQuery] string? nextReactIdHash, [FromHeader(Name = "userId")] string userId)
-        {
-            if (string.IsNullOrEmpty(postId))
-            {
-                return BadRequest("Post ID cannot be null or empty.");
-            }
-            var result = await _reactionService.GetReactsByPostAsync(postId, nextReactIdHash, userId);
-            return Ok(result);
-        }
-
         [HttpDelete]
         public async Task<IActionResult> DeleteReaction([FromBody] DeleteReactionRequest request, [FromHeader(Name = "userId")] string userId)
         {
@@ -53,4 +42,4 @@ namespace react_service.Controllers
             return NoContent();
         }
     }
-} 
+}

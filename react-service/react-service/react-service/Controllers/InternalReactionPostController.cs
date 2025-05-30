@@ -15,8 +15,8 @@ namespace react_service.Controllers
             _reactionService = reactionService;
         }
 
-        [HttpPost("user/reacted")]
-        public async Task<IActionResult> GetPostsReactedByUser([FromBody] GetPostsReactedByUserRequest request)
+        [HttpPost("user/filter")]
+        public async Task<IActionResult> FilterPostsReactedByUser([FromBody] GetPostsReactedByUserRequest request)
         {
             if (request?.PostIds == null || request.PostIds.Count == 0)
             {
@@ -26,8 +26,19 @@ namespace react_service.Controllers
             {
                 return BadRequest("User ID cannot be null or empty.");
             }
-            var reactedPosts = await _reactionService.IsPostsReactedByUserAsync(request.PostIds, request.UserId);
+            var reactedPosts = await _reactionService.FilterPostsReactedByUserAsync(request.PostIds, request.UserId);
             return Ok(reactedPosts);
         }   
+
+        [HttpPost]
+        public async Task<IActionResult> GetReactsOfPost([FromBody] GetReactsOfPostRequest request)
+        {
+            if (request == null || string.IsNullOrEmpty(request.PostId))
+            {
+                return BadRequest("Post ID cannot be null or empty.");
+            }
+            var result = await _reactionService.GetReactsOfPostAsync(request.PostId, request.NextReactIdHash);
+            return Ok(result);
+        }
     }
 }

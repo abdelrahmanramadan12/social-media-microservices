@@ -40,7 +40,7 @@ namespace react_service.Infrastructure.Repositories
             _collection.Indexes.CreateOne(indexModel);
         }
 
-        public async Task<List<ReactionPost>> GetReactsByPostAsync(string postId, string nextReactIdHash, string userId)
+        public async Task<List<ReactionPost>> GetReactsOfPostAsync(string postId, string nextReactIdHash)
         {
 
             var filterBuilder = Builders<ReactionPost>.Filter;
@@ -124,7 +124,7 @@ namespace react_service.Infrastructure.Repositories
             return result.DeletedCount > 0;
         }
 
-        public Task<List<string>> IsPostsReactedByUserAsync(List<string> postIds, string userId)
+        public Task<List<string>> FilterPostsReactedByUserAsync(List<string> postIds, string userId)
         {
             var filter = Builders<ReactionPost>.Filter.And(
                 Builders<ReactionPost>.Filter.In(r => r.PostId, postIds),

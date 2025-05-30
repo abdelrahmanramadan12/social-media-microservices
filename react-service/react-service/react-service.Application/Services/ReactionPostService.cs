@@ -37,39 +37,30 @@ namespace react_service.Application.Services
             this.reactionPublisher = reactionPublisher;
         }
 
-        public async Task<PagedReactsResponse> GetReactsByPostAsync(string postId, string? nextReactIdHash, string userId)
+        public async Task<PagedReactsResponse> GetReactsOfPostAsync(string postId, string? nextReactIdHash)
         {
+            string lastSeenId;
+            if (nextReactIdHash == null || nextReactIdHash?.Trim() == "")
+            {
+                lastSeenId = "";
+            }else
+            {
+                lastSeenId = PaginationHelper.DecodeCursor(nextReactIdHash!);
+            }
 
-            #region validation
-            // validation on postId 
+            var reactionList = (await reactionRepository.GetReactsOfPostAsync(postId, lastSeenId)).ToList();
 
-            // var UserId =  _gatewayService.CallServiceAsync<string>("UserService", "/api/public/user/validateUserId?userId=" + userId);
-
-            // validation on UserId
-
-            // var postId = _gatewayService.CallServiceAsync<string>("PostService", "/api/public/post/validatePostId?postId=" + postId);
-            #endregion
-
-            //var lastSeenId = PaginationHelper.DecodeCursor(nextReactIdHash);
-
-            var reactionList = await reactionRepository.GetReactsByPostAsync(postId, nextReactIdHash, userId);
-
-            bool hasMore = reactionList.Count() > (paginationSetting.Value.DefaultPageSize - 1);
+            bool hasMore = reactionList.Count > (paginationSetting.Value.DefaultPageSize - 1);
 
             var response = mapper.Map<PagedReactsResponse>(reactionList);
 
+            var lastId = hasMore ? reactionList.Last().Id : null;
             response.HasMore = hasMore;
-            response.NextCursor = hasMore ? reactionList.LastOrDefault().Id : null;
-
-
-            #region AddProfileImageAndUserName   
-            #endregion
+            response.NextCursor = lastId != null ? PaginationHelper.GenerateCursor(lastId) : null;
 
             return response;
-
-
-
         }
+
         public async Task<string> AddReactionAsync(CreateReactionRequest reation, string userId)
         {
             #region validation
@@ -117,7 +108,7 @@ namespace react_service.Application.Services
 
 
         }
-        public async Task<PostsReactedByUserDTO> IsPostsReactedByUserAsync(List<string> postIds, string userId)
+        public async Task<PostsReactedByUserDTO> FilterPostsReactedByUserAsync(List<string> postIds, string userId)
         {
             #region validation
             // validation on postId 
@@ -125,7 +116,7 @@ namespace react_service.Application.Services
             // validation on UserId
             // var postId = _gatewayService.CallServiceAsync<string>("PostService", "/api/public/post/validatePostId?postId=" + postId);
             #endregion
-            var obj = await reactionRepository.IsPostsReactedByUserAsync(postIds, userId);
+            var obj = await reactionRepository.FilterPostsReactedByUserAsync(postIds, userId);
             return new PostsReactedByUserDTO
             {
                 postIds = obj
