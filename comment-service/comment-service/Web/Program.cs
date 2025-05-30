@@ -19,6 +19,8 @@ namespace Web
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            var configuration = builder.Configuration;
+
             // Add services to the container.
             // Configure MongoDB connection
             var connectionString = builder.Configuration.GetConnectionString("AtlasUri");
@@ -39,7 +41,12 @@ namespace Web
             // Register services
             builder.Services.AddScoped<ICommentService, CommentService>();
             builder.Services.AddScoped<IPostService, PostService>();
-            builder.Services.AddScoped<IMediaServiceClient, MediaServiceClient>();
+
+            // Register MediaServiceClient with HttpClient
+            builder.Services.AddHttpClient<IMediaServiceClient, MediaServiceClient>(client =>
+            {
+                client.BaseAddress = new Uri(configuration["MediaService:HostUrl"]);
+            });
 
             // Register RabbitMQ services
             builder.Services.AddSingleton<IRabbitMqPublisher, RabbitMqPublisher>();

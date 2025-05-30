@@ -2,6 +2,7 @@
 using System.Net.Http.Json;
 using Domain.DTOs;
 using Domain.Enums;
+using Microsoft.Extensions.Configuration;
 using Service.Interfaces.MediaServices;
 
 namespace Service.Implementations.MediaServices
@@ -9,9 +10,9 @@ namespace Service.Implementations.MediaServices
     public class MediaServiceClient : IMediaServiceClient
     {
         private readonly HttpClient _http;
-        private const string BASE_ROUTE = "api/internal/media";
+        private const string _BASE_ROUTE = "/api/internal/media";
 
-        public MediaServiceClient(HttpClient http)
+        public MediaServiceClient(HttpClient http, IConfiguration configuration)
         {
             _http = http;
         }
@@ -20,21 +21,25 @@ namespace Service.Implementations.MediaServices
         {
             using var form = new MultipartFormDataContent();
 
-            // Add single file
+            // Important: Use "Files" to match ReceivedMediaDto
             var streamContent = new StreamContent(request.File.OpenReadStream());
             streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(
                 string.IsNullOrWhiteSpace(request.File.ContentType) ? "application/octet-stream" : request.File.ContentType);
-            form.Add(streamContent, "File", request.File.FileName);
+            form.Add(streamContent, "Files", request.File.FileName); 
 
-            // Add media type
+            // Add MediaType and UsageCategory
             form.Add(new StringContent(request.MediaType.ToString()), "MediaType");
+            form.Add(new StringContent(request.usageCategory.ToString()), "UsageCategory");
 
-            var response = await _http.PostAsync(BASE_ROUTE, form, ct);
+            var response = await _http.PostAsync(_BASE_ROUTE, form, ct);
             response.EnsureSuccessStatusCode();
 
-            return await response.Content.ReadFromJsonAsync<MediaUploadResponseDto>(cancellationToken: ct)
-                   ?? throw new InvalidOperationException("Failed to deserialize media upload response");
+            var res = await response.Content.ReadFromJsonAsync<MediaUploadResponseDto>(cancellationToken: ct);
+
+            return res ?? throw new InvalidOperationException("Failed to deserialize media upload response");
         }
+
+
 
         public async Task<MediaUploadResponseDto> EditMediaAsync(MediaUploadRequestDto newFile, IEnumerable<string> currentUrls, CancellationToken ct = default)
         {
@@ -55,7 +60,7 @@ namespace Service.Implementations.MediaServices
                 form.Add(new StringContent(url), "MediaUrls");
             }
 
-            var response = await _http.PutAsync(BASE_ROUTE, form, ct);
+            var response = await _http.PutAsync(_BASE_ROUTE, form, ct);
             response.EnsureSuccessStatusCode();
 
             return await response.Content.ReadFromJsonAsync<MediaUploadResponseDto>(cancellationToken: ct)
@@ -64,7 +69,7 @@ namespace Service.Implementations.MediaServices
 
         public async Task<bool> DeleteMediaAsync(IEnumerable<string> urls, CancellationToken ct = default)
         {
-            var response = await _http.DeleteAsync($"{BASE_ROUTE}?urls={string.Join(",", urls)}", ct);
+            var response = await _http.DeleteAsync($"{_BASE_ROUTE}?urls={string.Join(",", urls)}", ct);
             response.EnsureSuccessStatusCode();
 
             return await response.Content.ReadFromJsonAsync<bool>(cancellationToken: ct);

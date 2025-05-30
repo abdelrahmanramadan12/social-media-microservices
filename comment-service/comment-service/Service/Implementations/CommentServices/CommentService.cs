@@ -5,6 +5,7 @@ using Domain.Events;
 using Domain.IRepository;
 using MongoDB.Bson;
 using Service.Interfaces.CommentServices;
+using Service.Interfaces.MediaServices;
 using Service.Interfaces.RabbitMQServices;
 
 namespace Service.Implementations.CommentServices
@@ -14,11 +15,14 @@ namespace Service.Implementations.CommentServices
         private readonly ICommentRepository _commentRepository;
         private readonly IPostRepository _postRepository;
         private readonly ICommentPublisher _commentPublisher;
+        private readonly IMediaServiceClient _mediaServiceClient;
 
-        public CommentService(ICommentRepository commentRepository, ICommentPublisher commentPublisher)
+        public CommentService(ICommentRepository commentRepository, ICommentPublisher commentPublisher ,IPostRepository postRepository,IMediaServiceClient mediaServiceClient)
         {
             _commentRepository = commentRepository;
+            _postRepository = postRepository;
             _commentPublisher = commentPublisher;
+            _mediaServiceClient = mediaServiceClient;
         }
 
         public async Task<PagedCommentsDto> ListCommentsAsync(string postId, string? nextCommentId = null)
@@ -60,8 +64,6 @@ namespace Service.Implementations.CommentServices
 
         public async Task<CommentDto> CreateCommentAsync(CreateCommentRequestDto dto)
         {
-            ///====> call post/follow service to check the ability to add comment in this post  --> based on privacy
-            /// if allowed
 
             if (string.IsNullOrWhiteSpace(dto.PostId))
                 throw new NullReferenceException("PostId is required.");
@@ -78,25 +80,41 @@ namespace Service.Implementations.CommentServices
                 ReactCount = 0
             };
 
+            if (dto.Media != null)
+            {
+                // Upload media to the media service and get the URL
+                var mediaUploadResponse = await _mediaServiceClient.UploadMediaAsync(new MediaUploadRequestDto
+                {
+                    File = dto.Media,
+                    MediaType = MediaType.IMAGE,
+                    usageCategory = UsageCategory.Comment
+                    
+                });
+                if (mediaUploadResponse.Success && mediaUploadResponse.Urls[0] != null )
+                {
+                    comment.MediaUrl = mediaUploadResponse.Urls[0];
+                }
+            }
+
             await _commentRepository.CreateAsync(comment);
 
             var post = await _postRepository.GetPostByIdAsync(comment.PostId);
 
             // Notify the post service about the new comment
-            await _commentPublisher.PublishAsync(new CommentEvent
-            {
-                EventType = CommentEventType.Created,
-                Data = new CommentData
-                {
+            //await _commentPublisher.PublishAsync(new CommentEvent
+            //{
+            //    EventType = CommentEventType.Created,
+            //    Data = new CommentData
+            //    {
 
-                    CommentId = comment.Id.ToString(),
-                    PostId = comment.PostId,
-                    CommentAuthorId = comment.AuthorId,
-                    Content = comment.Content ?? "",
-                    CreatedAt = comment.CreatedAt,
-                    PostAuthorId = post?.AuthorId ?? string.Empty
-                }
-            });
+            //        CommentId = comment.Id.ToString(),
+            //        PostId = comment.PostId,
+            //        CommentAuthorId = comment.AuthorId,
+            //        Content = comment.Content ?? "",
+            //        CreatedAt = comment.CreatedAt,
+            //        PostAuthorId = post?.AuthorId ?? string.Empty
+            //    }
+            //});
 
             return ToDto(comment);
         }
@@ -113,9 +131,28 @@ namespace Service.Implementations.CommentServices
             comment.Content = dto.Content;
             comment.IsEdited = true;
 
+
             if (dto.Media != null)
             {
-                //comment.MediaUrl = Url returns from media service
+                // Upload new media to the media service and get the URL
+                var mediaUploadResponse = await _mediaServiceClient.UploadMediaAsync(new MediaUploadRequestDto
+                {
+                    File = dto.Media,
+                    MediaType = MediaType.IMAGE,
+                    usageCategory = UsageCategory.Comment
+                });
+
+                // delete old media if exists
+                // and assign the new media URL to the comment
+                if (mediaUploadResponse.Success && mediaUploadResponse.Urls[0] != null)
+                {
+                    if (!string.IsNullOrWhiteSpace(comment.MediaUrl))
+                    {
+                        await _mediaServiceClient.DeleteMediaAsync(new[] { comment.MediaUrl });
+                    }
+                    comment.MediaUrl = mediaUploadResponse.Urls[0];
+
+                }
             }
 
             await _commentRepository.UpdateAsync(comment);
@@ -131,6 +168,12 @@ namespace Service.Implementations.CommentServices
                 throw new UnauthorizedAccessException("You can only delete your own comments.");
 
             await _commentRepository.DeleteAsync(commentId);
+
+            // If the comment has media, delete it from the media service
+            if (!string.IsNullOrWhiteSpace(comment.MediaUrl))
+            {
+                await _mediaServiceClient.DeleteMediaAsync(new[] { comment.MediaUrl });
+            }
 
             // Notify the post service about the deleted comment
             await _commentPublisher.PublishAsync(new CommentEvent
