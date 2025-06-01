@@ -28,7 +28,7 @@ namespace Infrastructure.Repositories
             var serializedEntity = JsonConvert.SerializeObject(entity, _serializerSettings);
 
             await _redisDb.StringSetAsync(key, serializedEntity, _cacheDuration).ConfigureAwait(false);
-            await _redisDb.SetAddAsync($"{_collectionName}:keys", key).ConfigureAwait(false);
+            await _redisDb.SetAddAsync($"{_collectionName}", key).ConfigureAwait(false);
         }
 
         public async Task DeleteAsync(T entity)
@@ -37,12 +37,12 @@ namespace Infrastructure.Repositories
             var key = GetRedisKey(id);
 
             await _redisDb.KeyDeleteAsync(key).ConfigureAwait(false);
-            await _redisDb.SetRemoveAsync($"{_collectionName}:keys", key).ConfigureAwait(false);
+            await _redisDb.SetRemoveAsync($"{_collectionName}", key).ConfigureAwait(false);
         }
 
         public async Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate)
         {
-            var keys = await _redisDb.SetMembersAsync($"{_collectionName}:keys").ConfigureAwait(false);
+            var keys = await _redisDb.SetMembersAsync($"{_collectionName}").ConfigureAwait(false);
             if (keys.Length == 0) return false;
 
             var values = await _redisDb.StringGetAsync(keys.Select(k => (RedisKey)(string)k).ToArray()).ConfigureAwait(false);
@@ -57,7 +57,7 @@ namespace Infrastructure.Repositories
 
         public async Task<IQueryable<T>> GetAll(string? userID = "")
         {
-            var keys = await _redisDb.SetMembersAsync($"{_collectionName}:keys").ConfigureAwait(false);
+            var keys = await _redisDb.SetMembersAsync($"{_collectionName}").ConfigureAwait(false);
             if (keys.Length == 0) return new List<T>().AsQueryable();
 
             var values = await _redisDb.StringGetAsync(keys.Select(k => (RedisKey)(string)k).ToArray())
@@ -93,6 +93,15 @@ namespace Infrastructure.Repositories
             var all = await GetAll();
             return all.FirstOrDefault(predicate.Compile());
         }
+        public async Task<T?> GetSingleByIdAsync(string userId)
+        {
+            var key = $"{_collectionName}:{userId}";
+            var value = await _redisDb.StringGetAsync(key);
+
+            if (value.IsNullOrEmpty) return default;
+
+            return JsonConvert.DeserializeObject<T>(value);
+        }
 
         public async Task UpdateAsync(T entity, string? ID = "")
         {
@@ -101,7 +110,7 @@ namespace Infrastructure.Repositories
             var serializedEntity = JsonConvert.SerializeObject(entity, _serializerSettings);
 
             await _redisDb.StringSetAsync(key, serializedEntity, _cacheDuration).ConfigureAwait(false);
-            await _redisDb.SetAddAsync($"{_collectionName}:keys", key).ConfigureAwait(false);
+            await _redisDb.SetAddAsync($"{_collectionName}", key).ConfigureAwait(false);
         }
 
         //public IEnumerable<T> GetAllIncludingAsync(params Expression<Func<T, object>>[] includes)

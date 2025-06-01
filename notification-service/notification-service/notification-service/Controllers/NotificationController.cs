@@ -3,6 +3,7 @@ using Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
 using StackExchange.Redis;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace notification_service.Controllers
 {
@@ -124,30 +125,40 @@ namespace notification_service.Controllers
 
         #region MarkNotificationsAsRead
         [HttpPost("mark-notifications-follow-as-read")]
-        public IActionResult MarkNotificationsFollowAsRead([FromHeader(Name = "userId")] string userId, [FromQuery] string followerId)
+        public async Task<IActionResult> MarkNotificationsFollowAsRead([FromHeader(Name = "userId")] string userId, [FromQuery] string followerId)
         {
-            _notificationService.MarkNotificationsFollowAsRead(userId, followerId);
+            try
+            {
+               await  _notificationService.MarkNotificationsFollowAsRead(userId, followerId);
+
+
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+
+            }
             return Ok();
         }
 
         [HttpPost("mark-all-notifications-as-read")]
-        public IActionResult MarkAllNotificationsAsRead([FromHeader(Name = "userId")] string userId)
+        public async Task<IActionResult> MarkAllNotificationsAsRead([FromHeader(Name = "userId")] string userId)
         {
-            _notificationService.MarkAllNotificationsAsRead(userId);
+            await _notificationService.MarkAllNotificationsAsRead(userId);
             return Ok();
         }
 
         [HttpPost("mark-notifications-reaction-comment-as-read")]
-        public IActionResult MarkNotificationsReactionCommentAsRead([FromHeader(Name = "userId")] string userId, [FromQuery] string reactionId)
+        public async Task<IActionResult> MarkNotificationsReactionCommentAsRead([FromHeader(Name = "userId")] string userId, [FromQuery] string reactionId)
         {
-            _notificationService.MarkNotificationsReactionCommentAsRead(userId, reactionId);
+            await _notificationService.MarkNotificationsReactionCommentAsRead(userId, reactionId);
             return Ok();
         }
 
         [HttpPost("mark-notifications-reaction-post-as-read")]
-        public IActionResult MarkNotificationsReactionPostAsRead([FromHeader(Name = "userId")] string userId, [FromQuery] string reactionId)
+        public async Task<IActionResult> MarkNotificationsReactionPostAsRead([FromHeader(Name = "userId")] string userId, [FromQuery] string reactionId)
         {
-            _notificationService.MarkNotificationsReactionPostAsRead(userId, reactionId);
+           await  _notificationService.MarkNotificationsReactionPostAsRead(userId, reactionId);
             return Ok();
         }
 

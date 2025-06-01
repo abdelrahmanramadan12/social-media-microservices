@@ -15,17 +15,27 @@ namespace Infrastructure.SeedingData.CacheSeeding
 
         public async Task SeedInitialFollowsDataAsync()
         {
-            var followsData = GenerateSampleFollowsData();
+            var followsData =GenerateSampleFollowsData();
 
             foreach (var cachedFollow in followsData)
             {
-                var key = $"cachedfollowed:{cachedFollow.UserId}";
-                await _redisDb.StringSetAsync(
-                    key,
-                    JsonSerializer.Serialize(cachedFollow),
-                    TimeSpan.FromDays(30) // Optional expiration
-                );
+                try
+                {
+                    var key = $"cachedfollowed:{cachedFollow.UserId}";
+                    await _redisDb.StringSetAsync(
+                        key,
+                        JsonSerializer.Serialize(cachedFollow),
+                        TimeSpan.FromDays(30) 
+                    );
+                    await _redisDb.SetAddAsync("cachedfollowed", key);
+
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
             }
+              
         }
 
         private List<CachedFollowed> GenerateSampleFollowsData()

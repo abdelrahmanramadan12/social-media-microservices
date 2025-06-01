@@ -24,9 +24,9 @@ namespace Application.Interfaces
         //Task<bool> MarkFollowingNotificationAsRead(string userId, string notificationId);
         //Task<bool> MarkReactionNotificationAsRead(string userId, string notificationId);
         
-        public Task<bool> MarkNotificationsReactionCommentAsRead(string userId, string reactionId);
-        public Task<bool> MarkNotificationsReactionPostAsRead(string userId, string reactionId);
-        public Task<bool> MarkNotificationsCommentAsRead(string userId, string CommentId);
-        public Task<bool> MarkNotificationsFollowAsRead(string userId, string userFollowedId);
+          Task<bool> MarkNotificationsReactionCommentAsRead(string userId, string reactionId);
+         Task<bool> MarkNotificationsReactionPostAsRead(string userId, string reactionId);
+         Task<bool> MarkNotificationsCommentAsRead(string userId, string CommentId);
+         Task<bool> MarkNotificationsFollowAsRead(string userId, string userFollowedId);
     }
 }

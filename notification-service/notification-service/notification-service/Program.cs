@@ -1,9 +1,9 @@
 using Application;
 using Infrastructure;
-using Infrastructure.Data.Seeders;
 using Infrastructure.Mongodb;
 using Infrastructure.Redis;
 using Infrastructure.SeedingData.CacheSeeding;
+using Infrastructure.SeedingData.mongdbSeeding;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using StackExchange.Redis;
@@ -41,8 +41,7 @@ builder.Services.AddSwaggerGen();
 // add infrastructure services
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddApplicationServiceRegistration(builder.Configuration);
-builder.Services.AddScoped<RedisFollowsSeeder>();   
-builder.Services.AddScoped<MongoFollowsSeeder>();   
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -55,11 +54,28 @@ if (app.Environment.IsDevelopment())
     {
         try
         {
-            var cacheSeeder = scope.ServiceProvider.GetRequiredService<RedisFollowsSeeder>();
+            // seed CacheDB data 
+            var followsCacheSeeder = scope.ServiceProvider.GetRequiredService<RedisFollowsSeeder>();
             
-            await cacheSeeder.SeedInitialFollowsDataAsync();
-            var mongoSeeder = scope.ServiceProvider.GetRequiredService<MongoFollowsSeeder>();
-            await mongoSeeder.SeedInitialFollowsDataAsync();
+            await followsCacheSeeder.SeedInitialFollowsDataAsync();
+
+            var reactionCacheReactions = scope.ServiceProvider.GetRequiredService<RedisReactionsSeeder>();
+            await reactionCacheReactions.SeedInitialReactionsDataAsync();
+
+            var commentsCacheSeeder =  scope.ServiceProvider.GetRequiredService<RedisCommentsSeeder>();
+
+            await commentsCacheSeeder.SeedInitialCommentsDataAsync();
+            // Seed MongoDB data
+            var mongoFollowsSeeder = scope.ServiceProvider.GetRequiredService<MongoFollowsSeeder>();
+            await mongoFollowsSeeder.SeedInitialFollowsDataAsync();
+            
+            var mongoReactionsSeeder = scope.ServiceProvider.GetRequiredService<MongoReactionsSeeder>();
+            await mongoReactionsSeeder.SeedInitialReactionsDataAsync();
+            
+            var mongoCommentsSeeder = scope.ServiceProvider.GetRequiredService<MongoCommentsSeeder>();
+            await mongoCommentsSeeder.SeedInitialCommentsDataAsync();
+
+
 
 
         }

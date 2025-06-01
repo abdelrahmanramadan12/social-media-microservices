@@ -4,6 +4,8 @@ using Domain.CacheEntities.Reactions;
 using Domain.CoreEntities;
 using Domain.Interfaces;
 using Infrastructure.Repositories;
+using Infrastructure.SeedingData.CacheSeeding;
+using Infrastructure.SeedingData.mongdbSeeding;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -15,7 +17,17 @@ namespace Infrastructure
         {
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
-            
+            services.AddScoped<RedisFollowsSeeder>();
+            services.AddScoped<RedisReactionsSeeder>();
+            services.AddScoped<RedisCommentsSeeder>();
+
+
+            services.AddScoped<MongoFollowsSeeder>();
+            services.AddScoped<MongoReactionsSeeder>();
+            services.AddScoped<MongoCommentsSeeder> ();
+
+
+
             return services;
         }
     }

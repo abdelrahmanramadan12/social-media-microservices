@@ -14,5 +14,7 @@ namespace Domain.Interfaces
         Task<T?> GetAsync(string id, string? id2 = "", long number = 0);
         Task<T?> GetSingleAsync(Expression<Func<T, bool>> predicate);
         Task UpdateAsync(T entity, string? ID = "");
+        public Task<T?> GetSingleByIdAsync(string userId);
+
     }
 }

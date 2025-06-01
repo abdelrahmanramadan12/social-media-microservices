@@ -47,7 +47,7 @@ namespace Infrastructure.Repositories
             return Task.FromResult(_collection.AsQueryable());
         }
 
-        public Task<IEnumerable<T>> GetAllIncludingAsync(params Expression<Func<T, object>>[] includes)
+        public Task<IEnumerable<T>> GetAllIncludingAsync()
         {
             return Task.FromResult(_collection.AsQueryable().AsEnumerable()); // Includes not applicable in MongoDB
         }
@@ -69,13 +69,13 @@ namespace Infrastructure.Repositories
             return await _collection.Find(predicate).FirstOrDefaultAsync();
         }
 
-        public async Task<T?> GetSingleIncludingAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes)
+        public async Task<T?> GetSingleIncludingAsync(Expression<Func<T, bool>> predicate)
         {
             // Includes aren't relevant in MongoDB, just return the match
             return await _collection.Find(predicate).FirstOrDefaultAsync();
         }
 
-        public async Task<T?> GetSingleDeepIncludingAsync(Expression<Func<T, bool>> predicate, params Func<IQueryable<T>, IQueryable<T>>[] includes)
+        public async Task<T?> GetSingleDeepIncludingAsync(Expression<Func<T, bool>> predicate)
         {
             return await _collection.Find(predicate).FirstOrDefaultAsync();
         }

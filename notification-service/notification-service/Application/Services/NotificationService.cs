@@ -281,17 +281,16 @@ namespace Application.Services
         public async Task<bool> MarkNotificationsFollowAsRead(string userId, string userFollowedId)
         {
             // cache repo Found , null , not Found 
-            var usercached = await _unitOfWork.CacheRepository<CachedFollowed>().GetSingleAsync(x => x.UserId == userId)
+            var usercached = await _unitOfWork.CacheRepository<CachedFollowed>().GetSingleByIdAsync(userId)
                                                              ?? throw new ArgumentException("UserId not Found  in Cash");
-            var userFollowed = usercached.Followers.FirstOrDefault(i => i.UsersId == userFollowedId)
+           var userFollowed = usercached.Followers.FirstOrDefault(i => i.UsersId == userFollowedId)
                                                              ?? throw new ArgumentException("user userFollowedId not Found in Cash");
             userFollowed.Seen = true;
             await _unitOfWork.CacheRepository<CachedFollowed>().UpdateAsync(usercached, usercached.UserId);
 
             var userCore = await _unitOfWork.CoreRepository<Follows>()
                 .GetSingleIncludingAsync(
-                    f => f.Id == userId,
-                    i => i.FollowsNotifReadByAuthor) ?? throw new ArgumentException("UserId not Found in Core");
+                    f => f.MyId== userId) ?? throw new ArgumentException("UserId not Found in Core");
 
             if (!userCore.FollowsNotifReadByAuthor.Any(r => r == userFollowedId))
             {
@@ -309,7 +308,7 @@ namespace Application.Services
         {
 
             // cache repo Found , null , not Found 
-            var usercached = await _unitOfWork.CacheRepository<CachedComments>().GetSingleAsync(x => x.UserId == userId);
+            var usercached = await _unitOfWork.CacheRepository<CachedComments>().GetSingleByIdAsync(userId);
 
             if (usercached == null)
             {
@@ -326,8 +325,7 @@ namespace Application.Services
 
             var userCore = await _unitOfWork.CoreRepository<Comment>()
                 .GetSingleIncludingAsync(
-                    f => f.Id == userId,
-                    f => f.CommentNotifReadByAuthor) ?? throw new ArgumentException("UserId not Found in Core");
+                    f => f.AuthorId== userId) ?? throw new ArgumentException("UserId not Found in Core");
 
             if (!userCore.CommentNotifReadByAuthor.Any(r => r == CommentId))
             {
@@ -343,7 +341,7 @@ namespace Application.Services
         {
 
             // cache repo Found , null , not Found 
-            var usercached = await _unitOfWork.CacheRepository<CachedReactions>().GetSingleAsync(x => x.AuthorId == userId);
+            var usercached = await _unitOfWork.CacheRepository<CachedReactions>().GetSingleByIdAsync(userId);
 
             if (usercached == null)
             {
@@ -360,8 +358,7 @@ namespace Application.Services
 
             var userCore = await _unitOfWork.CoreRepository<Reaction>()
                 .GetSingleIncludingAsync(
-                    f => f.Id == userId,
-                    f => f.PostReactionsNotifReadByAuthor) ?? throw new ArgumentException("UserId not Found in Core");
+                    f => f.AuthorId == userId) ?? throw new ArgumentException("UserId not Found in Core");
 
             if (!userCore.PostReactionsNotifReadByAuthor.Any(r => r == reactionId))
             {
@@ -378,7 +375,7 @@ namespace Application.Services
         {
 
             // cache repo Found , null , not Found 
-            var usercached = await _unitOfWork.CacheRepository<CachedReactions>().GetSingleAsync(x => x.AuthorId == userId)
+            var usercached = await _unitOfWork.CacheRepository<CachedReactions>().GetSingleByIdAsync(userId )
                                                                                     ?? throw new ArgumentException("UserId not Found  in Cash");
 
             var userReactComment = usercached.ReactionsOnComments.FirstOrDefault(i => i.ReactionId == reactionId)
@@ -393,8 +390,7 @@ namespace Application.Services
 
             var userCore = await _unitOfWork.CoreRepository<Reaction>()
                 .GetSingleIncludingAsync(
-                    f => f.Id == userId,
-                    f => f.CommentReactionsNotifReadByAuthor) ?? throw new ArgumentException("UserId not Found in Core");
+                    f => f.AuthorId == userId) ?? throw new ArgumentException("UserId not Found in Core");
 
             if (!userCore.CommentReactionsNotifReadByAuthor.Any(r => r == reactionId))
             {
@@ -458,14 +454,9 @@ namespace Application.Services
                 await _unitOfWork.CacheRepository<CachedReactions>()
                     .UpdateAsync(userCached, userCached.AuthorId);
             }
-            // Core DB update
-            var includes = new List<Expression<Func<Reaction, object>>>
-            {
-                r => r.PostReactionsNotifReadByAuthor,
-                r => r.CommentReactionsNotifReadByAuthor
-            };
+         
             var userCore = await _unitOfWork.CoreRepository<Reaction>()
-                .GetSingleIncludingAsync(r => r.Id == userId, [.. includes])
+                .GetSingleIncludingAsync(r => r.AuthorId== userId)
                                             ?? throw new ArgumentException($"User {userId} not found in core database");
 
             userCore.PostReactionsNotifReadByAuthor ??= [];
@@ -532,7 +523,7 @@ namespace Application.Services
             };
 
             var userCore = await _unitOfWork.CoreRepository<Follows>()
-                .GetSingleIncludingAsync(f => f.Id == userId, [.. includes])
+                .GetSingleIncludingAsync(f => f.MyId == userId)
                                             ?? throw new ArgumentException($"User {userId} not found in core database");
             if (userCore.FollowersId == null || userCore.FollowersId.Count == 0)
             {
@@ -594,7 +585,7 @@ namespace Application.Services
             };
 
             var userCore = await _unitOfWork.CoreRepository<Comment>()
-                .GetSingleIncludingAsync(c => c.Id == userId, [.. includes])
+                .GetSingleIncludingAsync(c => c.Id == userId)
                                         ?? throw new ArgumentException($"User {userId} not found in core database");
 
             if (userCore.UserID_CommentId == null || userCore.UserID_CommentId.Count == 0)

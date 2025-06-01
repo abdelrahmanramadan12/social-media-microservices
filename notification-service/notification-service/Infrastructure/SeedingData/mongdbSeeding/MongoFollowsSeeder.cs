@@ -3,7 +3,7 @@ using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 
-namespace Infrastructure.Data.Seeders
+namespace Infrastructure.SeedingData.mongdbSeeding
 {
     public class MongoFollowsSeeder
     {
