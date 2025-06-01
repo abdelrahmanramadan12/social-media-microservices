@@ -12,7 +12,7 @@ namespace Service.Implementations.RabbitMQServices
         public CommentPublisher(IRabbitMqPublisher bus, IConfiguration config)
         {
             _bus = bus;
-            _queueName = config["RabbitMQQueues:CommentCreated"];
+            _queueName = config["RabbitMQQueues:Comment"];
         }
         public Task PublishAsync(CommentEvent evt, CancellationToken ct = default)
             => _bus.PublishAsync(evt, _queueName, ct);

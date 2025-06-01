@@ -16,7 +16,7 @@ namespace Service.Implementations.RabbitMQServices
         {
             _factory = new ConnectionFactory
             {
-                HostName = cfg["RabbitMQ:Host"] ?? "localhost",
+                HostName = cfg["RabbitMQ:HostName"] ?? "localhost",
                 //UserName = cfg["RabbitMQ:User"],
                 //Password = cfg["RabbitMQ:Pass"],
             };

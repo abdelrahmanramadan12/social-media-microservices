@@ -100,21 +100,21 @@ namespace Service.Implementations.CommentServices
 
             var post = await _postRepository.GetPostByIdAsync(comment.PostId);
 
-            // Notify the post service about the new comment
-            //await _commentPublisher.PublishAsync(new CommentEvent
-            //{
-            //    EventType = CommentEventType.Created,
-            //    Data = new CommentData
-            //    {
+            //Notify the post service about the new comment
+            await _commentPublisher.PublishAsync(new CommentEvent
+            {
+                EventType = CommentEventType.Created,
+                Data = new CommentData
+                {
 
-            //        CommentId = comment.Id.ToString(),
-            //        PostId = comment.PostId,
-            //        CommentAuthorId = comment.AuthorId,
-            //        Content = comment.Content ?? "",
-            //        CreatedAt = comment.CreatedAt,
-            //        PostAuthorId = post?.AuthorId ?? string.Empty
-            //    }
-            //});
+                    CommentId = comment.Id.ToString(),
+                    PostId = comment.PostId,
+                    CommentAuthorId = comment.AuthorId,
+                    Content = comment.Content ?? "",
+                    CreatedAt = comment.CreatedAt,
+                    PostAuthorId = post?.AuthorId ?? string.Empty
+                }
+            });
 
             return ToDto(comment);
         }

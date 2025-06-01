@@ -23,10 +23,10 @@ namespace Service.Implementations.RabbitMQServices
         public PostListener(IConfiguration configuration, IServiceScopeFactory scopeFactory)
         {
             _scopeFactory = scopeFactory;
-            _userName = configuration.GetSection("PostAddedMQ:UserName").Value;
-            _password = configuration.GetSection("PostAddedMQ:Password").Value;
-            _hostName = configuration.GetSection("PostAddedMQ:HostName").Value;
-            _queueName = configuration.GetSection("PostAddedMQ:QueueName").Value;
+            _userName = configuration.GetSection("PostMQ:UserName").Value;
+            _password = configuration.GetSection("PostMQ:Password").Value;
+            _hostName = configuration.GetSection("PostMQ:HostName").Value;
+            _queueName = configuration.GetSection("PostMQ:QueueName").Value;
         }
         public async Task InitializeAsync()
         {
