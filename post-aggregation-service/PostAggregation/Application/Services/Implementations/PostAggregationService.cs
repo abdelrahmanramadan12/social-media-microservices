@@ -46,12 +46,7 @@ namespace Application.Services.Implementations
             bool isFollower = followStatusResult.Item;
 
             // 2. Get the profile posts
-            var postsResult = await _postServiceClient.GetProfilePosts(new ProfilePostsRequest
-            {
-                UserId = targetUser,
-                IsFollower = isFollower,
-                NextPostHashId = nextPostHashId
-            });
+            var postsResult = await _postServiceClient.GetProfilePostListAsync(userId,targetUser, page);
 
             if (!postsResult.Success)
             {

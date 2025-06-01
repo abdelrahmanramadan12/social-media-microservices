@@ -12,6 +12,11 @@ var postServiceSettings = builder.Configuration.GetSection(PostServiceSettings.C
 builder.Services.AddSingleton(postServiceSettings);
 builder.Services.AddHttpClient<IpostServiceClient, PostServiceClient>();
 
+// Configure Reaction service
+var reactionServiceSettings = builder.Configuration.GetSection(ReactionServiceSettings.ConfigurationSection).Get<ReactionServiceSettings>();
+builder.Services.AddSingleton(reactionServiceSettings);
+builder.Services.AddHttpClient<IReactionServiceClient, ReactionServiceClient>();
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
