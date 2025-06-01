@@ -61,7 +61,7 @@ namespace react_service.Application.Services
             return response;
         }
 
-        public async Task<string> AddReactionAsync(CreateReactionRequest reation, string userId)
+        public async Task<string> AddReactionAsync(CreateReactionRequest reaction, string userId)
         {
             #region validation
             // validation on postId 
@@ -71,7 +71,7 @@ namespace react_service.Application.Services
             #endregion
 
            
-            var reactionObj = mapper.Map<ReactionPost>(reation);
+            var reactionObj = mapper.Map<ReactionPost>(reaction);
             //var newReaction = new ReactionPublishDTO { PostId = reation.PostId, ReactorId = userId, EventType = EventType.ReactionPostCreated };
             //reactionPublisher.Publish(newReaction);
             reactionObj.UserId = userId;

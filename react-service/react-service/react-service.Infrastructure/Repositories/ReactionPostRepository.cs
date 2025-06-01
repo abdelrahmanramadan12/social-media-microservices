@@ -107,9 +107,9 @@ namespace react_service.Infrastructure.Repositories
             //session.StartTransaction();
             try
             {
-                var reationExist = await CheckUserAndPostIdExist(reaction.PostId, reaction.UserId);
+                var reactionExist = await CheckUserAndPostIdExist(reaction.PostId, reaction.UserId);
 
-                if (reationExist)
+                if (reactionExist)
                 {
                     await DeleteReactionAsync(reaction.PostId, reaction.UserId);
                 }
