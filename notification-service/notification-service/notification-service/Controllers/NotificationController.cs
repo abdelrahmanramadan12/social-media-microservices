@@ -1,15 +1,41 @@
 ﻿using Application.Interfaces;
 using Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
+using StackExchange.Redis;
 using System.Runtime.InteropServices;
 
 namespace notification_service.Controllers
 {
     [Route("api/internal/[controller]")]
     [ApiController]
-    public class NotificationController(INotificationService notificationService) : ControllerBase
+
+        
+
+    public class NotificationController(INotificationService notificationService, IConnectionMultiplexer connectionMultiplexer) : ControllerBase
     {
+
         private readonly INotificationService _notificationService = notificationService;
+        private readonly IDatabase _redisDb = connectionMultiplexer.GetDatabase();
+
+        #region Test Redis
+        [HttpPost("set")]
+        public async Task<IActionResult> SetKey(string key, string value)
+        {
+            await _redisDb.StringSetAsync(key, value);
+            return Ok($"Key '{key}' set successfully.");
+        }
+
+        [HttpGet("get")]
+        public async Task<IActionResult> GetKey(string key)
+        {
+            var value = await _redisDb.StringGetAsync(key);
+            if (value.IsNullOrEmpty)
+                return NotFound($"Key '{key}' not found.");
+
+            return Ok(value.ToString());
+        }
+        #endregion
+
 
         #region GetNotifications
         /// <summary>
