@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using react_service.Application.DTO;
 using react_service.Application.DTO.ReactionPost.Request;
 using react_service.Application.Interfaces.Services;
 
@@ -20,14 +21,14 @@ namespace react_service.Controllers
         {
             if (request?.PostIds == null || request.PostIds.Count == 0)
             {
-                return BadRequest("Post IDs cannot be null or empty.");
+                return Ok(new ResponseWrapper<object> { Errors = new List<string> { "Post IDs cannot be null or empty." } });
             }
             if (string.IsNullOrEmpty(request.UserId))
             {
-                return BadRequest("User ID cannot be null or empty.");
+                return Ok(new ResponseWrapper<object> { Errors = new List<string> { "User ID cannot be null or empty." } });
             }
             var reactedPosts = await _reactionService.FilterPostsReactedByUserAsync(request.PostIds, request.UserId);
-            return Ok(reactedPosts);
+            return Ok(new ResponseWrapper<object> { Data = reactedPosts });
         }   
 
         [HttpGet("user/{userId}")]
@@ -35,10 +36,10 @@ namespace react_service.Controllers
         {
             if (string.IsNullOrEmpty(userId))
             {
-                return BadRequest("User ID cannot be null or empty.");
+                return Ok(new ResponseWrapper<object> { Errors = new List<string> { "User ID cannot be null or empty." } });
             }
             var result = await _reactionService.GetPostsReactedByUserAsync(userId, nextReactIdHash);
-            return Ok(result);
+            return Ok(new ResponseWrapper<object> { Data = result });
         }
 
         [HttpPost]
@@ -46,12 +47,10 @@ namespace react_service.Controllers
         {
             if (request == null || string.IsNullOrEmpty(request.PostId))
             {
-                return BadRequest("Post ID cannot be null or empty.");
+                return Ok(new ResponseWrapper<object> { Errors = new List<string> { "Post ID cannot be null or empty." } });
             }
             var result = await _reactionService.GetReactsOfPostAsync(request.PostId, request.NextReactIdHash);
-            return Ok(result);
+            return Ok(new ResponseWrapper<object> { Data = result });
         }
-
-        
     }
 }
