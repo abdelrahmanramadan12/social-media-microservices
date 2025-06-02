@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Service.Interfaces.ProfileServices;
+using Web.Models.Requests;
 
 namespace Web.Controllers.Internal
 {
@@ -28,10 +29,10 @@ namespace Web.Controllers.Internal
             return HandleServiceResponse(response);
         }
 
-        [HttpPost("batch-min")]
-        public async Task<IActionResult> GetUsersByIdsAsync([FromBody] List<string> userIds)
+        [HttpPost("list")]
+        public async Task<IActionResult> GetUsersByIdsAsync([FromBody] GetUsersByIdsRequest request)
         {
-            var response = await _profileService.GetUsersByIdsAsync(userIds);
+            var response = await _profileService.GetUsersByIdsAsync(request.UserIds);
             return HandleServiceResponse(response);
         }
     }

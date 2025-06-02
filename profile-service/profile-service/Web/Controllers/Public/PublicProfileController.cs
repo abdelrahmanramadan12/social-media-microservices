@@ -45,13 +45,6 @@ namespace Web.Controllers.Public
             return HandleServiceResponse(response);
         }
 
-        [HttpPost("batch-min")]
-        public async Task<IActionResult> GetUsersByIdsAsync([FromBody] List<string> userIds)
-        {
-            var response = await _profileService.GetUsersByIdsAsync(userIds);
-            return HandleServiceResponse(response);
-        }
-
         [HttpPost]
         public async Task<IActionResult> AddAsync([FromQuery] string userId, [FromForm] ProfileRequestDto profile)
         {
