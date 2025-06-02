@@ -36,17 +36,26 @@ namespace Service.Implementations.ProfileServices
                 return response;
             }
 
-            var profile = await _profileRepository.GetByUserIdAsync(userId);
-            if (profile == null)
+            try
             {
-                response.Errors = new List<string> { "Profile not found." };
-                response.ErrorType = ErrorType.NotFound;
+                var profile = await _profileRepository.GetByUserIdAsync(userId);
+                if (profile == null)
+                {
+                    response.Errors = new List<string> { "Profile not found." };
+                    response.ErrorType = ErrorType.NotFound;
+                    return response;
+                }
+
+                response.Data = profile;
+                response.Message = "Profile retrieved successfully";
                 return response;
             }
-
-            response.Data = profile;
-            response.Message = "Profile retrieved successfully";
-            return response;
+            catch (Exception ex)
+            {
+                response.Errors = new List<string> { $"Failed to retrieve profile: {ex.Message}" };
+                response.ErrorType = ErrorType.InternalServerError;
+                return response;
+            }
         }
 
         public async Task<ResponseWrapper<Profile>> GetByUserNameAsync(string userName)
@@ -60,17 +69,26 @@ namespace Service.Implementations.ProfileServices
                 return response;
             }
 
-            var profile = await _profileRepository.GetByUserNameAsync(userName);
-            if (profile == null)
+            try
             {
-                response.Errors = new List<string> { "Profile not found." };
-                response.ErrorType = ErrorType.NotFound;
+                var profile = await _profileRepository.GetByUserNameAsync(userName);
+                if (profile == null)
+                {
+                    response.Errors = new List<string> { "Profile not found." };
+                    response.ErrorType = ErrorType.NotFound;
+                    return response;
+                }
+
+                response.Data = profile;
+                response.Message = "Profile retrieved successfully";
                 return response;
             }
-
-            response.Data = profile;
-            response.Message = "Profile retrieved successfully";
-            return response;
+            catch (Exception ex)
+            {
+                response.Errors = new List<string> { $"Failed to retrieve profile: {ex.Message}" };
+                response.ErrorType = ErrorType.InternalServerError;
+                return response;
+            }
         }
 
         public async Task<ResponseWrapper<SimpleUserDto>> GetByUserIdMinAsync(string userId)
@@ -84,17 +102,26 @@ namespace Service.Implementations.ProfileServices
                 return response;
             }
 
-            var profile = await _profileRepository.GetByUserIdMinAsync(userId);
-            if (profile == null)
+            try
             {
-                response.Errors = new List<string> { "Profile not found." };
-                response.ErrorType = ErrorType.NotFound;
+                var profile = await _profileRepository.GetByUserIdMinAsync(userId);
+                if (profile == null)
+                {
+                    response.Errors = new List<string> { "Profile not found." };
+                    response.ErrorType = ErrorType.NotFound;
+                    return response;
+                }
+
+                response.Data = ProfileMapper.ToSimpleUserDto(profile);
+                response.Message = "Profile retrieved successfully";
                 return response;
             }
-
-            response.Data = ProfileMapper.ToSimpleUserDto(profile);
-            response.Message = "Profile retrieved successfully";
-            return response;
+            catch (Exception ex)
+            {
+                response.Errors = new List<string> { $"Failed to retrieve profile: {ex.Message}" };
+                response.ErrorType = ErrorType.InternalServerError;
+                return response;
+            }
         }
 
         public async Task<ResponseWrapper<SimpleUserDto>> GetByUserNameMinAsync(string userName)
@@ -108,17 +135,26 @@ namespace Service.Implementations.ProfileServices
                 return response;
             }
 
-            var profile = await _profileRepository.GetByUserNameMinAsync(userName);
-            if (profile == null)
+            try
             {
-                response.Errors = new List<string> { "Profile not found." };
-                response.ErrorType = ErrorType.NotFound;
+                var profile = await _profileRepository.GetByUserNameMinAsync(userName);
+                if (profile == null)
+                {
+                    response.Errors = new List<string> { "Profile not found." };
+                    response.ErrorType = ErrorType.NotFound;
+                    return response;
+                }
+
+                response.Data = ProfileMapper.ToSimpleUserDto(profile);
+                response.Message = "Profile retrieved successfully";
                 return response;
             }
-
-            response.Data = ProfileMapper.ToSimpleUserDto(profile);
-            response.Message = "Profile retrieved successfully";
-            return response;
+            catch (Exception ex)
+            {
+                response.Errors = new List<string> { $"Failed to retrieve profile: {ex.Message}" };
+                response.ErrorType = ErrorType.InternalServerError;
+                return response;
+            }
         }
 
         public async Task<ResponseWrapper<List<SimpleUserDto>>> GetUsersByIdsAsync(List<string> userIds)
@@ -132,17 +168,26 @@ namespace Service.Implementations.ProfileServices
                 return response;
             }
 
-            var profiles = await _profileRepository.GetUsersByIdsAsync(userIds);
-            if (profiles == null || !profiles.Any())
+            try
             {
-                response.Errors = new List<string> { "No profiles found for the provided user IDs." };
-                response.ErrorType = ErrorType.NotFound;
+                var profiles = await _profileRepository.GetUsersByIdsAsync(userIds);
+                if (profiles == null || !profiles.Any())
+                {
+                    response.Errors = new List<string> { "No profiles found for the provided user IDs." };
+                    response.ErrorType = ErrorType.NotFound;
+                    return response;
+                }
+
+                response.Data = profiles.Select(ProfileMapper.ToSimpleUserDto).ToList();
+                response.Message = "Profiles retrieved successfully";
                 return response;
             }
-
-            response.Data = profiles.Select(ProfileMapper.ToSimpleUserDto).ToList();
-            response.Message = "Profiles retrieved successfully";
-            return response;
+            catch (Exception ex)
+            {
+                response.Errors = new List<string> { $"Failed to retrieve profiles: {ex.Message}" };
+                response.ErrorType = ErrorType.InternalServerError;
+                return response;
+            }
         }
 
         public async Task<ResponseWrapper<Profile>> AddAsync(string userId, ProfileRequestDto profileRequestDto)
@@ -163,69 +208,78 @@ namespace Service.Implementations.ProfileServices
                 return response;
             }
 
-            // Check for existing username
-            if (!string.IsNullOrWhiteSpace(profileRequestDto.UserName))
+            try
             {
-                var existingByUserName = await _profileRepository.GetByUserNameAsync(profileRequestDto.UserName);
-                if (existingByUserName != null)
+                // Check for existing username
+                if (!string.IsNullOrWhiteSpace(profileRequestDto.UserName))
                 {
-                    response.Errors = new List<string> { "Username already exists." };
-                    response.ErrorType = ErrorType.Validation;
-                    return response;
-                }
-            }
-
-            var profileEntity = MapToProfileEntity(profileRequestDto, userId);
-
-            // Handle profile picture upload
-            if (profileRequestDto.ProfilePic != null && profileRequestDto.ProfilePic.Length > 0)
-            {
-                var mediaUploadResponse = await _mediaServiceClient.UploadMediaAsync(new MediaUploadRequestDto
-                {
-                    File = profileRequestDto.ProfilePic,
-                    MediaType = MediaType.IMAGE,
-                    usageCategory = UsageCategory.ProfilePicture
-                });
-
-                if (!mediaUploadResponse.Success)
-                {
-                    response.Errors = new List<string> { "Failed to upload profile picture." };
-                    response.ErrorType = ErrorType.InternalServerError;
-                    return response;
+                    var existingByUserName = await _profileRepository.GetByUserNameAsync(profileRequestDto.UserName);
+                    if (existingByUserName != null)
+                    {
+                        response.Errors = new List<string> { "Username already exists." };
+                        response.ErrorType = ErrorType.Validation;
+                        return response;
+                    }
                 }
 
-                profileEntity.ProfileUrl = mediaUploadResponse.Data.Urls.FirstOrDefault();
-            }
+                var profileEntity = MapToProfileEntity(profileRequestDto, userId);
 
-            // Handle cover picture upload
-            if (profileRequestDto.CoverPic != null && profileRequestDto.CoverPic.Length > 0)
-            {
-                var mediaUploadResponse = await _mediaServiceClient.UploadMediaAsync(new MediaUploadRequestDto
+                // Handle profile picture upload
+                if (profileRequestDto.ProfilePic != null && profileRequestDto.ProfilePic.Length > 0)
                 {
-                    File = profileRequestDto.CoverPic,
-                    MediaType = MediaType.IMAGE,
-                    usageCategory = UsageCategory.CoverPicture
-                });
+                    var mediaUploadResponse = await _mediaServiceClient.UploadMediaAsync(new MediaUploadRequestDto
+                    {
+                        File = profileRequestDto.ProfilePic,
+                        MediaType = MediaType.IMAGE,
+                        usageCategory = UsageCategory.ProfilePicture
+                    });
 
-                if (!mediaUploadResponse.Success)
-                {
-                    response.Errors = new List<string> { "Failed to upload cover picture." };
-                    response.ErrorType = ErrorType.InternalServerError;
-                    return response;
+                    if (!mediaUploadResponse.Success)
+                    {
+                        response.Errors = new List<string> { "Failed to upload profile picture." };
+                        response.ErrorType = ErrorType.InternalServerError;
+                        return response;
+                    }
+
+                    profileEntity.ProfileUrl = mediaUploadResponse.Data.Urls.FirstOrDefault();
                 }
 
-                profileEntity.CoverUrl = mediaUploadResponse.Data.Urls.FirstOrDefault();
+                // Handle cover picture upload
+                if (profileRequestDto.CoverPic != null && profileRequestDto.CoverPic.Length > 0)
+                {
+                    var mediaUploadResponse = await _mediaServiceClient.UploadMediaAsync(new MediaUploadRequestDto
+                    {
+                        File = profileRequestDto.CoverPic,
+                        MediaType = MediaType.IMAGE,
+                        usageCategory = UsageCategory.CoverPicture
+                    });
+
+                    if (!mediaUploadResponse.Success)
+                    {
+                        response.Errors = new List<string> { "Failed to upload cover picture." };
+                        response.ErrorType = ErrorType.InternalServerError;
+                        return response;
+                    }
+
+                    profileEntity.CoverUrl = mediaUploadResponse.Data.Urls.FirstOrDefault();
+                }
+
+                await _profileRepository.AddAsync(profileEntity);
+
+                // Publish event
+                var profileEvent = CreateProfileEvent(profileEntity, ProfileEventType.ProfileAdded);
+                await _profilePublisher.PublishAsync(profileEvent);
+
+                response.Data = profileEntity;
+                response.Message = "Profile created successfully";
+                return response;
             }
-
-            await _profileRepository.AddAsync(profileEntity);
-
-            // Publish event
-            var profileEvent = CreateProfileEvent(profileEntity, ProfileEventType.ProfileAdded);
-            await _profilePublisher.PublishAsync(profileEvent);
-
-            response.Data = profileEntity;
-            response.Message = "Profile created successfully";
-            return response;
+            catch (Exception ex)
+            {
+                response.Errors = new List<string> { $"Failed to create profile: {ex.Message}" };
+                response.ErrorType = ErrorType.InternalServerError;
+                return response;
+            }
         }
 
         public async Task<ResponseWrapper<Profile>> UpdateAsync(string userId, ProfileRequestDto profileRequestDto)
@@ -239,95 +293,104 @@ namespace Service.Implementations.ProfileServices
                 return response;
             }
 
-            var existingProfile = await _profileRepository.GetByUserIdAsync(userId);
-            if (existingProfile == null)
+            try
             {
-                response.Errors = new List<string> { "Profile not found." };
-                response.ErrorType = ErrorType.NotFound;
+                var existingProfile = await _profileRepository.GetByUserIdAsync(userId);
+                if (existingProfile == null)
+                {
+                    response.Errors = new List<string> { "Profile not found." };
+                    response.ErrorType = ErrorType.NotFound;
+                    return response;
+                }
+
+                // Check for username uniqueness
+                if (!string.IsNullOrWhiteSpace(profileRequestDto.UserName) &&
+                    !string.Equals(existingProfile.UserName, profileRequestDto.UserName, StringComparison.OrdinalIgnoreCase))
+                {
+                    var existingWithSameUserName = await _profileRepository.GetByUserNameAsync(profileRequestDto.UserName);
+                    if (existingWithSameUserName != null && existingWithSameUserName.UserId != userId)
+                    {
+                        response.Errors = new List<string> { "Username is already taken by another user." };
+                        response.ErrorType = ErrorType.Validation;
+                        return response;
+                    }
+                }
+
+                // Update fields
+                existingProfile.UserName = profileRequestDto.UserName ?? existingProfile.UserName;
+                existingProfile.FirstName = profileRequestDto.FirstName ?? existingProfile.FirstName;
+                existingProfile.LastName = profileRequestDto.LastName ?? existingProfile.LastName;
+                existingProfile.Bio = profileRequestDto.Bio ?? existingProfile.Bio;
+                existingProfile.Address = profileRequestDto.Address ?? existingProfile.Address;
+                if (profileRequestDto.BirthDate != default)
+                    existingProfile.BirthDate = profileRequestDto.BirthDate;
+                existingProfile.Email = profileRequestDto.Email ?? existingProfile.Email;
+                existingProfile.MobileNo = profileRequestDto.MobileNo ?? existingProfile.MobileNo;
+
+                // Handle profile picture update
+                if (profileRequestDto.ProfilePic != null && profileRequestDto.ProfilePic.Length > 0)
+                {
+                    var mediaUploadResponse = await _mediaServiceClient.UploadMediaAsync(new MediaUploadRequestDto
+                    {
+                        File = profileRequestDto.ProfilePic,
+                        MediaType = MediaType.IMAGE,
+                        usageCategory = UsageCategory.ProfilePicture
+                    });
+
+                    if (!mediaUploadResponse.Success)
+                    {
+                        response.Errors = new List<string> { "Failed to upload profile picture." };
+                        response.ErrorType = ErrorType.InternalServerError;
+                        return response;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(existingProfile.ProfileUrl))
+                    {
+                        await _mediaServiceClient.DeleteMediaAsync(new List<string> { existingProfile.ProfileUrl });
+                    }
+                    existingProfile.ProfileUrl = mediaUploadResponse.Data.Urls.FirstOrDefault();
+                }
+
+                // Handle cover picture update
+                if (profileRequestDto.CoverPic != null && profileRequestDto.CoverPic.Length > 0)
+                {
+                    var mediaUploadResponse = await _mediaServiceClient.UploadMediaAsync(new MediaUploadRequestDto
+                    {
+                        File = profileRequestDto.CoverPic,
+                        MediaType = MediaType.IMAGE,
+                        usageCategory = UsageCategory.CoverPicture
+                    });
+
+                    if (!mediaUploadResponse.Success)
+                    {
+                        response.Errors = new List<string> { "Failed to upload cover picture." };
+                        response.ErrorType = ErrorType.InternalServerError;
+                        return response;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(existingProfile.CoverUrl))
+                    {
+                        await _mediaServiceClient.DeleteMediaAsync(new List<string> { existingProfile.CoverUrl });
+                    }
+                    existingProfile.CoverUrl = mediaUploadResponse.Data.Urls.FirstOrDefault();
+                }
+
+                await _profileRepository.Update(existingProfile);
+
+                // Publish event
+                var profileEvent = CreateProfileEvent(existingProfile, ProfileEventType.ProfileUpdated);
+                await _profilePublisher.PublishAsync(profileEvent);
+
+                response.Data = existingProfile;
+                response.Message = "Profile updated successfully";
                 return response;
             }
-
-            // Check for username uniqueness
-            if (!string.IsNullOrWhiteSpace(profileRequestDto.UserName) &&
-                !string.Equals(existingProfile.UserName, profileRequestDto.UserName, StringComparison.OrdinalIgnoreCase))
+            catch (Exception ex)
             {
-                var existingWithSameUserName = await _profileRepository.GetByUserNameAsync(profileRequestDto.UserName);
-                if (existingWithSameUserName != null && existingWithSameUserName.UserId != userId)
-                {
-                    response.Errors = new List<string> { "Username is already taken by another user." };
-                    response.ErrorType = ErrorType.Validation;
-                    return response;
-                }
+                response.Errors = new List<string> { $"Failed to update profile: {ex.Message}" };
+                response.ErrorType = ErrorType.InternalServerError;
+                return response;
             }
-
-            // Update fields
-            existingProfile.UserName = profileRequestDto.UserName ?? existingProfile.UserName;
-            existingProfile.FirstName = profileRequestDto.FirstName ?? existingProfile.FirstName;
-            existingProfile.LastName = profileRequestDto.LastName ?? existingProfile.LastName;
-            existingProfile.Bio = profileRequestDto.Bio ?? existingProfile.Bio;
-            existingProfile.Address = profileRequestDto.Address ?? existingProfile.Address;
-            if (profileRequestDto.BirthDate != default)
-                existingProfile.BirthDate = profileRequestDto.BirthDate;
-            existingProfile.Email = profileRequestDto.Email ?? existingProfile.Email;
-            existingProfile.MobileNo = profileRequestDto.MobileNo ?? existingProfile.MobileNo;
-
-            // Handle profile picture update
-            if (profileRequestDto.ProfilePic != null && profileRequestDto.ProfilePic.Length > 0)
-            {
-                var mediaUploadResponse = await _mediaServiceClient.UploadMediaAsync(new MediaUploadRequestDto
-                {
-                    File = profileRequestDto.ProfilePic,
-                    MediaType = MediaType.IMAGE,
-                    usageCategory = UsageCategory.ProfilePicture
-                });
-
-                if (!mediaUploadResponse.Success)
-                {
-                    response.Errors = new List<string> { "Failed to upload profile picture." };
-                    response.ErrorType = ErrorType.InternalServerError;
-                    return response;
-                }
-
-                if (!string.IsNullOrWhiteSpace(existingProfile.ProfileUrl))
-                {
-                    await _mediaServiceClient.DeleteMediaAsync(new List<string> { existingProfile.ProfileUrl });
-                }
-                existingProfile.ProfileUrl = mediaUploadResponse.Data.Urls.FirstOrDefault();
-            }
-
-            // Handle cover picture update
-            if (profileRequestDto.CoverPic != null && profileRequestDto.CoverPic.Length > 0)
-            {
-                var mediaUploadResponse = await _mediaServiceClient.UploadMediaAsync(new MediaUploadRequestDto
-                {
-                    File = profileRequestDto.CoverPic,
-                    MediaType = MediaType.IMAGE,
-                    usageCategory = UsageCategory.CoverPicture
-                });
-
-                if (!mediaUploadResponse.Success)
-                {
-                    response.Errors = new List<string> { "Failed to upload cover picture." };
-                    response.ErrorType = ErrorType.InternalServerError;
-                    return response;
-                }
-
-                if (!string.IsNullOrWhiteSpace(existingProfile.CoverUrl))
-                {
-                    await _mediaServiceClient.DeleteMediaAsync(new List<string> { existingProfile.CoverUrl });
-                }
-                existingProfile.CoverUrl = mediaUploadResponse.Data.Urls.FirstOrDefault();
-            }
-
-            await _profileRepository.Update(existingProfile);
-
-            // Publish event
-            var profileEvent = CreateProfileEvent(existingProfile, ProfileEventType.ProfileUpdated);
-            await _profilePublisher.PublishAsync(profileEvent);
-
-            response.Data = existingProfile;
-            response.Message = "Profile updated successfully";
-            return response;
         }
 
         public async Task<ResponseWrapper<bool>> DeleteAsync(string userId)
@@ -341,27 +404,36 @@ namespace Service.Implementations.ProfileServices
                 return response;
             }
 
-            var existingProfile = await _profileRepository.GetByUserIdAsync(userId);
-            if (existingProfile == null)
+            try
             {
-                response.Errors = new List<string> { "Profile not found." };
-                response.ErrorType = ErrorType.NotFound;
+                var existingProfile = await _profileRepository.GetByUserIdAsync(userId);
+                if (existingProfile == null)
+                {
+                    response.Errors = new List<string> { "Profile not found." };
+                    response.ErrorType = ErrorType.NotFound;
+                    return response;
+                }
+
+                await _profileRepository.DeleteAsync(userId);
+
+                // Publish event
+                var profileEvent = new ProfileEvent
+                {
+                    EventType = ProfileEventType.ProfileDeleted,
+                    User = new ProfileEventData { UserId = userId }
+                };
+                await _profilePublisher.PublishAsync(profileEvent);
+
+                response.Data = true;
+                response.Message = "Profile deleted successfully";
                 return response;
             }
-
-            await _profileRepository.DeleteAsync(userId);
-
-            // Publish event
-            var profileEvent = new ProfileEvent
+            catch (Exception ex)
             {
-                EventType = ProfileEventType.ProfileDeleted,
-                User = new ProfileEventData { UserId = userId }
-            };
-            await _profilePublisher.PublishAsync(profileEvent);
-
-            response.Data = true;
-            response.Message = "Profile deleted successfully";
-            return response;
+                response.Errors = new List<string> { $"Failed to delete profile: {ex.Message}" };
+                response.ErrorType = ErrorType.InternalServerError;
+                return response;
+            }
         }
 
         private Profile MapToProfileEntity(ProfileRequestDto dto, string userId)

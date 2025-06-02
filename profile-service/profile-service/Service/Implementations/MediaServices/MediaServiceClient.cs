@@ -22,40 +22,64 @@ namespace Service.Implementations.MediaServices
         {
             var response = new ResponseWrapper<MediaUploadResponseDto>();
 
+            if (request?.File == null)
+            {
+                response.Errors = new List<string> { "File cannot be null." };
+                response.ErrorType = ErrorType.BadRequest;
+                return response;
+            }
+
             try
             {
                 using var form = new MultipartFormDataContent();
+                using var streamContent = new StreamContent(request.File.OpenReadStream());
 
-                // Important: Use "Files" to match ReceivedMediaDto
-                var streamContent = new StreamContent(request.File.OpenReadStream());
-                streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(
-                    string.IsNullOrWhiteSpace(request.File.ContentType) ? "application/octet-stream" : request.File.ContentType);
-                form.Add(streamContent, "Files", request.File.FileName);
-
-                // Add MediaType and UsageCategory
-                form.Add(new StringContent(request.MediaType.ToString()), "MediaType");
-                form.Add(new StringContent(request.usageCategory.ToString()), "UsageCategory");
-
-                var httpResponse = await _http.PostAsync(_BASE_ROUTE, form, ct);
-                httpResponse.EnsureSuccessStatusCode();
-
-                var result = await httpResponse.Content.ReadFromJsonAsync<MediaUploadResponseDto>(cancellationToken: ct);
-                if (result == null)
+                try
                 {
-                    response.Errors = new List<string> { "Failed to deserialize media upload response" };
-                    response.ErrorType = ErrorType.InternalServerError;
+                    streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(
+                        string.IsNullOrWhiteSpace(request.File.ContentType) ? "application/octet-stream" : request.File.ContentType);
+                }
+                catch (FormatException)
+                {
+                    response.Errors = new List<string> { "Invalid content type format." };
+                    response.ErrorType = ErrorType.BadRequest;
                     return response;
                 }
 
-                response.Data = result;
-                response.Message = "Media uploaded successfully";
-                return response;
-            }
-            catch (HttpRequestException ex)
-            {
-                response.Errors = new List<string> { $"Failed to upload media: {ex.Message}" };
-                response.ErrorType = ErrorType.InternalServerError;
-                return response;
+                // Add file content
+                form.Add(streamContent, "Files", request.File.FileName);
+                form.Add(new StringContent(request.MediaType.ToString()), "MediaType");
+                form.Add(new StringContent(request.usageCategory.ToString()), "UsageCategory");
+
+                try
+                {
+                    var httpResponse = await _http.PostAsync(_BASE_ROUTE, form, ct);
+                    
+                    if (!httpResponse.IsSuccessStatusCode)
+                    {
+                        response.Errors = new List<string> { $"Media service returned error: {httpResponse.StatusCode} - {await httpResponse.Content.ReadAsStringAsync(ct)}" };
+                        response.ErrorType = ErrorType.InternalServerError;
+                        return response;
+                    }
+
+                    var result = await httpResponse.Content.ReadFromJsonAsync<MediaUploadResponseDto>(cancellationToken: ct);
+                    if (result == null)
+                    {
+                        response.Errors = new List<string> { "Failed to deserialize media upload response" };
+                        response.ErrorType = ErrorType.InternalServerError;
+                        return response;
+                    }
+
+                    response.Data = result;
+                    response.Message = "Media uploaded successfully";
+                    return response;
+                }
+                catch (HttpRequestException ex)
+                {
+                    response.Errors = new List<string> { $"Failed to communicate with media service: {ex.Message}" };
+                    response.ErrorType = ErrorType.InternalServerError;
+                    return response;
+                }
             }
             catch (Exception ex)
             {
@@ -69,17 +93,39 @@ namespace Service.Implementations.MediaServices
         {
             var response = new ResponseWrapper<MediaUploadResponseDto>();
 
+            if (newFile?.File == null)
+            {
+                response.Errors = new List<string> { "New file cannot be null." };
+                response.ErrorType = ErrorType.BadRequest;
+                return response;
+            }
+
+            if (currentUrls == null)
+            {
+                response.Errors = new List<string> { "Current URLs cannot be null." };
+                response.ErrorType = ErrorType.BadRequest;
+                return response;
+            }
+
             try
             {
                 using var form = new MultipartFormDataContent();
+                using var streamContent = new StreamContent(newFile.File.OpenReadStream());
 
-                // Add single file
-                var streamContent = new StreamContent(newFile.File.OpenReadStream());
-                streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(
-                    string.IsNullOrWhiteSpace(newFile.File.ContentType) ? "application/octet-stream" : newFile.File.ContentType);
+                try
+                {
+                    streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(
+                        string.IsNullOrWhiteSpace(newFile.File.ContentType) ? "application/octet-stream" : newFile.File.ContentType);
+                }
+                catch (FormatException)
+                {
+                    response.Errors = new List<string> { "Invalid content type format." };
+                    response.ErrorType = ErrorType.BadRequest;
+                    return response;
+                }
+
+                // Add file content
                 form.Add(streamContent, "File", newFile.File.FileName);
-
-                // Add media type
                 form.Add(new StringContent(newFile.MediaType.ToString()), "MediaType");
 
                 // Add current URLs
@@ -88,26 +134,35 @@ namespace Service.Implementations.MediaServices
                     form.Add(new StringContent(url), "MediaUrls");
                 }
 
-                var httpResponse = await _http.PutAsync(_BASE_ROUTE, form, ct);
-                httpResponse.EnsureSuccessStatusCode();
-
-                var result = await httpResponse.Content.ReadFromJsonAsync<MediaUploadResponseDto>(cancellationToken: ct);
-                if (result == null)
+                try
                 {
-                    response.Errors = new List<string> { "Failed to deserialize media edit response" };
+                    var httpResponse = await _http.PutAsync(_BASE_ROUTE, form, ct);
+                    
+                    if (!httpResponse.IsSuccessStatusCode)
+                    {
+                        response.Errors = new List<string> { $"Media service returned error: {httpResponse.StatusCode} - {await httpResponse.Content.ReadAsStringAsync(ct)}" };
+                        response.ErrorType = ErrorType.InternalServerError;
+                        return response;
+                    }
+
+                    var result = await httpResponse.Content.ReadFromJsonAsync<MediaUploadResponseDto>(cancellationToken: ct);
+                    if (result == null)
+                    {
+                        response.Errors = new List<string> { "Failed to deserialize media edit response" };
+                        response.ErrorType = ErrorType.InternalServerError;
+                        return response;
+                    }
+
+                    response.Data = result;
+                    response.Message = "Media updated successfully";
+                    return response;
+                }
+                catch (HttpRequestException ex)
+                {
+                    response.Errors = new List<string> { $"Failed to communicate with media service: {ex.Message}" };
                     response.ErrorType = ErrorType.InternalServerError;
                     return response;
                 }
-
-                response.Data = result;
-                response.Message = "Media updated successfully";
-                return response;
-            }
-            catch (HttpRequestException ex)
-            {
-                response.Errors = new List<string> { $"Failed to edit media: {ex.Message}" };
-                response.ErrorType = ErrorType.InternalServerError;
-                return response;
             }
             catch (Exception ex)
             {
@@ -121,10 +176,23 @@ namespace Service.Implementations.MediaServices
         {
             var response = new ResponseWrapper<bool>();
 
+            if (urls == null || !urls.Any())
+            {
+                response.Errors = new List<string> { "URLs cannot be null or empty." };
+                response.ErrorType = ErrorType.BadRequest;
+                return response;
+            }
+
             try
             {
                 var httpResponse = await _http.DeleteAsync($"{_BASE_ROUTE}?urls={string.Join(",", urls)}", ct);
-                httpResponse.EnsureSuccessStatusCode();
+                
+                if (!httpResponse.IsSuccessStatusCode)
+                {
+                    response.Errors = new List<string> { $"Media service returned error: {httpResponse.StatusCode} - {await httpResponse.Content.ReadAsStringAsync(ct)}" };
+                    response.ErrorType = ErrorType.InternalServerError;
+                    return response;
+                }
 
                 var result = await httpResponse.Content.ReadFromJsonAsync<bool>(cancellationToken: ct);
                 response.Data = result;
@@ -133,7 +201,7 @@ namespace Service.Implementations.MediaServices
             }
             catch (HttpRequestException ex)
             {
-                response.Errors = new List<string> { $"Failed to delete media: {ex.Message}" };
+                response.Errors = new List<string> { $"Failed to communicate with media service: {ex.Message}" };
                 response.ErrorType = ErrorType.InternalServerError;
                 return response;
             }
