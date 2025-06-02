@@ -5,7 +5,7 @@ using Domain.CacheEntities.Reactions;
 using Domain.Enums;
 using Domain.Interfaces;
 
-namespace Application.Interfaces
+namespace Application.Interfaces.Services
 {
     public interface INotificationService
     {

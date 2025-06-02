@@ -1,4 +1,5 @@
 ﻿using Application.Interfaces;
+using Application.Interfaces.Services;
 using Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
 using StackExchange.Redis;

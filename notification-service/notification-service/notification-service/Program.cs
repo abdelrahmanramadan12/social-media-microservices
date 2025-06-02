@@ -1,9 +1,10 @@
-using Application;
+﻿using Application;
+using Application.Services.Listeners;
 using Infrastructure;
-using Infrastructure.Mongodb;
-using Infrastructure.Redis;
 using Infrastructure.SeedingData.CacheSeeding;
 using Infrastructure.SeedingData.mongdbSeeding;
+using Infrastructure.Settings.Mongodb;
+using Infrastructure.Settings.RabbitMQ;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using StackExchange.Redis;
@@ -40,6 +41,25 @@ builder.Services.AddScoped<IConnectionMultiplexer>(sp =>
         Password = builder.Configuration.GetConnectionString("RedisPassword")
     });
 });
+
+// ✅ Add RabbitMQ using MassTransit
+// Configure settings
+//builder.Services.Configure<RabbitMqListenerSettings>("PostListener", builder.Configuration.GetSection("RabbitMQ:PostListener"));
+//builder.Services.Configure<RabbitMqListenerSettings>("CommentListener", builder.Configuration.GetSection("RabbitMQ:CommentListener"));
+
+// Register listeners
+//builder.Services.AddSingleton<PostListenerService>(sp =>
+//{
+//    var options = sp.GetRequiredService<IOptionsMonitor<RabbitMqListenerSettings>>().Get("PostListener");
+//    return new PostListenerService(Options.Create(options));
+//});
+
+//builder.Services.AddSingleton<CommentListenerService>(sp =>
+//{
+//    var options = sp.GetRequiredService<IOptionsMonitor<RabbitMqListenerSettings>>().Get("CommentListener");
+//    return new CommentListenerService(Options.Create(options));
+//});
+
 
 
 

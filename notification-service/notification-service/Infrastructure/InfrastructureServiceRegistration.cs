@@ -1,4 +1,5 @@
-﻿using Domain.CacheEntities;
+﻿using Application.Interfaces;
+using Domain.CacheEntities;
 using Domain.CacheEntities.Comments;
 using Domain.CacheEntities.Reactions;
 using Domain.CoreEntities;

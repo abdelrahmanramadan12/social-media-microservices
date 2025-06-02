@@ -1,8 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore.Query;
 using System.Linq.Expressions;
 
-namespace Domain.Interfaces
-{
+namespace Application.Interfaces.Repositories { 
     public interface ICoreGenericRepository<T> where T : class
     {
 

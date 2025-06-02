@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Application.Interfaces;
+using Application.Interfaces.Repositories;
 using Domain.Interfaces;
 using Infrastructure.Context;
-using Infrastructure.Mongodb;
+using Infrastructure.Settings.Mongodb;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using StackExchange.Redis;

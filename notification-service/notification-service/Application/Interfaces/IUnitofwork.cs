@@ -1,7 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using Application.Interfaces.Repositories;
+using System.Threading.Tasks;
 
-namespace Domain.Interfaces
-{
+namespace Application.Interfaces { 
     public interface IUnitOfWork
     {
         ICoreGenericRepository<T> CoreRepository<T>() where T : class;

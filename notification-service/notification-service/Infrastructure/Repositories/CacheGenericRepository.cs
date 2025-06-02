@@ -1,4 +1,5 @@
-﻿using Domain.Enums;
+﻿using Application.Interfaces.Repositories;
+using Domain.Enums;
 using Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;

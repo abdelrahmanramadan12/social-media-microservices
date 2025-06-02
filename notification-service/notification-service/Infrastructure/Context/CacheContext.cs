@@ -1,7 +1,7 @@
 ﻿using Domain.CacheEntities;
 using Domain.CacheEntities.Comments;
 using Domain.CacheEntities.Reactions;
-using Infrastructure.Mongodb;
+using Infrastructure.Settings.Mongodb;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 

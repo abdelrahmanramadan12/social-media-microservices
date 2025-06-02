@@ -2,7 +2,7 @@
 using MongoDB.Bson.IO;
 using System.Linq.Expressions;
 
-namespace Domain.Interfaces
+namespace Application.Interfaces.Repositories
 {
     public interface ICacheGenericRepository<T> where T : class
     {

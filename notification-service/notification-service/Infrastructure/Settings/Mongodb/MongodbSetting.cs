@@ -1,4 +1,4 @@
-﻿namespace Infrastructure.Mongodb
+﻿namespace Infrastructure.Settings.Mongodb
 {
 
     public class MongoDBSettings
