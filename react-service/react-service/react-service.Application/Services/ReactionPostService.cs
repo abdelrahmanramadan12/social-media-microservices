@@ -17,12 +17,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Collections.Specialized.BitVector32;
+using react_service.Application.DTO;
 
 namespace react_service.Application.Services
 {
     public class ReactionPostService : IReactionPostService
     {
-        private readonly HttpClient _httpClient;
+        // private readonly HttpClient _httpClient; // Remove or comment out this unused field
         private readonly IReactionPostRepository reactionRepository;
         private readonly IMapper mapper;
         private readonly IOptions<PaginationSettings> paginationSetting;
@@ -37,116 +38,135 @@ namespace react_service.Application.Services
             this.reactionPublisher = reactionPublisher;
         }
 
-        public async Task<PagedReactsResponse> GetReactsOfPostAsync(string postId, string? nextReactIdHash)
+        public async Task<ResponseWrapper<PagedReactsResponse>> GetReactsOfPostAsync(string postId, string? nextReactIdHash)
         {
-            string lastSeenId;
-            if (nextReactIdHash == null || nextReactIdHash?.Trim() == "")
+            var response = new ResponseWrapper<PagedReactsResponse>();
+            if (string.IsNullOrEmpty(postId))
             {
-                lastSeenId = "";
-            }else
-            {
-                lastSeenId = PaginationHelper.DecodeCursor(nextReactIdHash!);
+                response.Errors.Add("Post ID cannot be null or empty.");
+                response.ErrorType = ErrorType.BadRequest;
+                return response;
             }
-
+            string lastSeenId = string.IsNullOrWhiteSpace(nextReactIdHash) ? "" : PaginationHelper.DecodeCursor(nextReactIdHash!);
             var reactionList = (await reactionRepository.GetReactsOfPostAsync(postId, lastSeenId)).ToList();
-
             bool hasMore = reactionList.Count > (paginationSetting.Value.DefaultPageSize - 1);
-
-            var response = mapper.Map<PagedReactsResponse>(reactionList);
-
+            var pagedResponse = mapper.Map<PagedReactsResponse>(reactionList);
             var lastId = hasMore ? reactionList.Last().Id : null;
-            response.HasMore = hasMore;
-            response.NextCursor = lastId != null ? PaginationHelper.GenerateCursor(lastId) : null;
-
+            pagedResponse.HasMore = hasMore;
+            pagedResponse.Next = lastId != null ? PaginationHelper.GenerateCursor(lastId) : null;
+            response.Data = pagedResponse;
+            response.Message = "Reactions retrieved successfully.";
             return response;
         }
 
-        public async Task<string> AddReactionAsync(CreateReactionRequest reaction, string userId)
+        public async Task<ResponseWrapper<object>> DeleteReactionAsync(string postId, string userId)
         {
-            #region validation
-            // validation on postId 
-            // var UserId =  _gatewayService.CallServiceAsync<string>("UserService", "/api/public/user/validateUserId?userId=" + userId);
-            // validation on UserId
-            // var postId = _gatewayService.CallServiceAsync<string>("PostService", "/api/public/post/validatePostId?postId=" + postId);
-            #endregion
+            var response = new ResponseWrapper<object>();
+            if (string.IsNullOrEmpty(postId))
+            {
+                response.Errors.Add("Post ID cannot be null or empty.");
+                response.ErrorType = ErrorType.BadRequest;
+                return response;
+            }
+            if (string.IsNullOrEmpty(userId))
+            {
+                response.Errors.Add("User ID cannot be null or empty.");
+                response.ErrorType = ErrorType.BadRequest;
+                return response;
+            }
+            var deleted = await reactionRepository.DeleteReactionAsync(postId, userId);
+            if (!deleted)
+            {
+                response.Errors.Add("Reaction not found.");
+                response.ErrorType = ErrorType.NotFound;
+                return response;
+            }
+            response.Message = "Reaction deleted successfully.";
+            return response;
+        }
 
-           
+        public async Task<ResponseWrapper<object>> AddReactionAsync(CreateReactionRequest reaction, string userId)
+        {
+            var response = new ResponseWrapper<object>();
+            if (string.IsNullOrEmpty(reaction.PostId))
+            {
+                response.Errors.Add("Post ID cannot be null or empty.");
+                response.ErrorType = ErrorType.BadRequest;
+                return response;
+            }
+            if (string.IsNullOrEmpty(userId))
+            {
+                response.Errors.Add("User ID cannot be null or empty.");
+                response.ErrorType = ErrorType.BadRequest;
+                return response;
+            }
             var reactionObj = mapper.Map<ReactionPost>(reaction);
-            //var newReaction = new ReactionPublishDTO { PostId = reation.PostId, ReactorId = userId, EventType = EventType.ReactionPostCreated };
-            //reactionPublisher.Publish(newReaction);
             reactionObj.UserId = userId;
-            return await reactionRepository.AddReactionAsync(reactionObj);
-        }
-
-        public async Task<bool> DeleteReactionAsync(string postId, string userId)
-        {
-            #region validation
-            // validation on postId 
-
-            // var UserId =  _gatewayService.CallServiceAsync<string>("UserService", "/api/public/user/validateUserId?userId=" + userId);
-
-            // validation on UserId
-
-            // var postId = _gatewayService.CallServiceAsync<string>("PostService", "/api/public/post/validatePostId?postId=" + postId);
-            #endregion
-
-            var newReaction = new ReactionPublishDTO { PostId = postId, ReactorId = userId, EventType = EventType.ReactionPostDeleted };
-           // reactionPublisher.Publish(newReaction);
-            return await reactionRepository.DeleteReactionAsync(postId, userId);
-
-
-        }
-        public async Task<PagedReactsResponse> GetPostsReactedByUserAsync(string userId, string? nextReactIdHash)
-        {
-            string lastSeenId;
-            if (nextReactIdHash == null || nextReactIdHash?.Trim() == "")
-            {
-                lastSeenId = "";
-            }
-            else
-            {
-                lastSeenId = PaginationHelper.DecodeCursor(nextReactIdHash!);
-            }
-
-            var reactionList = (await reactionRepository.GetPostsReactedByUserAsync(userId, lastSeenId)).ToList();
-
-            bool hasMore = reactionList.Count > (paginationSetting.Value.DefaultPageSize - 1);
-
-            var response = mapper.Map<PagedReactsResponse>(reactionList);
-
-            var lastId = hasMore ? reactionList.Last().Id : null;
-            response.HasMore = hasMore;
-            response.NextCursor = lastId != null ? PaginationHelper.GenerateCursor(lastId) : null;
-
+            await reactionRepository.AddReactionAsync(reactionObj);
+            response.Message = "Reaction added successfully.";
             return response;
         }
 
-        public async Task<bool> DeleteReactionsByPostId(string postId)
+        public async Task<ResponseWrapper<object>> DeleteReactionsByPostId(string postId)
         {
-            #region validation
-            // validation on postId 
-            // var UserId =  _gatewayService.CallServiceAsync<string>("UserService", "/api/public/user/validateUserId?userId=" + userId);
-            // validation on UserId
-            // var postId = _gatewayService.CallServiceAsync<string>("PostService", "/api/public/post/validatePostId?postId=" + postId);
-            #endregion
-            return await reactionRepository.DeleteReactionsByPostId(postId);
-
-
-        }
-        public async Task<PostsReactedByUserDTO> FilterPostsReactedByUserAsync(List<string> postIds, string userId)
-        {
-            #region validation
-            // validation on postId 
-            // var UserId =  _gatewayService.CallServiceAsync<string>("UserService", "/api/public/user/validateUserId?userId=" + userId);
-            // validation on UserId
-            // var postId = _gatewayService.CallServiceAsync<string>("PostService", "/api/public/post/validatePostId?postId=" + postId);
-            #endregion
-            var obj = await reactionRepository.FilterPostsReactedByUserAsync(postIds, userId);
-            return new PostsReactedByUserDTO
+            var response = new ResponseWrapper<object>();
+            if (string.IsNullOrEmpty(postId))
             {
-                postIds = obj
-            };
+                response.Errors.Add("Post ID cannot be null or empty.");
+                response.ErrorType = ErrorType.BadRequest;
+                return response;
+            }
+            var deleted = await reactionRepository.DeleteReactionsByPostId(postId);
+            if (!deleted)
+            {
+                response.Errors.Add("No reactions found for the given post ID.");
+                response.ErrorType = ErrorType.NotFound;
+                return response;
+            }
+            response.Message = "Reactions deleted successfully.";
+            return response;
+        }
 
+        public async Task<ResponseWrapper<PostsReactedByUserDTO>> FilterPostsReactedByUserAsync(List<string> postIds, string userId)
+        {
+            var response = new ResponseWrapper<PostsReactedByUserDTO>();
+            if (postIds == null || postIds.Count == 0)
+            {
+                response.Errors.Add("Post IDs cannot be null or empty.");
+                response.ErrorType = ErrorType.BadRequest;
+                return response;
+            }
+            if (string.IsNullOrEmpty(userId))
+            {
+                response.Errors.Add("User ID cannot be null or empty.");
+                response.ErrorType = ErrorType.UnAuthorized;
+                return response;
+            }
+            var obj = await reactionRepository.FilterPostsReactedByUserAsync(postIds, userId);
+            response.Data = new PostsReactedByUserDTO { postIds = obj };
+            response.Message = "Filtered posts reacted by user successfully.";
+            return response;
+        }
+
+        public async Task<ResponseWrapper<PagedReactsResponse>> GetPostsReactedByUserAsync(string userId, string? nextReactIdHash)
+        {
+            var response = new ResponseWrapper<PagedReactsResponse>();
+            if (string.IsNullOrEmpty(userId))
+            {
+                response.Errors.Add("User ID cannot be null or empty.");
+                response.ErrorType = ErrorType.BadRequest;
+                return response;
+            }
+            string lastSeenId = string.IsNullOrWhiteSpace(nextReactIdHash) ? "" : PaginationHelper.DecodeCursor(nextReactIdHash!);
+            var reactionList = (await reactionRepository.GetPostsReactedByUserAsync(userId, lastSeenId)).ToList();
+            bool hasMore = reactionList.Count > (paginationSetting.Value.DefaultPageSize - 1);
+            var pagedResponse = mapper.Map<PagedReactsResponse>(reactionList);
+            var lastId = hasMore ? reactionList.Last().Id : null;
+            pagedResponse.HasMore = hasMore;
+            pagedResponse.Next = lastId != null ? PaginationHelper.GenerateCursor(lastId) : null;
+            response.Data = pagedResponse;
+            response.Message = "Posts reacted by user retrieved successfully.";
+            return response;
         }
     }
 }

@@ -8,23 +8,29 @@ using MongoDB.Bson.Serialization.Attributes;
 using System;
 namespace react_service.Domain.Entites
 {
-    
-
-   
-        public class ReactionPost
+    public enum ReactionType
+    {
+        Like = 0,
+        Love = 1,
+        Haha = 2,
+        Wow = 3,
+        Sad = 4,
+        Angry = 5
+    }
+    public class ReactionPost
         {
             [BsonId]
             [BsonRepresentation(BsonType.ObjectId)]
-            public string Id { get; set; }
+            public string? Id { get; set; }
 
             [BsonElement("postId")]
-            public string PostId { get; set; }
+            public string? PostId { get; set; }
 
             [BsonElement("userId")]
-            public string UserId { get; set; }
+            public string? UserId { get; set; }
 
             [BsonElement("reactionType")]
-            public string ReactionType { get; set; }
+            public ReactionType ReactionType { get; set; }
 
             [BsonElement("postCreatedTime")]
             [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]

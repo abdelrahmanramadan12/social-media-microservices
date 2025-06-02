@@ -1,12 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
+using react_service.Application.DTO;
 using react_service.Application.DTO.ReactionPost.Request;
 using react_service.Application.Interfaces.Services;
+using Web.Controllers;
 
 namespace react_service.Controllers
 {
     [ApiController]
     [Route("api/public/reacts/post")]
-    public class PublicReactionPostController : ControllerBase
+    public class PublicReactionPostController : BaseController
     {
         private readonly IReactionPostService _reactionService;
 
@@ -18,28 +20,15 @@ namespace react_service.Controllers
         [HttpDelete]
         public async Task<IActionResult> DeleteReaction([FromBody] DeleteReactionRequest request, [FromHeader(Name = "userId")] string userId)
         {
-            if (request == null || string.IsNullOrEmpty(request.PostId))
-            {
-                return BadRequest(new { postId = request?.PostId ?? string.Empty });
-            }
-            var res = await _reactionService.DeleteReactionAsync(request.PostId, userId);
-            if(res == false)
-            {
-                return NotFound(new { message = "Reaction not found.", postId = request?.PostId });
-            }
-            return NoContent(); 
+            var res = await _reactionService.DeleteReactionAsync(request?.PostId, userId);
+            return HandleServiceResponse<object>(res);
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddReaction([FromForm] CreateReactionRequest request, [FromHeader(Name = "userId")] string userId)
+        public async Task<IActionResult> AddReaction([FromBody] CreateReactionRequest request, [FromHeader(Name = "userId")] string userId)
         {
-            if (string.IsNullOrEmpty(request.PostId))
-            {
-                return BadRequest("Post ID cannot be null or empty.");
-            }
-           
-            await _reactionService.AddReactionAsync(request, userId);
-            return NoContent();
+            var res = await _reactionService.AddReactionAsync(request, userId);
+            return HandleServiceResponse<object>(res);
         }
     }
 }

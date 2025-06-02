@@ -9,6 +9,6 @@ namespace react_service.Application.DTO.ReactionPost.Request
     public class GetPostsByUserRequest
     {
         public string UserId { get; set; }
-        public string? NextReactIdHash { get; set; }
+        public string? Next { get; set; }
     }
 }

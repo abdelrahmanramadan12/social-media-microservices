@@ -10,7 +10,7 @@ namespace react_service.Application.Common
     {
 
         public List<T> Reactions { get; set; } = new();
-        public int? NextCursor { get; set; }
+        public int? Next { get; set; }
         public int PageSize { get; set; }
         public bool HasMore { get; set; }
 
@@ -18,7 +18,7 @@ namespace react_service.Application.Common
         {
             Reactions = items;
             PageSize = pageSize;
-            NextCursor = nextCursor;
+            Next = nextCursor;
             HasMore = hasMore;
         }
     }

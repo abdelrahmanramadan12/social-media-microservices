@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
+    <Nullable>disable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>react_service</RootNamespace>
   </PropertyGroup>
@@ -15,6 +15,10 @@
   <ItemGroup>
     <ProjectReference Include="..\react-service.Infrastructure\react-service.Infrastructure.csproj" />
     <ProjectReference Include="..\react-service.Application\react-service.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Controllers\Public\" />
   </ItemGroup>
 
 </Project>
