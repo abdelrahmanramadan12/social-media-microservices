@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace Service.DTOs
+namespace Service.DTOs.Requests
 {
     public class ProfileRequestDto
     {

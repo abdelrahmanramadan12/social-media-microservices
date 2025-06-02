@@ -1,4 +1,4 @@
-namespace Service.DTOs
+namespace Service.DTOs.Requests
 {
     public class MediaUploadResponseDto
     {

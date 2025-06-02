@@ -1,9 +1,10 @@
-﻿using Domain.Events;
+using Domain.Events;
+using Service.DTOs.Responses;
 
 namespace Service.Interfaces.FollowServices
 {
     public interface IFollowCounterService
     {
-        Task UpdateCounter(string followerId, string followedId, FollowEventType followType);
+        public Task UpdateCounter(string followerId, string followedId, FollowEventType followType);
     }
 }

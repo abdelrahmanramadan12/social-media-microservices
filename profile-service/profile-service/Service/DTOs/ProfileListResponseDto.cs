@@ -1,9 +1,8 @@
+using Service.DTOs.Responses;
+
 namespace Service.DTOs
 {
-    public class ProfileListResponseDto
+    public class ProfileListResponseDto : ResponseWrapper<List<SimpleUserDto>>
     {
-        public bool Success { get; set; }
-        public List<string>? Errors { get; set; }
-        public List<SimpleUserDto>? Data { get; set; }
     }
 }

@@ -1,6 +1,7 @@
 using Domain.Entities;
 using Domain.Events;
 using Service.DTOs;
+using Service.DTOs.Requests;
 
 namespace Service.Mappers
 {
