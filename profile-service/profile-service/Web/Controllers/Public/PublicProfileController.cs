@@ -1,25 +1,23 @@
-﻿using Domain.DTOs;
-using Domain.Entities;
-using Domain.Events;
 using Microsoft.AspNetCore.Mvc;
+using Service.DTOs;
 using Service.Interfaces.ProfileServices;
 
-namespace Web.Controllers
+namespace Web.Controllers.Public
 {
-    [Route("api/[controller]")]
+    [Route("api/public/profile")]
     [ApiController]
-    public class ProfileController : ControllerBase
+    public class PublicProfileController : ControllerBase
     {
         private readonly IProfileService _profileService;
 
-        public ProfileController(IProfileService profileService)
+        public PublicProfileController(IProfileService profileService)
         {
             _profileService = profileService;
         }
 
         [HttpGet("id/{userId}")]
         public async Task<IActionResult> GetByUserIdAsync(string userId)
-        {   
+        {
             var profile = await _profileService.GetByUserIdAsync(userId);
             if (profile == null || profile.Success == false)
             {
@@ -94,7 +92,6 @@ namespace Web.Controllers
                 return StatusCode(500, new { error = "An error occurred while processing your request.", detail = ex.Message });
             }
         }
-
 
         [HttpPut("{userId}")]
         public async Task<IActionResult> UpdateAsync(string userId, [FromBody] ProfileRequestDto profile)
