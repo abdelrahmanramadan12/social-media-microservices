@@ -52,7 +52,7 @@ namespace Web.Controllers.Public
             return HandleServiceResponse(response);
         }
 
-        [HttpPut("{userId}")]
+        [HttpPatch("{userId}")]
         public async Task<IActionResult> UpdateAsync(string userId, [FromForm] ProfileRequestDto profile)
         {
             var response = await _profileService.UpdateAsync(userId, profile);

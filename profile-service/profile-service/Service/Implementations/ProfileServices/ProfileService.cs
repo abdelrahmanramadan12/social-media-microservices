@@ -317,15 +317,30 @@ namespace Service.Implementations.ProfileServices
                 }
 
                 // Update fields
-                existingProfile.UserName = profileRequestDto.UserName ?? existingProfile.UserName;
-                existingProfile.FirstName = profileRequestDto.FirstName ?? existingProfile.FirstName;
-                existingProfile.LastName = profileRequestDto.LastName ?? existingProfile.LastName;
-                existingProfile.Bio = profileRequestDto.Bio ?? existingProfile.Bio;
-                existingProfile.Address = profileRequestDto.Address ?? existingProfile.Address;
+                if (!string.IsNullOrWhiteSpace(profileRequestDto.UserName))
+                    existingProfile.UserName = profileRequestDto.UserName;
+
+                if (!string.IsNullOrWhiteSpace(profileRequestDto.FirstName))
+                    existingProfile.FirstName = profileRequestDto.FirstName;
+
+                if (!string.IsNullOrWhiteSpace(profileRequestDto.LastName))
+                    existingProfile.LastName = profileRequestDto.LastName;
+
+                if (!string.IsNullOrWhiteSpace(profileRequestDto.Bio))
+                    existingProfile.Bio = profileRequestDto.Bio;
+
+                if (!string.IsNullOrWhiteSpace(profileRequestDto.Address))
+                    existingProfile.Address = profileRequestDto.Address;
+
                 if (profileRequestDto.BirthDate != default)
                     existingProfile.BirthDate = profileRequestDto.BirthDate;
-                existingProfile.Email = profileRequestDto.Email ?? existingProfile.Email;
-                existingProfile.MobileNo = profileRequestDto.MobileNo ?? existingProfile.MobileNo;
+
+                if (!string.IsNullOrWhiteSpace(profileRequestDto.Email))
+                    existingProfile.Email = profileRequestDto.Email;
+
+                if (!string.IsNullOrWhiteSpace(profileRequestDto.MobileNo))
+                    existingProfile.MobileNo = profileRequestDto.MobileNo;
+
 
                 // Handle profile picture update
                 if (profileRequestDto.ProfilePic != null && profileRequestDto.ProfilePic.Length > 0)
@@ -375,11 +390,20 @@ namespace Service.Implementations.ProfileServices
                     existingProfile.CoverUrl = mediaUploadResponse.Data.Urls.FirstOrDefault();
                 }
 
-                await _profileRepository.Update(existingProfile);
-
+                try
+                {
+                    await _profileRepository.Update(existingProfile);
+                }
+                catch (Exception ex)
+                {
+                    response.Errors = new List<string> { $"Failed to update profile in repository: {ex.Message}" };
+                    response.ErrorType = ErrorType.InternalServerError;
+                    return response;
+                }
+                
                 // Publish event
                 var profileEvent = CreateProfileEvent(existingProfile, ProfileEventType.ProfileUpdated);
-                await _profilePublisher.PublishAsync(profileEvent);
+                _profilePublisher.PublishAsync(profileEvent);
 
                 response.Data = existingProfile;
                 response.Message = "Profile updated successfully";
