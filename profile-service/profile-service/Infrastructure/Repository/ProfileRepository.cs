@@ -1,4 +1,3 @@
-﻿using Domain.DTOs;
 using Domain.Entities;
 using Domain.IRepository;
 using Infrastructure.Data;
@@ -28,45 +27,22 @@ namespace Infrastructure.Repository
                 .FirstOrDefaultAsync(p => p.UserName.ToLower() == userName.ToLower());
         }
 
-        public async Task<SimpleUserDto?> GetByUserIdMinAsync(string userId)
+        public async Task<Profile?> GetByUserIdMinAsync(string userId)
         {
             return await _context.Profiles
-                .Where(p => p.UserId == userId)
-                .Select(p => new SimpleUserDto
-                {
-                    UserId = p.UserId,
-                    DisplayName = p.FirstName + " " + p.LastName,
-                    UserName = p.UserName,
-                    ProfilePictureUrl = p.ProfileUrl
-                })
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(p => p.UserId == userId);
         }
 
-        public async Task<SimpleUserDto?> GetByUserNameMinAsync(string userName)
+        public async Task<Profile?> GetByUserNameMinAsync(string userName)
         {
             return await _context.Profiles
-                .Where(p => p.UserName.ToLower() == userName.ToLower())
-                .Select(p => new SimpleUserDto
-                {
-                    UserId = p.UserId,
-                    DisplayName = p.FirstName + " " + p.LastName,
-                    UserName = p.UserName,
-                    ProfilePictureUrl = p.ProfileUrl
-                })
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(p => p.UserName.ToLower() == userName.ToLower());
         }
 
-        public async Task<List<SimpleUserDto>> GetUsersByIdsAsync(List<string> userIds)
+        public async Task<List<Profile>> GetUsersByIdsAsync(List<string> userIds)
         {
             return await _context.Profiles
                 .Where(p => userIds.Contains(p.UserId))
-                .Select(p => new SimpleUserDto
-                {
-                    UserId = p.UserId,
-                    DisplayName = p.FirstName + " " + p.LastName,
-                    UserName = p.UserName,
-                    ProfilePictureUrl = p.ProfileUrl
-                })
                 .ToListAsync();
         }
 

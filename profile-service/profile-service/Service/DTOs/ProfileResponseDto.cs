@@ -1,6 +1,6 @@
-﻿using Domain.Entities;
+using Domain.Entities;
 
-namespace Domain.DTOs
+namespace Service.DTOs
 {
     public class ProfileResponseDto
     {

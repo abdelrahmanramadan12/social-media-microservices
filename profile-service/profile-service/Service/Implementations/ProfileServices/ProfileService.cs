@@ -1,4 +1,4 @@
-﻿using Domain.DTOs;
+using Service.DTOs;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.Events;
@@ -6,6 +6,7 @@ using Domain.IRepository;
 using Service.Interfaces.MediaServices;
 using Service.Interfaces.ProfileServices;
 using Service.Interfaces.RabbitMqServices;
+using Service.Mappers;
 
 namespace Service.Implementations.ProfileServices
 {
@@ -102,15 +103,15 @@ namespace Service.Implementations.ProfileServices
             }
             else
             {
-                var simpleUser = await _profileRepository.GetByUserIdMinAsync(userId);
-                if (simpleUser == null)
+                var profile = await _profileRepository.GetByUserIdMinAsync(userId);
+                if (profile == null)
                 {
                     response.Errors = new List<string> { "Profile not found." };
                     response.Success = false;
                 }
                 else
                 {
-                    response.Data = simpleUser;
+                    response.Data = ProfileMapper.ToSimpleUserDto(profile);
                 }
             }
             return response;
@@ -131,15 +132,15 @@ namespace Service.Implementations.ProfileServices
             }
             else
             {
-                var simpleUser = await _profileRepository.GetByUserNameMinAsync(userName);
-                if (simpleUser == null)
+                var profile = await _profileRepository.GetByUserNameMinAsync(userName);
+                if (profile == null)
                 {
                     response.Errors = new List<string> { "Profile not found." };
                     response.Success = false;
                 }
                 else
                 {
-                    response.Data = simpleUser;
+                    response.Data = ProfileMapper.ToSimpleUserDto(profile);
                 }
             }
             return response;
@@ -148,7 +149,6 @@ namespace Service.Implementations.ProfileServices
 
         public async Task<ProfileListResponseDto?> GetUsersByIdsAsync(List<string> userIds)
         {
-
             var response = new ProfileListResponseDto
             {
                 Success = true,
@@ -162,19 +162,18 @@ namespace Service.Implementations.ProfileServices
             }
             else
             {
-                var simpleUsers = await _profileRepository.GetUsersByIdsAsync(userIds);
-                if (simpleUsers == null || simpleUsers.Count == 0)
+                var profiles = await _profileRepository.GetUsersByIdsAsync(userIds);
+                if (profiles == null || profiles.Count == 0)
                 {
                     response.Errors = new List<string> { "No profiles found for the provided user IDs." };
                     response.Success = false;
                 }
                 else
                 {
-                    response.Data = simpleUsers;
+                    response.Data = profiles.Select(ProfileMapper.ToSimpleUserDto).ToList();
                 }
             }
             return response;
-
         }
 
         public async Task<ProfileResponseDto?> AddAsync(string userId, ProfileRequestDto profileRequestDto)
@@ -368,11 +367,10 @@ namespace Service.Implementations.ProfileServices
             var profileEvent = new ProfileEvent
             {
                 EventType = ProfileEventType.ProfileDeleted,
-                User = new SimpleUserDto
+                User = new ProfileEventData
                 {
                     UserId = userId
-                },
-
+                }
             };
             await _profilePublisher.PublishAsync(profileEvent);
             return true;
@@ -385,20 +383,7 @@ namespace Service.Implementations.ProfileServices
         // Mapping methods to convert DTOs to entities and create events
         private Profile MapToProfileEntity(ProfileRequestDto dto, string userId)
         {
-            return new Profile
-            {
-                UserId = userId,
-                UserName = dto.UserName ?? $"@User{Guid.NewGuid()}",
-                FirstName = dto.FirstName ?? "New",
-                LastName = dto.LastName ?? "User",
-                Bio = dto.Bio,
-                Address = dto.Address,
-                BirthDate = dto.BirthDate== default ? DateTime.Now.AddYears(-20) : dto.BirthDate,
-                Email = dto.Email,
-                MobileNo = dto.MobileNo,
-                NoFollowers = 0,
-                NoFollowing = 0
-            };
+            return ProfileMapper.ToProfileEntity(dto, userId);
         }
 
         private ProfileEvent CreateProfileEvent(Profile profile, ProfileEventType eventType)
@@ -406,13 +391,7 @@ namespace Service.Implementations.ProfileServices
             return new ProfileEvent
             {
                 EventType = eventType,
-                User = new SimpleUserDto
-                {
-                    UserId = profile.UserId,
-                    UserName = profile.UserName,
-                    DisplayName = profile.FirstName+" "+profile.LastName,
-                    ProfilePictureUrl = profile.ProfileUrl ?? " "
-                }
+                User = ProfileMapper.ToProfileEventData(profile)
             };
         }
     }

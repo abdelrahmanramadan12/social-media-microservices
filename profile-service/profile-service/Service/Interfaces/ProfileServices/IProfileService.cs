@@ -1,5 +1,4 @@
-﻿using Domain.DTOs;
-using Domain.Entities;
+using Service.DTOs;
 
 namespace Service.Interfaces.ProfileServices
 {

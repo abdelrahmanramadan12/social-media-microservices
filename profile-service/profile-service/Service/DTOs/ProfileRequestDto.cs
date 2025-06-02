@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 
-namespace Domain.DTOs
+namespace Service.DTOs
 {
     public class ProfileRequestDto
     {

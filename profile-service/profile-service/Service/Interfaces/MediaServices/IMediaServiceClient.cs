@@ -1,4 +1,4 @@
-﻿using Domain.DTOs;
+using Service.DTOs;
 
 namespace Service.Interfaces.MediaServices
 {

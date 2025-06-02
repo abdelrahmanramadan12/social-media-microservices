@@ -1,7 +1,7 @@
-﻿using Domain.Enums;
+using Domain.Enums;
 using Microsoft.AspNetCore.Http;
 
-namespace Domain.DTOs
+namespace Service.DTOs
 {
     public class MediaUploadRequestDto
     {
