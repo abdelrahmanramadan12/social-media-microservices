@@ -268,7 +268,7 @@ namespace Service.Implementations.ProfileServices
 
                 // Publish event
                 var profileEvent = CreateProfileEvent(profileEntity, ProfileEventType.ProfileAdded);
-                await _profilePublisher.PublishAsync(profileEvent);
+                _profilePublisher.PublishAsync(profileEvent);
 
                 response.Data = profileEntity;
                 response.Message = "Profile created successfully";

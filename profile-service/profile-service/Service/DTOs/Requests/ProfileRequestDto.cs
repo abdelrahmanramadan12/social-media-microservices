@@ -4,7 +4,7 @@ namespace Service.DTOs.Requests
 {
     public class ProfileRequestDto
     {
-        public string Email { get; set; }
+        public string? Email { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
         public string? UserName { get; set; }
@@ -14,6 +14,5 @@ namespace Service.DTOs.Requests
         public string? Bio { get; set; }
         public IFormFile? ProfilePic { get; set; }
         public IFormFile? CoverPic { get; set; }
-
     }
 }

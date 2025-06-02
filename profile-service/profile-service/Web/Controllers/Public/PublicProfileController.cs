@@ -46,21 +46,25 @@ namespace Web.Controllers.Public
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddAsync([FromQuery] string userId, [FromForm] ProfileRequestDto profile)
+        public async Task<IActionResult> AddAsync([FromHeader(Name = "userId")] string userId, [FromHeader(Name = "email")] string Email, [FromForm] ProfileRequestDto profile)
         {
+            profile.Email = Email;
             var response = await _profileService.AddAsync(userId, profile);
             return HandleServiceResponse(response);
         }
 
-        [HttpPatch("{userId}")]
-        public async Task<IActionResult> UpdateAsync(string userId, [FromForm] ProfileRequestDto profile)
+        [HttpPatch]
+        public async Task<IActionResult> UpdateAsync( [FromHeader(Name = "email")] string Email, [FromHeader(Name = "userId")] string userId, [FromForm] ProfileRequestDto profile)
         {
+            Console.WriteLine(Email);
+            Console.WriteLine($"User {userId}");
+            profile.Email = Email;
             var response = await _profileService.UpdateAsync(userId, profile);
             return HandleServiceResponse(response);
         }
 
-        [HttpDelete("{userId}")]
-        public async Task<IActionResult> DeleteAsync(string userId)
+        [HttpDelete]
+        public async Task<IActionResult> DeleteAsync([FromHeader(Name = "userId")] string userId)
         {
             var response = await _profileService.DeleteAsync(userId);
             return HandleServiceResponse(response);
