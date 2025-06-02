@@ -12,26 +12,34 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
-builder.Services.Configure<MongoDBSettings>(builder.Configuration.GetSection("MongoDbSettings"));
-// 1. Register IMongoClient as singleton (thread-safe)
-builder.Services.AddSingleton<IMongoClient>(sp =>
+
+builder.Services.Configure<MongoDBSettings>(
+    builder.Configuration.GetSection("MongoDbSettings"));
+
+// Register MongoDB services
+builder.Services.AddSingleton<IMongoClient>(serviceProvider =>
 {
-    var settings = sp.GetRequiredService<IOptions<MongoDBSettings>>().Value;
+    var settings = serviceProvider.GetRequiredService<IOptions<MongoDBSettings>>().Value;
     return new MongoClient(settings.ConnectionString);
 });
 
-// 2. Register IMongoDatabase as scoped
-builder.Services.AddScoped<IMongoDatabase>(sp =>
+builder.Services.AddScoped(serviceProvider =>
 {
-    var settings = sp.GetRequiredService<IOptions<MongoDBSettings>>().Value;
-    var client = sp.GetRequiredService<IMongoClient>();
+    var settings = serviceProvider.GetRequiredService<IOptions<MongoDBSettings>>().Value;
+    var client = serviceProvider.GetRequiredService<IMongoClient>();
     return client.GetDatabase(settings.DatabaseName);
 });
 
-// Configure Redis
-builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
-    ConnectionMultiplexer.Connect(builder.Configuration.GetValue<string>("RedisSettings:ConnectionString"))
-);
+builder.Services.AddScoped<IConnectionMultiplexer>(sp =>
+{
+    return ConnectionMultiplexer.Connect(new ConfigurationOptions
+    {
+        EndPoints = { { builder.Configuration.GetConnectionString("RedisConnection")!,
+                            int.Parse(builder.Configuration.GetConnectionString("RedisPort")!) } },
+        User = builder.Configuration.GetConnectionString("RedisUserName"),
+        Password = builder.Configuration.GetConnectionString("RedisPassword")
+    });
+});
 
 
 
@@ -56,22 +64,22 @@ if (app.Environment.IsDevelopment())
         {
             // seed CacheDB data 
             var followsCacheSeeder = scope.ServiceProvider.GetRequiredService<RedisFollowsSeeder>();
-            
+
             await followsCacheSeeder.SeedInitialFollowsDataAsync();
 
             var reactionCacheReactions = scope.ServiceProvider.GetRequiredService<RedisReactionsSeeder>();
             await reactionCacheReactions.SeedInitialReactionsDataAsync();
 
-            var commentsCacheSeeder =  scope.ServiceProvider.GetRequiredService<RedisCommentsSeeder>();
+            var commentsCacheSeeder = scope.ServiceProvider.GetRequiredService<RedisCommentsSeeder>();
 
             await commentsCacheSeeder.SeedInitialCommentsDataAsync();
             // Seed MongoDB data
             var mongoFollowsSeeder = scope.ServiceProvider.GetRequiredService<MongoFollowsSeeder>();
             await mongoFollowsSeeder.SeedInitialFollowsDataAsync();
-            
+
             var mongoReactionsSeeder = scope.ServiceProvider.GetRequiredService<MongoReactionsSeeder>();
             await mongoReactionsSeeder.SeedInitialReactionsDataAsync();
-            
+
             var mongoCommentsSeeder = scope.ServiceProvider.GetRequiredService<MongoCommentsSeeder>();
             await mongoCommentsSeeder.SeedInitialCommentsDataAsync();
 
