@@ -59,3 +59,4 @@ appsettings.json
 #vs
 .vs/
 /notification-service/notification-service/notification-service/appsettings.json
+/notification-service/notification-service/notification-service/appsettings.Development.json
