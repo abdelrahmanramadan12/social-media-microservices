@@ -4,10 +4,12 @@ using Infrastructure.Data;
 using Infrastructure.Repository;
 using Microsoft.EntityFrameworkCore;
 using Service.Implementations.FollowServices;
+using Service.Implementations.MediaServices;
 using Service.Implementations.ProfileServices;
 using Service.Implementations.RabbitMqServices;
 using Service.Implementations.RabbitMQServices;
 using Service.Interfaces.FollowServices;
+using Service.Interfaces.MediaServices;
 using Service.Interfaces.ProfileServices;
 using Service.Interfaces.RabbitMqServices;
 
@@ -18,6 +20,8 @@ namespace Web
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            var configuration = builder.Configuration;
 
             // Add services to the container.
 
@@ -33,6 +37,10 @@ namespace Web
             builder.Services.AddScoped<IFollowCounterService, FollowCounterService>();
 
             builder.Services.AddScoped<IFollowListener, FollowListener>();
+
+            builder.Services.AddHttpClient<IMediaServiceClient,MediaServiceClient>(client=>{
+                client.BaseAddress = new Uri(configuration["MediaService:HostUrl"]);
+            });
 
             builder.Services.AddScoped<IProfilePublisher, ProfilePublisher>();
             builder.Services.AddScoped<IRabbitMqPublisher, RabbitMqPublisher>();

@@ -1,10 +1,11 @@
 ﻿using Domain.DTOs;
 using Domain.Entities;
+using Domain.Enums;
 using Domain.Events;
 using Domain.IRepository;
+using Service.Interfaces.MediaServices;
 using Service.Interfaces.ProfileServices;
 using Service.Interfaces.RabbitMqServices;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Service.Implementations.ProfileServices
 {
@@ -13,10 +14,12 @@ namespace Service.Implementations.ProfileServices
 
         private readonly IProfileRepository _profileRepository;
         private readonly IProfilePublisher _profilePublisher;
-        public ProfileService(IProfileRepository profileRepository ,IProfilePublisher profilePublisher)
+        private readonly IMediaServiceClient _mediaServiceClient;
+        public ProfileService(IProfileRepository profileRepository ,IProfilePublisher profilePublisher , IMediaServiceClient mediaServiceClient)
         {
             _profileRepository = profileRepository;
             _profilePublisher = profilePublisher;
+            _mediaServiceClient = mediaServiceClient;
         }
 
         public async Task<ProfileResponseDto?> GetByUserIdAsync(string userId)
@@ -25,7 +28,7 @@ namespace Service.Implementations.ProfileServices
             {
                 Success = true,
                 Errors = null,
-                profile = null
+                Data = null
             };
 
             if (string.IsNullOrWhiteSpace(userId))
@@ -45,7 +48,7 @@ namespace Service.Implementations.ProfileServices
                 }
                 else
                 {
-                    response.profile = profile;
+                    response.Data = profile;
                 }
             }
             return response;
@@ -59,7 +62,7 @@ namespace Service.Implementations.ProfileServices
             {
                 Success = true,
                 Errors = null,
-                profile = null
+                Data = null
             };
             if (string.IsNullOrWhiteSpace(userName))
             {
@@ -76,7 +79,7 @@ namespace Service.Implementations.ProfileServices
                 }
                 else
                 {
-                    response.profile = profile;
+                    response.Data = profile;
                 }
             }
             return response;
@@ -90,7 +93,7 @@ namespace Service.Implementations.ProfileServices
             {
                 Success = true,
                 Errors = null,
-                SimpleUser = null
+                Data = null
             };
             if (string.IsNullOrWhiteSpace(userId))
             {
@@ -107,7 +110,7 @@ namespace Service.Implementations.ProfileServices
                 }
                 else
                 {
-                    response.SimpleUser = simpleUser;
+                    response.Data = simpleUser;
                 }
             }
             return response;
@@ -119,7 +122,7 @@ namespace Service.Implementations.ProfileServices
             {
                 Success = true,
                 Errors = null,
-                SimpleUser = null
+                Data = null
             };
             if (string.IsNullOrWhiteSpace(userName))
             {
@@ -136,7 +139,7 @@ namespace Service.Implementations.ProfileServices
                 }
                 else
                 {
-                    response.SimpleUser = simpleUser;
+                    response.Data = simpleUser;
                 }
             }
             return response;
@@ -150,7 +153,7 @@ namespace Service.Implementations.ProfileServices
             {
                 Success = true,
                 Errors = null,
-                SimpleUsers = null
+                Data = null
             };
             if (userIds == null || userIds.Count == 0)
             {
@@ -167,99 +170,195 @@ namespace Service.Implementations.ProfileServices
                 }
                 else
                 {
-                    response.SimpleUsers = simpleUsers;
+                    response.Data = simpleUsers;
                 }
             }
             return response;
 
         }
 
-        public async Task<ProfileResponseDto?> AddAsync(Profile profile)
+        public async Task<ProfileResponseDto?> AddAsync(string userId, ProfileRequestDto profileRequestDto)
         {
             var response = new ProfileResponseDto
             {
                 Success = true,
                 Errors = null,
-                profile = null
+                Data = null
             };
-            if (profile == null)
+
+            if (profileRequestDto == null)
             {
                 response.Errors = new List<string> { "Profile cannot be null." };
                 response.Success = false;
+                return response;
             }
-            else
+
+            // Check for existing username
+            if (!string.IsNullOrWhiteSpace(profileRequestDto.UserName))
             {
-                await _profileRepository.AddAsync(profile);
-                response.profile = profile;
-
-                // Publish the profile creation event
-                var profileEvent = new ProfileEvent
+                var existingByUserName = await _profileRepository.GetByUserNameAsync(profileRequestDto.UserName);
+                if (existingByUserName != null)
                 {
-                    EventType = ProfileEventType.ProfileAdded,
-                    User= new SimpleUserDto
-                    {
-                        UserId = profile.UserId,
-                        UserName = profile.UserName??"User",
-                        DisplayName = profile.FirstName + " " + profile.LastName,
-                        ProfilePictureUrl = profile.ProfileUrl
-                    },
-
-                };
-                await _profilePublisher.PublishAsync(profileEvent);
+                    response.Errors = new List<string> { "Username already exists." };
+                    response.Success = false;
+                    return response;
+                }
             }
+
+            // Map to Profile entity
+            var profileEntity = MapToProfileEntity(profileRequestDto, userId);
+
+            // Handle profile picture upload
+            if (profileRequestDto.ProfilePic != null && profileRequestDto.ProfilePic.Length > 0)
+            {
+                var mediaUploadResponse = await _mediaServiceClient.UploadMediaAsync(new MediaUploadRequestDto
+                {
+                    File = profileRequestDto.ProfilePic,
+                    MediaType = MediaType.IMAGE,
+                    usageCategory = UsageCategory.ProfilePicture
+                });
+
+                if (mediaUploadResponse.Success && mediaUploadResponse.Urls.Any())
+                {
+                    profileEntity.ProfileUrl = mediaUploadResponse.Urls.FirstOrDefault();
+                }
+            }
+
+            // Handle cover picture upload
+            if (profileRequestDto.CoverPic != null && profileRequestDto.CoverPic.Length > 0)
+            {
+                var mediaUploadResponse = await _mediaServiceClient.UploadMediaAsync(new MediaUploadRequestDto
+                {
+                    File = profileRequestDto.CoverPic,
+                    MediaType = MediaType.IMAGE,
+                    usageCategory = UsageCategory.CoverPicture
+                });
+
+                if (mediaUploadResponse.Success && mediaUploadResponse.Urls.Any())
+                {
+                    profileEntity.CoverUrl = mediaUploadResponse.Urls.FirstOrDefault();
+                }
+            }
+
+            await _profileRepository.AddAsync(profileEntity);
+            response.Data = profileEntity;
+
+            // Publish event
+            var profileEvent = CreateProfileEvent(profileEntity, ProfileEventType.ProfileAdded);
+            await _profilePublisher.PublishAsync(profileEvent);
+
             return response;
         }
 
-        public async Task<ProfileResponseDto?> UpdateAsync(string userId, Profile profile)
+
+        public async Task<ProfileResponseDto?> UpdateAsync(string userId, ProfileRequestDto profileRequestDto)
         {
             var response = new ProfileResponseDto
             {
                 Success = true,
                 Errors = null,
-                profile = null
+                Data = null
             };
-            if (string.IsNullOrWhiteSpace(userId) || profile == null)
+
+            if (string.IsNullOrWhiteSpace(userId) || profileRequestDto == null)
             {
                 response.Errors = new List<string> { "User ID and profile cannot be null or empty." };
                 response.Success = false;
+                return response;
             }
-            else
+
+            var existingProfile = await _profileRepository.GetByUserIdAsync(userId);
+            if (existingProfile == null)
             {
-                var exists = await _profileRepository.ExistsByUserIdAsync(userId);
-                if (!exists)
+                response.Errors = new List<string> { "Profile not found." };
+                response.Success = false;
+                return response;
+            }
+
+            // Check for username uniqueness
+            if (!string.IsNullOrWhiteSpace(profileRequestDto.UserName) &&
+                !string.Equals(existingProfile.UserName, profileRequestDto.UserName, StringComparison.OrdinalIgnoreCase))
+            {
+                var existingWithSameUserName = await _profileRepository.GetByUserNameAsync(profileRequestDto.UserName);
+                if (existingWithSameUserName != null && existingWithSameUserName.UserId != userId)
                 {
-                    response.Errors = new List<string> { "Profile not found." };
+                    response.Errors = new List<string> { "Username is already taken by another user." };
                     response.Success = false;
-                }
-                else
-                {
-                    profile.UserId = userId;
-                    await _profileRepository.Update(profile);
-                    response.profile = profile;
-
-                    // Publish the profile Updated event
-                    var profileEvent = new ProfileEvent
-                    {
-                        EventType = ProfileEventType.ProfileUpdated,
-                        User = new SimpleUserDto
-                        {
-                            UserId = profile.UserId,
-                            UserName = profile.UserName,
-                            DisplayName = profile.FirstName + " " + profile.LastName,
-                            ProfilePictureUrl = profile.ProfileUrl
-                        },
-
-                    };
-                    await _profilePublisher.PublishAsync(profileEvent);
-
+                    return response;
                 }
             }
+
+            // Update only provided fields
+            existingProfile.UserName = profileRequestDto.UserName ?? existingProfile.UserName;
+            existingProfile.FirstName = profileRequestDto.FirstName ?? existingProfile.FirstName;
+            existingProfile.LastName = profileRequestDto.LastName ?? existingProfile.LastName;
+            existingProfile.Bio = profileRequestDto.Bio ?? existingProfile.Bio;
+            existingProfile.Address = profileRequestDto.Address ?? existingProfile.Address;
+            if (profileRequestDto.BirthDate != default(DateTime))
+                existingProfile.BirthDate = profileRequestDto.BirthDate;
+            existingProfile.Email = profileRequestDto.Email ?? existingProfile.Email;
+            existingProfile.MobileNo = profileRequestDto.MobileNo ?? existingProfile.MobileNo;
+
+            // Handle profile picture update
+            if (profileRequestDto.ProfilePic != null && profileRequestDto.ProfilePic.Length > 0)
+            {
+                var mediaUploadResponse = await _mediaServiceClient.UploadMediaAsync(new MediaUploadRequestDto
+                {
+                    File = profileRequestDto.ProfilePic,
+                    MediaType = MediaType.IMAGE,
+                    usageCategory = UsageCategory.ProfilePicture
+                });
+
+                if (mediaUploadResponse.Success && mediaUploadResponse.Urls.Any())
+                {
+                    if (!string.IsNullOrWhiteSpace(existingProfile.ProfileUrl))
+                    {
+                        await _mediaServiceClient.DeleteMediaAsync(new List<string> { existingProfile.ProfileUrl });
+                    }
+                    existingProfile.ProfileUrl = mediaUploadResponse.Urls.FirstOrDefault();
+                }
+            }
+
+            // Handle cover picture update
+            if (profileRequestDto.CoverPic != null && profileRequestDto.CoverPic.Length > 0)
+            {
+                var mediaUploadResponse = await _mediaServiceClient.UploadMediaAsync(new MediaUploadRequestDto
+                {
+                    File = profileRequestDto.CoverPic,
+                    MediaType = MediaType.IMAGE,
+                    usageCategory = UsageCategory.CoverPicture
+                });
+
+                if (mediaUploadResponse.Success && mediaUploadResponse.Urls.Any())
+                {
+                    if (!string.IsNullOrWhiteSpace(existingProfile.CoverUrl))
+                    {
+                        await _mediaServiceClient.DeleteMediaAsync(new List<string> { existingProfile.CoverUrl });
+                    }
+                    existingProfile.CoverUrl = mediaUploadResponse.Urls.FirstOrDefault();
+                }
+            }
+
+            await _profileRepository.Update(existingProfile);
+            response.Data = existingProfile;
+
+            // Publish event
+            var profileEvent = CreateProfileEvent(existingProfile, ProfileEventType.ProfileUpdated);
+            await _profilePublisher.PublishAsync(profileEvent);
+
             return response;
         }
+
 
         public async Task<bool> DeleteAsync(string userId)
         {
             if (string.IsNullOrWhiteSpace(userId))
+            {
+                return false;
+            }
+
+            var existingProfile = await _profileRepository.GetByUserIdAsync(userId);
+            if (existingProfile == null)
             {
                 return false;
             }
@@ -277,6 +376,44 @@ namespace Service.Implementations.ProfileServices
             };
             await _profilePublisher.PublishAsync(profileEvent);
             return true;
+        }
+
+
+        // helper methods to handle profile creation and update events
+
+
+        // Mapping methods to convert DTOs to entities and create events
+        private Profile MapToProfileEntity(ProfileRequestDto dto, string userId)
+        {
+            return new Profile
+            {
+                UserId = userId,
+                UserName = dto.UserName ?? $"@User{Guid.NewGuid()}",
+                FirstName = dto.FirstName ?? "New",
+                LastName = dto.LastName ?? "User",
+                Bio = dto.Bio,
+                Address = dto.Address,
+                BirthDate = dto.BirthDate== default ? DateTime.Now.AddYears(-20) : dto.BirthDate,
+                Email = dto.Email,
+                MobileNo = dto.MobileNo,
+                NoFollowers = 0,
+                NoFollowing = 0
+            };
+        }
+
+        private ProfileEvent CreateProfileEvent(Profile profile, ProfileEventType eventType)
+        {
+            return new ProfileEvent
+            {
+                EventType = eventType,
+                User = new SimpleUserDto
+                {
+                    UserId = profile.UserId,
+                    UserName = profile.UserName,
+                    DisplayName = profile.FirstName+" "+profile.LastName,
+                    ProfilePictureUrl = profile.ProfileUrl ?? " "
+                }
+            };
         }
     }
 }

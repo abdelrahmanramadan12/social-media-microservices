@@ -10,8 +10,8 @@ namespace Service.Interfaces.ProfileServices
         Task<MinProfileResponseDto?> GetByUserIdMinAsync(string userId);
         Task<MinProfileResponseDto?> GetByUserNameMinAsync(string userName);
         Task<ProfileListResponseDto?> GetUsersByIdsAsync(List<string> userIds);
-        Task<ProfileResponseDto?> AddAsync(Profile profile);
-        Task<ProfileResponseDto?> UpdateAsync(string userId, Profile profile);
+        Task<ProfileResponseDto?> AddAsync(string userId ,ProfileRequestDto profile);
+        Task<ProfileResponseDto?> UpdateAsync(string userId, ProfileRequestDto profile);
         Task<bool> DeleteAsync(string userId);
     }
 }

@@ -4,6 +4,6 @@
     {
         public bool Success { get; set; }
         public List<string>? Errors { get; set; }
-        public SimpleUserDto? SimpleUser { get; set; }
+        public SimpleUserDto? Data { get; set; }
     }
 }

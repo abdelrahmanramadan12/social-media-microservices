@@ -6,6 +6,6 @@ namespace Domain.DTOs
     {
         public bool Success { get; set; }
         public List<string>? Errors { get; set; }
-        public Profile profile { get; set; } = new Profile();
+        public Profile Data { get; set; } = new Profile();
     }
 }

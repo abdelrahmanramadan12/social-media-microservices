@@ -61,7 +61,7 @@ namespace Service.Implementations.RabbitMqServices
                     var message = Encoding.UTF8.GetString(body);
                     // Deserialize the message
                     var followEvent = JsonSerializer.Deserialize<FollowEvent>(message);
-                    if (followEvent != null)
+                    if (followEvent != null && !string.IsNullOrEmpty(followEvent.FollowerId) && !string.IsNullOrEmpty(followEvent.FollowingId))
                     {
                         using (var scope = _scopeFactory.CreateScope())
                         {
@@ -69,7 +69,7 @@ namespace Service.Implementations.RabbitMqServices
                             // Call the service to handle the Follow Event
                             var followService = scope.ServiceProvider.GetRequiredService<IFollowCounterService>();
                             // Update the follow counter based on the event type
-                            await followService.UpdateCounter(followEvent.FollowerId, followEvent.FollowedId, followEvent.EventType);
+                            await followService.UpdateCounter(followEvent.FollowerId, followEvent.FollowingId, followEvent.EventType);
                         }
                     }
 

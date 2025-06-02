@@ -8,14 +8,14 @@ namespace Domain.Events
 {
     public enum FollowEventType
     {
-        Followed,
-        Unfollowed
+        Follow,
+        Unfollow
     }
     public class FollowEvent
     {
         public FollowEventType EventType { get; set; }
-        public string FollowerId { get; set; }
-        public string FollowedId { get; set; }
+        public string? FollowerId { get; set; }
+        public string? FollowingId { get; set; }
 
     }
 }
