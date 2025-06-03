@@ -1,5 +1,3 @@
-
-
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using react_service.Domain.Entites;
@@ -73,11 +71,6 @@ namespace react_service.Infrastructure.Repositories
             return count > 0;
         }
 
-        public async Task<ReactionPost> GetPostReactionsAsync(string postId)
-        {
-            return await _collection.Find(r => r.PostId == postId).FirstOrDefaultAsync();
-        }
-
         public async Task<List<ReactionPost>> GetPostsReactedByUserAsync(string userId, string nextReactIdHash)
         {
             var filterBuilder = Builders<ReactionPost>.Filter;
@@ -139,7 +132,7 @@ namespace react_service.Infrastructure.Repositories
 
         }
 
-        public async Task<bool> DeleteReactionsByPostId(string postId)
+        public async Task<bool> DeleteAllPostReactions(string postId)
         {
             var filter = Builders<ReactionPost>.Filter.Eq(r => r.PostId, postId);
             var result = await _collection.DeleteManyAsync(filter);
@@ -157,6 +150,31 @@ namespace react_service.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-      
+        public async Task<List<string>> GetUserIdsReactedToPostAsync(string postId)
+        {
+            var filter = Builders<ReactionPost>.Filter.Eq(r => r.PostId, postId);
+            return await _collection.Find(filter)
+                .Project(r => r.UserId)
+                .ToListAsync();
+        }
+
+        public async Task<List<string>> GetUserIdsReactedToPostAsync(string postId, string lastSeenId, int take)
+        {
+            var filterBuilder = Builders<ReactionPost>.Filter;
+            var filters = new List<FilterDefinition<ReactionPost>>
+            {
+                filterBuilder.Eq(r => r.PostId, postId)
+            };
+            if (!string.IsNullOrEmpty(lastSeenId))
+            {
+                filters.Add(filterBuilder.Gt(r => r.Id, lastSeenId));
+            }
+            var filter = filterBuilder.And(filters);
+            return await _collection.Find(filter)
+                .SortBy(r => r.Id)
+                .Limit(take)
+                .Project(r => r.UserId)
+                .ToListAsync();
+        }
     }
 }

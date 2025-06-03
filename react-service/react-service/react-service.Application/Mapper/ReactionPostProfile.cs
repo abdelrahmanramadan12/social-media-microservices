@@ -18,7 +18,7 @@ namespace react_service.Application.Mapper
             CreateMap<CreateReactionRequest ,ReactionPost>()
             .ForMember(dest => dest.PostCreatedTime, opt => opt.MapFrom(_ => DateTime.UtcNow));
 
-            CreateMap<ReactionPost,ReactDto>();
+            CreateMap<ReactionPost,ReactionResponseDTO>();
             CreateMap<List<ReactionPost>, PagedReactsResponse>()
                 .ForMember(dest => dest.Reactions, opt => opt.MapFrom(src => src));
 

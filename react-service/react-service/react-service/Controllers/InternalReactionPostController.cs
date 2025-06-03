@@ -17,30 +17,30 @@ namespace react_service.Controllers
             _reactionService = reactionService;
         }
 
-        [HttpPost("user/filter")]
-        public async Task<IActionResult> FilterPostsReactedByUser([FromBody] GetPostsReactedByUserRequest request)
+        [HttpPost("filter")]
+        public async Task<IActionResult> FilterPostsReactedByUser([FromBody] FilterPostsReactedByUserRequest request)
         {
             var reactedPosts = await _reactionService.FilterPostsReactedByUserAsync(request.PostIds, request.UserId);
             return HandleServiceResponse(reactedPosts);
         }
 
-        [HttpGet("user/{userId}")]
-        public async Task<IActionResult> GetPostsReactedByUser(string userId, [FromQuery] string? next)
+        [HttpPost("user")]
+        public async Task<IActionResult> GetPostsReactedByUser([FromBody] GetPostsReactedByUserRequest request)
         {
-            if (string.IsNullOrEmpty(userId))
+            if (request == null || string.IsNullOrEmpty(request.UserId))
             {
-                var errorResponse = new ResponseWrapper<object> {
-                    Errors = new List<string> { "User ID cannot be null or empty." },
-                    ErrorType = ErrorType.BadRequest
-                };
-                return HandleServiceResponse(errorResponse);
+            var errorResponse = new ResponseWrapper<object> {
+                Errors = new List<string> { "User ID cannot be null or empty." },
+                ErrorType = ErrorType.BadRequest
+            };
+            return HandleServiceResponse(errorResponse);
             }
-            var result = await _reactionService.GetPostsReactedByUserAsync(userId, next);
+            var result = await _reactionService.GetPostsReactedByUserAsync(request.UserId, request.Next);
             return HandleServiceResponse(result);
         }
 
         [HttpPost]
-        public async Task<IActionResult> GetReactsOfPost([FromBody] GetReactsOfPostRequest request)
+        public async Task<IActionResult> GetUserIdsReactedToPost([FromBody] GetReactsOfPostRequest request)
         {
             if (request == null || string.IsNullOrEmpty(request.PostId))
             {
@@ -50,8 +50,8 @@ namespace react_service.Controllers
                 };
                 return HandleServiceResponse(errorResponse);
             }
-            var result = await _reactionService.GetReactsOfPostAsync(request.PostId, request.NextReactIdHash);
+            var result = await _reactionService.GetUserIdsReactedToPostAsync(request.PostId, request.Next, 10);
             return HandleServiceResponse(result);
-        }
-    }
+        }       
+     }
 }

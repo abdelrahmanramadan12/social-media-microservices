@@ -8,7 +8,7 @@ namespace react_service.Application.DTO.ReactionPost.Response
 {
     public class PagedReactsResponse
     {
-        public List<ReactDto> Reactions { get; set; }
+        public List<ReactionResponseDTO> Reactions { get; set; }
         public string? Next { get; set; }  
         public bool HasMore { get; set; }
     }

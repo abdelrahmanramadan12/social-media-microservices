@@ -11,11 +11,12 @@ namespace react_service.Application.Interfaces.Services
 {
     public interface IReactionPostService
     {
-        Task<ResponseWrapper<PagedReactsResponse>> GetReactsOfPostAsync(string postId, string? nextReactIdHash);
         Task<ResponseWrapper<object>> DeleteReactionAsync(string postId, string userId);
         Task<ResponseWrapper<object>> AddReactionAsync(CreateReactionRequest reaction, string userId);
         Task<ResponseWrapper<object>> DeleteReactionsByPostId(string postId);
         Task<ResponseWrapper<PostsReactedByUserDTO>> FilterPostsReactedByUserAsync(List<string> postIds, string userId);
         Task<ResponseWrapper<PagedReactsResponse>> GetPostsReactedByUserAsync(string userId, string? nextReactIdHash);
+        Task<ResponseWrapper<ReactionsUsersResponse>> GetUserIdsReactedToPostAsync(string postId);
+        Task<ResponseWrapper<ReactionsUsersResponse>> GetUserIdsReactedToPostAsync(string postId, string next, int take);
     }
 }

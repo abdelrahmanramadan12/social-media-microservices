@@ -38,26 +38,7 @@ namespace react_service.Application.Services
             this.reactionPublisher = reactionPublisher;
         }
 
-        public async Task<ResponseWrapper<PagedReactsResponse>> GetReactsOfPostAsync(string postId, string? nextReactIdHash)
-        {
-            var response = new ResponseWrapper<PagedReactsResponse>();
-            if (string.IsNullOrEmpty(postId))
-            {
-                response.Errors.Add("Post ID cannot be null or empty.");
-                response.ErrorType = ErrorType.BadRequest;
-                return response;
-            }
-            string lastSeenId = string.IsNullOrWhiteSpace(nextReactIdHash) ? "" : PaginationHelper.DecodeCursor(nextReactIdHash!);
-            var reactionList = (await reactionRepository.GetReactsOfPostAsync(postId, lastSeenId)).ToList();
-            bool hasMore = reactionList.Count > (paginationSetting.Value.DefaultPageSize - 1);
-            var pagedResponse = mapper.Map<PagedReactsResponse>(reactionList);
-            var lastId = hasMore ? reactionList.Last().Id : null;
-            pagedResponse.HasMore = hasMore;
-            pagedResponse.Next = lastId != null ? PaginationHelper.GenerateCursor(lastId) : null;
-            response.Data = pagedResponse;
-            response.Message = "Reactions retrieved successfully.";
-            return response;
-        }
+        
 
         public async Task<ResponseWrapper<object>> DeleteReactionAsync(string postId, string userId)
         {
@@ -116,7 +97,7 @@ namespace react_service.Application.Services
                 response.ErrorType = ErrorType.BadRequest;
                 return response;
             }
-            var deleted = await reactionRepository.DeleteReactionsByPostId(postId);
+            var deleted = await reactionRepository.DeleteAllPostReactions(postId);
             if (!deleted)
             {
                 response.Errors.Add("No reactions found for the given post ID.");
@@ -148,7 +129,7 @@ namespace react_service.Application.Services
             return response;
         }
 
-        public async Task<ResponseWrapper<PagedReactsResponse>> GetPostsReactedByUserAsync(string userId, string? nextReactIdHash)
+        public async Task<ResponseWrapper<PagedReactsResponse>> GetPostsReactedByUserAsync(string userId, string nextReactIdHash)
         {
             var response = new ResponseWrapper<PagedReactsResponse>();
             if (string.IsNullOrEmpty(userId))
@@ -166,6 +147,40 @@ namespace react_service.Application.Services
             pagedResponse.Next = lastId != null ? PaginationHelper.GenerateCursor(lastId) : null;
             response.Data = pagedResponse;
             response.Message = "Posts reacted by user retrieved successfully.";
+            return response;
+        }
+
+        public async Task<ResponseWrapper<ReactionsUsersResponse>> GetUserIdsReactedToPostAsync(string postId)
+        {
+            var response = new ResponseWrapper<ReactionsUsersResponse>();
+            if (string.IsNullOrEmpty(postId))
+            {
+                response.Errors.Add("Post ID cannot be null or empty.");
+                response.ErrorType = ErrorType.BadRequest;
+                return response;
+            }
+            var userIds = await reactionRepository.GetUserIdsReactedToPostAsync(postId);
+            response.Data = new ReactionsUsersResponse { UserIds = userIds };
+            response.Message = "User IDs retrieved successfully.";
+            return response;
+        }
+
+        public async Task<ResponseWrapper<ReactionsUsersResponse>> GetUserIdsReactedToPostAsync(string postId, string next, int take)
+        {
+            var response = new ResponseWrapper<ReactionsUsersResponse>();
+            if (string.IsNullOrEmpty(postId))
+            {
+                response.Errors.Add("Post ID cannot be null or empty.");
+                response.ErrorType = ErrorType.BadRequest;
+                return response;
+            }
+            string lastSeenId = string.IsNullOrWhiteSpace(next) ? "" : PaginationHelper.DecodeCursor(next);
+            var userIds = await reactionRepository.GetUserIdsReactedToPostAsync(postId, lastSeenId, take + 1);
+            bool hasMore = userIds.Count > take;
+            string nextCursor = hasMore ? PaginationHelper.GenerateCursor(userIds[take]) : null;
+            if (hasMore) userIds = userIds.Take(take).ToList();
+            response.Data = new ReactionsUsersResponse { UserIds = userIds, HasMore = hasMore, Next = nextCursor };
+            response.Message = "User IDs retrieved successfully.";
             return response;
         }
     }
