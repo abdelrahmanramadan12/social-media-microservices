@@ -13,5 +13,7 @@ namespace Domain.Entities
         public string? GroupName { get; set; }
         public DateTime CreatedAt { get; set; }
         public Message LastMessage { get; set; }
+        public string? AdminId { get; set; } // For group conversations, the admin can be null for one-on-one conversations
+
     }
 }
