@@ -1,6 +1,6 @@
 ﻿namespace Domain.CacheEntities.Comments
 {
-    public class CommnetDetails
+    public class CommnetNotificationDetails
     {
         public UserSkeleton User { get; set; } = null!; // User data for the reaction, including user ID, profile image URL, and username
         public string PostId { get; set; } = string.Empty; // Unique identifier for the post the comment is associated with

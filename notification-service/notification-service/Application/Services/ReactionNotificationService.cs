@@ -39,7 +39,7 @@ namespace Application.Services
             if (CacheUsersReactionResult == null)
                 return;
 
-            ProfileDTO profileDTO = RequestDataFromProfileService();
+            ProfileDTO profileDTO = HelperRequestDataFromProfileService();
             if (ReactionEventDTO.ReactedOn == ReactedEntity.Post)
             {
                 //request to get all the skelton data
@@ -112,7 +112,7 @@ namespace Application.Services
             throw new NotImplementedException();
         }
 
-        private ProfileDTO RequestDataFromProfileService()
+        private ProfileDTO HelperRequestDataFromProfileService()
         {
             var profile = new ProfileDTO();
 

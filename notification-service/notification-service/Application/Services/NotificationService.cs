@@ -56,7 +56,7 @@ namespace Application.Services
         {
             List<NotificationsDTO> notificationDto = [];
 
-            var NotificationBasedOnType = _unitOfWork.CacheRepository<CachedComments>()
+            var NotificationBasedOnType = _unitOfWork.CacheRepository<CachedCommentsNotification>()
                                                                                    .GetAsync(userId);
             if (NotificationBasedOnType == null)
                 return [];
@@ -168,7 +168,7 @@ namespace Application.Services
         public List<NotificationsDTO> GetUnreadCommentNotifications(string userId)
         {
             List<NotificationsDTO> notificationDto = [];
-            var NotificationBasedOnType = _unitOfWork.CacheRepository<CachedComments>()
+            var NotificationBasedOnType = _unitOfWork.CacheRepository<CachedCommentsNotification>()
                                                                                    .GetAsync(userId);
             if (NotificationBasedOnType == null)
                 return [];
@@ -319,7 +319,7 @@ namespace Application.Services
         {
 
             // cache repo Found , null , not Found 
-            var usercached = await _unitOfWork.CacheRepository<CachedComments>().GetSingleByIdAsync(userId);
+            var usercached = await _unitOfWork.CacheRepository<CachedCommentsNotification>().GetSingleByIdAsync(userId);
 
             if (usercached == null)
             {
@@ -330,18 +330,18 @@ namespace Application.Services
             if (!userComment.User.Seen)
             {
                 userComment.User.Seen = true;
-                await _unitOfWork.CacheRepository<CachedComments>().UpdateAsync(usercached, usercached.UserId);
+                await _unitOfWork.CacheRepository<CachedCommentsNotification>().UpdateAsync(usercached, usercached.UserId);
             }
 
 
-            var userCore = await _unitOfWork.CoreRepository<Comment>()
+            var userCore = await _unitOfWork.CoreRepository<CommentNotification>()
                 .GetSingleIncludingAsync(
-                    f => f.AuthorId== userId) ?? throw new ArgumentException("UserId not Found in Core");
+                    f => f.PostAuthorId== userId) ?? throw new ArgumentException("UserId not Found in Core");
 
             if (!userCore.CommentNotifReadByAuthor.Any(r => r == CommentId))
             {
                 userCore.CommentNotifReadByAuthor.Add(CommentId);
-                await _unitOfWork.CoreRepository<Comment>().UpdateAsync(userCore);
+                await _unitOfWork.CoreRepository<CommentNotification>().UpdateAsync(userCore);
                 await _unitOfWork.SaveChangesAsync();
             }
             return true;
@@ -619,7 +619,7 @@ namespace Application.Services
         public async Task<bool> MarkAllNotificationsCommentAsRead(string userId)
         {
             // Cache update
-            var userCached = await _unitOfWork.CacheRepository<CachedComments>()
+            var userCached = await _unitOfWork.CacheRepository<CachedCommentsNotification>()
                 .GetSingleAsync(x => x.UserId == userId) ?? throw new ArgumentException($"User {userId} not found in cache");
 
             if (userCached.CommnetDetails == null || userCached.CommnetDetails.Count == 0)
@@ -639,31 +639,31 @@ namespace Application.Services
 
             if (anyUnread)
             {
-                await _unitOfWork.CacheRepository<CachedComments>()
+                await _unitOfWork.CacheRepository<CachedCommentsNotification>()
                     .UpdateAsync(userCached, userCached.UserId);
             }
 
             // Core DB update
-            var includes = new List<Expression<Func<Comment, object>>>
+            var includes = new List<Expression<Func<CommentNotification, object>>>
             {
                 c => c.CommentNotifReadByAuthor,
-                c => c.UserID_CommentId // or whatever property contains all comment IDs
+                c => c.UserID_CommentIds // or whatever property contains all comment IDs
             };
 
-            var userCore = await _unitOfWork.CoreRepository<Comment>()
+            var userCore = await _unitOfWork.CoreRepository<CommentNotification>()
                 .GetSingleIncludingAsync(c => c.Id == userId)
                                         ?? throw new ArgumentException($"User {userId} not found in core database");
 
-            if (userCore.UserID_CommentId == null || userCore.UserID_CommentId.Count == 0)
+            if (userCore.UserID_CommentIds == null || userCore.UserID_CommentIds.Count == 0)
             {
                 return true; // No comments to process
             }
-            if (userCore.UserID_CommentId?.Count == 0)
+            if (userCore.UserID_CommentIds?.Count == 0)
             {
                 // Get all unique comment IDs from dictionaries
-                var allCommentIds = userCore.UserID_CommentId
-                    .SelectMany(d => d.Values)
-                    .Distinct()
+                var allCommentIds = userCore.UserID_CommentIds
+                    .SelectMany(d => d.Value)
+                    //.Distinct()
                     .ToList();
 
                 // Find only new unread comments
@@ -677,7 +677,7 @@ namespace Application.Services
                     userCore.CommentNotifReadByAuthor?.AddRange(newReadComments);
 
                     // Update the entity
-                    await _unitOfWork.CoreRepository<Comment>().UpdateAsync(userCore);
+                    await _unitOfWork.CoreRepository<CommentNotification>().UpdateAsync(userCore);
                     await _unitOfWork.SaveChangesAsync();
                 }
             }

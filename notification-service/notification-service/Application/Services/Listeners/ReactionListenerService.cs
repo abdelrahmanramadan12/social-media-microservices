@@ -1,6 +1,6 @@
 ﻿using Application.Interfaces.Services;
 using Domain.Events;
-using Infrastructure.Settings.RabbitMQ;
+using Domain.RabbitMQ;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;

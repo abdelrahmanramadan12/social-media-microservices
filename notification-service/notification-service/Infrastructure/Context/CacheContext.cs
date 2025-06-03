@@ -20,6 +20,6 @@ namespace Infrastructure.Context
         // Collections
         public IMongoCollection<CachedFollowed> Followed => _database.GetCollection<CachedFollowed>("followed");
         public IMongoCollection<CachedReactions> Reactions => _database.GetCollection<CachedReactions>("reactions");
-        public IMongoCollection<CachedComments> Comments => _database.GetCollection<CachedComments>("comments");
+        public IMongoCollection<CachedCommentsNotification> Comments => _database.GetCollection<CachedCommentsNotification>("comments");
     }
 }

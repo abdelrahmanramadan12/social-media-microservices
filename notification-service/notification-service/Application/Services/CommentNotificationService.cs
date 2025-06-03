@@ -1,52 +1,109 @@
-﻿using Application.Interfaces.Services;
-using Application.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Domain.Events;
+﻿using Application.Interfaces;
 using Application.Interfaces.Services;
-using Domain.CoreEntities;
-using Domain.CacheEntities.Comments;
 using Domain.CacheEntities;
+using Domain.CacheEntities.Comments;
+using Domain.CoreEntities;
+using Domain.Events;
 
 namespace Application.Services
 {
-    internal class CommentNotificationService(IUnitOfWork unitOfWork) : ICommentNotificationService
+    public class CommentNotificationService(IUnitOfWork unitOfWork) : ICommentNotificationService
     {
         private readonly IUnitOfWork unitOfWork = unitOfWork;
 
-       public async Task UpdatCommentListNotification(CommentEvent CommentEvent)
+        public async Task UpdatCommentListNotification(CommentEvent commentEvent)
         {
+            // Get the core notification for the post author
+            var authorNotification = await unitOfWork.CoreRepository<CommentNotification>()
+                .GetSingleIncludingAsync(n => n.PostAuthorId == commentEvent.PostAuthorId);
 
-            var user = await unitOfWork.CoreRepository<Comment>().GetSingleIncludingAsync(i => i.AuthorId == CommentEvent.PostAuthorId);
-            if (user == null)
+            if (authorNotification == null)
                 return;
-            user.UserID_CommentId.Add(new Dictionary<string, string>
-            {
-                { CommentEvent.CommentorId, CommentEvent.Id }
-            });     
-            await unitOfWork.CoreRepository<Comment>().UpdateAsync(user);
-            
 
-            var cacheUser = await unitOfWork.CacheRepository<CachedComments>().GetSingleByIdAsync(CommentEvent.CommentorId);
-            if (cacheUser == null)
-                return;
-            cacheUser.CommnetDetails.Add(new CommnetDetails
+            // Safely add the comment ID to the dictionary
+            if (!authorNotification.UserID_CommentIds.TryGetValue(commentEvent.CommentorId, out var commentList))
             {
-                CommentId = CommentEvent.Id,
-                PostId = CommentEvent.PostId,
-                User = new UserSkeleton
+                commentList = [];
+                authorNotification.UserID_CommentIds[commentEvent.CommentorId] = commentList;
+            }
+            commentList.Add(commentEvent.Id);
+
+            // Update each user's cached comment notification
+            foreach (var kvp in authorNotification.UserID_CommentIds)
+            {
+                var userId = kvp.Key;
+
+                var cacheUser = await unitOfWork.CacheRepository<CachedCommentsNotification>()
+                    .GetSingleByIdAsync(userId);
+
+                if (cacheUser == null)
+                    continue;
+
+                cacheUser.CommnetDetails ??= new List<CommnetNotificationDetails>();
+                cacheUser.CommnetDetails.Add(new CommnetNotificationDetails
                 {
-                    Id = CommentEvent.CommentorId,
-                    Seen = false,
-                }
-            });
-            await unitOfWork.CacheRepository<CachedComments>().UpdateAsync(cacheUser);
+                    CommentId = commentEvent.Id,
+                    PostId = commentEvent.PostId,
+                    User = new UserSkeleton
+                    {
+                        Id = commentEvent.CommentorId,
+                        Seen = false
+                    }
+                });
 
+                await unitOfWork.CacheRepository<CachedCommentsNotification>()
+                    .UpdateAsync(cacheUser);
+            }
 
+            // Update core data after processing all cache records
+            await unitOfWork.CoreRepository<CommentNotification>()
+                .UpdateAsync(authorNotification);
 
+            await unitOfWork.SaveChangesAsync();
+
+            // TODO: Send SignalR notifications here if needed
         }
+
+        public async Task RemoveCommentListNotification(CommentEvent commentEvent)
+        {
+            // Get the core notification for the post author
+            var authorNotification = await unitOfWork.CoreRepository<CommentNotification>()
+                .GetSingleIncludingAsync(n => n.PostAuthorId == commentEvent.PostAuthorId);
+
+            if (authorNotification == null)
+                return;
+
+            // Safely remove the comment ID from the core dictionary
+            if (authorNotification.UserID_CommentIds.TryGetValue(commentEvent.CommentorId, out var commentList))
+            {
+                commentList.Remove(commentEvent.Id);
+
+                // Clean up the entry if there are no more comments by this user
+                if (commentList.Count == 0)
+                    authorNotification.UserID_CommentIds.Remove(commentEvent.CommentorId);
+            }
+
+            // Update the user's cached comment notification
+            var cacheUser = await unitOfWork.CacheRepository<CachedCommentsNotification>()
+                .GetSingleByIdAsync(commentEvent.CommentorId);
+
+            if (cacheUser != null)
+            {
+                cacheUser.CommnetDetails?.RemoveAll(cd =>
+                    cd.CommentId == commentEvent.Id &&
+                    cd.PostId == commentEvent.PostId &&
+                    cd.User?.Id == commentEvent.CommentorId);
+
+                await unitOfWork.CacheRepository<CachedCommentsNotification>()
+                    .UpdateAsync(cacheUser);
+            }
+
+            // Save updated core data
+            await unitOfWork.CoreRepository<CommentNotification>()
+                .UpdateAsync(authorNotification);
+
+            await unitOfWork.SaveChangesAsync();
+        }
+
     }
 }

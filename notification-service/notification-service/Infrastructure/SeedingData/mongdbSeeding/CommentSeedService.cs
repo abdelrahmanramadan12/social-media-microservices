@@ -1,29 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Domain.CoreEntities;
+﻿using Domain.CoreEntities;
 using MongoDB.Driver;
-using System;
-using System.Collections.Generic;
 
 
 namespace Infrastructure.SeedingData.mongdbSeeding
 {
     public class MongoCommentsSeeder
     {
-        private readonly IMongoCollection<Comment> _commentsCollection;
+        private readonly IMongoCollection<CommentNotification> _commentsCollection;
 
         public MongoCommentsSeeder(IMongoDatabase database)
         {
-            _commentsCollection = database.GetCollection<Comment>("Comments");
+            _commentsCollection = database.GetCollection<CommentNotification>("Comments");
         }
 
         public async Task SeedInitialCommentsDataAsync()
         {
             // Check if data already exists
-            var count = await _commentsCollection.CountDocumentsAsync(FilterDefinition<Comment>.Empty);
+            var count = await _commentsCollection.CountDocumentsAsync(FilterDefinition<CommentNotification>.Empty);
             if (count > 0)
             {
                 return; // Data already seeded
@@ -33,124 +26,125 @@ namespace Infrastructure.SeedingData.mongdbSeeding
             await _commentsCollection.InsertManyAsync(commentsData);
         }
 
-        private List<Comment> GenerateSampleCommentsData()
+        private List<CommentNotification> GenerateSampleCommentsData()
         {
-            return new List<Comment>
+            return new List<CommentNotification>
+    {
+        // User 1
+        new CommentNotification
         {
-            // User 1
-            new Comment
+            PostAuthorId = "user1",
+            PostId = "post1",
+            UserID_CommentIds = new Dictionary<string, List<string>>
             {
-                AuthorId = "user1",
-                PostId = "post1",
-                UserID_CommentId = new List<Dictionary<string, string>>
-                {
-                    new Dictionary<string, string> { { "user1", "comment1" } }
-                },
-                CommentNotifReadByAuthor = new List<string> { "comment1" }
+                { "user1", new List<string> { "comment1" } }
             },
-            new Comment
+            CommentNotifReadByAuthor = new List<string> { "comment1" }
+        },
+        new CommentNotification
+        {
+            PostAuthorId = "user1",
+            PostId = "post2",
+            UserID_CommentIds = new Dictionary<string, List<string>>
             {
-                AuthorId = "user1",
-                PostId = "post2",
-                UserID_CommentId = new List<Dictionary<string, string>>
-                {
-                    new Dictionary<string, string> { { "user1", "comment2" } }
-                },
-                CommentNotifReadByAuthor = new List<string>()
+                { "user1", new List<string> { "comment2" } }
             },
-                
-            // User 2
-            new Comment
+            CommentNotifReadByAuthor = new List<string>()
+        },
+
+        // User 2
+        new CommentNotification
+        {
+            PostAuthorId = "user2",
+            PostId = "post3",
+            UserID_CommentIds = new Dictionary<string, List<string>>
             {
-                AuthorId = "user2",
-                PostId = "post3",
-                UserID_CommentId = new List<Dictionary<string, string>>
-                {
-                    new Dictionary<string, string> { { "user2", "comment3" } }
-                },
-                CommentNotifReadByAuthor = new List<string> { "comment3" }
+                { "user2", new List<string> { "comment3" } }
             },
-                
-            // User 4
-            new Comment
+            CommentNotifReadByAuthor = new List<string> { "comment3" }
+        },
+
+        // User 4
+        new CommentNotification
+        {
+            PostAuthorId = "user4",
+            PostId = "post1",
+            UserID_CommentIds = new Dictionary<string, List<string>>
             {
-                AuthorId = "user4",
-                PostId = "post1",
-                UserID_CommentId = new List<Dictionary<string, string>>
-                {
-                    new Dictionary<string, string> { { "user4", "comment4" } }
-                },
-                CommentNotifReadByAuthor = new List<string>()
+                { "user4", new List<string> { "comment4" } }
             },
-            new Comment
+            CommentNotifReadByAuthor = new List<string>()
+        },
+        new CommentNotification
+        {
+            PostAuthorId = "user4",
+            PostId = "post4",
+            UserID_CommentIds = new Dictionary<string, List<string>>
             {
-                AuthorId = "user4",
-                PostId = "post4",
-                UserID_CommentId = new List<Dictionary<string, string>>
-                {
-                    new Dictionary<string, string> { { "user4", "comment5" } }
-                },
-                CommentNotifReadByAuthor = new List<string> { "comment5" }
+                { "user4", new List<string> { "comment5" } }
             },
-                
-            // User 5
-            new Comment
+            CommentNotifReadByAuthor = new List<string> { "comment5" }
+        },
+
+        // User 5
+        new CommentNotification
+        {
+            PostAuthorId = "user5",
+            PostId = "post2",
+            UserID_CommentIds = new Dictionary<string, List<string>>
             {
-                AuthorId = "user5",
-                PostId = "post2",
-                UserID_CommentId = new List<Dictionary<string, string>>
-                {
-                    new Dictionary<string, string> { { "user5", "comment6" } }
-                },
-                CommentNotifReadByAuthor = new List<string>()
+                { "user5", new List<string> { "comment6" } }
             },
-                
-            // User 6
-            new Comment
+            CommentNotifReadByAuthor = new List<string>()
+        },
+
+        // User 6
+        new CommentNotification
+        {
+            PostAuthorId = "user6",
+            PostId = "post5",
+            UserID_CommentIds = new Dictionary<string, List<string>>
             {
-                AuthorId = "user6",
-                PostId = "post5",
-                UserID_CommentId = new List<Dictionary<string, string>>
-                {
-                    new Dictionary<string, string> { { "user6", "comment7" } }
-                },
-                CommentNotifReadByAuthor = new List<string> { "comment7" }
+                { "user6", new List<string> { "comment7" } }
             },
-                
-            // User 8
-            new Comment
+            CommentNotifReadByAuthor = new List<string> { "comment7" }
+        },
+
+        // User 8
+        new CommentNotification
+        {
+            PostAuthorId = "user8",
+            PostId = "post3",
+            UserID_CommentIds = new Dictionary<string, List<string>>
             {
-                AuthorId = "user8",
-                PostId = "post3",
-                UserID_CommentId = new List<Dictionary<string, string>>
-                {
-                    new Dictionary<string, string> { { "user8", "comment8" } }
-                },
-                CommentNotifReadByAuthor = new List<string>()
+                { "user8", new List<string> { "comment8" } }
             },
-            new Comment
+            CommentNotifReadByAuthor = new List<string>()
+        },
+        new CommentNotification
+        {
+            PostAuthorId = "user8",
+            PostId = "post6",
+            UserID_CommentIds = new Dictionary<string, List<string>>
             {
-                AuthorId = "user8",
-                PostId = "post6",
-                UserID_CommentId = new List<Dictionary<string, string>>
-                {
-                    new Dictionary<string, string> { { "user8", "comment9" } }
-                },
-                CommentNotifReadByAuthor = new List<string> { "comment9" }
+                { "user8", new List<string> { "comment9" } }
             },
-                
-            // User 9
-            new Comment
+            CommentNotifReadByAuthor = new List<string> { "comment9" }
+        },
+
+        // User 9
+        new CommentNotification
+        {
+            PostAuthorId = "user9",
+            PostId = "post7",
+            UserID_CommentIds = new Dictionary<string, List<string>>
             {
-                AuthorId = "user9",
-                PostId = "post7",
-                UserID_CommentId = new List<Dictionary<string, string>>
-                {
-                    new Dictionary<string, string> { { "user9", "comment10" } }
-                },
-                CommentNotifReadByAuthor = new List<string>()
-            }
-        };
+                { "user9", new List<string> { "comment10" } }
+            },
+            CommentNotifReadByAuthor = new List<string>()
         }
+    };
+        }
+
     }
 }

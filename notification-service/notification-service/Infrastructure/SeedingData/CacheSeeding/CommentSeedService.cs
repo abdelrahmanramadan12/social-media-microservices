@@ -44,19 +44,19 @@ namespace Infrastructure.SeedingData.CacheSeeding
                 }
             }
 
-        private List<CachedComments> GenerateSampleCommentsData()
+        private List<CachedCommentsNotification> GenerateSampleCommentsData()
         {
             var utcNow = DateTime.UtcNow;
 
-            return new List<CachedComments>
+            return new List<CachedCommentsNotification>
             {
                 // User 1
-                new CachedComments
+                new CachedCommentsNotification
                 {
                     UserId = "user1",
-                    CommnetDetails = new List<CommnetDetails>
+                    CommnetDetails = new List<CommnetNotificationDetails>
                     {
-                        new CommnetDetails
+                        new CommnetNotificationDetails
                         {
                             User = new UserSkeleton
                             {
@@ -69,7 +69,7 @@ namespace Infrastructure.SeedingData.CacheSeeding
                             CommentId = "comment1",
                             Content = "This is a great post!"
                         },
-                        new CommnetDetails
+                        new CommnetNotificationDetails
                         {
                             User = new UserSkeleton
                             {
@@ -86,12 +86,12 @@ namespace Infrastructure.SeedingData.CacheSeeding
                 },
                 
                 // User 2
-                new CachedComments
+                new CachedCommentsNotification
                 {
                     UserId = "user2",
-                    CommnetDetails = new List<CommnetDetails>
+                    CommnetDetails = new List<CommnetNotificationDetails>
                     {
-                        new CommnetDetails
+                        new CommnetNotificationDetails
                         {
                             User = new UserSkeleton
                             {
@@ -108,19 +108,19 @@ namespace Infrastructure.SeedingData.CacheSeeding
                 },
                 
                 // User 3 (No comments)
-                new CachedComments
+                new CachedCommentsNotification
                 {
                     UserId = "user3",
-                    CommnetDetails = new List<CommnetDetails>()
+                    CommnetDetails = new List<CommnetNotificationDetails>()
                 },
                 
                 // User 4
-                new CachedComments
+                new CachedCommentsNotification
                 {
                     UserId = "user4",
-                    CommnetDetails = new List<CommnetDetails>
+                    CommnetDetails = new List<CommnetNotificationDetails>
                     {
-                        new CommnetDetails
+                        new CommnetNotificationDetails
                         {
                             User = new UserSkeleton
                             {
@@ -133,7 +133,7 @@ namespace Infrastructure.SeedingData.CacheSeeding
                             CommentId = "comment4",
                             Content = "Thanks for sharing this"
                         },
-                        new CommnetDetails
+                        new CommnetNotificationDetails
                         {
                             User = new UserSkeleton
                             {
@@ -150,12 +150,12 @@ namespace Infrastructure.SeedingData.CacheSeeding
                 },
                 
                 // User 5
-                new CachedComments
+                new CachedCommentsNotification
                 {
                     UserId = "user5",
-                    CommnetDetails = new List<CommnetDetails>
+                    CommnetDetails = new List<CommnetNotificationDetails>
                     {
-                        new CommnetDetails
+                        new CommnetNotificationDetails
                         {
                             User = new UserSkeleton
                             {
@@ -172,12 +172,12 @@ namespace Infrastructure.SeedingData.CacheSeeding
                 },
                 
                 // User 6
-                new CachedComments
+                new CachedCommentsNotification
                 {
                     UserId = "user6",
-                    CommnetDetails = new List<CommnetDetails>
+                    CommnetDetails = new List<CommnetNotificationDetails>
                     {
-                        new CommnetDetails
+                        new CommnetNotificationDetails
                         {
                             User = new UserSkeleton
                             {
@@ -194,19 +194,19 @@ namespace Infrastructure.SeedingData.CacheSeeding
                 },
                 
                 // User 7 (No comments)
-                new CachedComments
+                new CachedCommentsNotification
                 {
                     UserId = "user7",
-                    CommnetDetails = new List<CommnetDetails>()
+                    CommnetDetails = new List<CommnetNotificationDetails>()
                 },
                 
                 // User 8
-                new CachedComments
+                new CachedCommentsNotification
                 {
                     UserId = "user8",
-                    CommnetDetails = new List<CommnetDetails>
+                    CommnetDetails = new List<CommnetNotificationDetails>
                     {
-                        new CommnetDetails
+                        new CommnetNotificationDetails
                         {
                             User = new UserSkeleton
                             {
@@ -219,7 +219,7 @@ namespace Infrastructure.SeedingData.CacheSeeding
                             CommentId = "comment8",
                             Content = "I have a different opinion about this"
                         },
-                        new CommnetDetails
+                        new CommnetNotificationDetails
                         {
                             User = new UserSkeleton
                             {
@@ -236,12 +236,12 @@ namespace Infrastructure.SeedingData.CacheSeeding
                 },
                 
                 // User 9
-                new CachedComments
+                new CachedCommentsNotification
                 {
                     UserId = "user9",
-                    CommnetDetails = new List<CommnetDetails>
+                    CommnetDetails = new List<CommnetNotificationDetails>
                     {
-                        new CommnetDetails
+                        new CommnetNotificationDetails
                         {
                             User = new UserSkeleton
                             {
@@ -258,10 +258,10 @@ namespace Infrastructure.SeedingData.CacheSeeding
                 },
                 
                 // User 10 (No comments)
-                new CachedComments
+                new CachedCommentsNotification
                 {
                     UserId = "user10",
-                    CommnetDetails = new List<CommnetDetails>()
+                    CommnetDetails = new List<CommnetNotificationDetails>()
                 }
             };
         }

@@ -1,11 +1,10 @@
 ﻿using Application.Interfaces.Services;
 using Domain.Events;
-using Infrastructure.Settings.RabbitMQ;
+using Domain.RabbitMQ;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 
@@ -57,9 +56,10 @@ namespace Application.Services.Listeners
                             return;
                         }
 
-                        await CommentService.UpdatCommentListNotification(commentEvent);
-                        
-
+                        if (commentEvent.CommentType == CommentType.ADDED)
+                            await CommentService.UpdatCommentListNotification(commentEvent);
+                        else
+                            await CommentService.RemoveCommentListNotification(commentEvent);
                     }
                     _channel.BasicConsume(_settings.QueueName, true, consumer);
                 }
