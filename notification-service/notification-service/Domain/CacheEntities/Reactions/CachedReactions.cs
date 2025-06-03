@@ -14,5 +14,7 @@
 
         public List<ReactionCommentDetails> ReactionsOnComments { get; set; } = [];
 
+        public List<ReactionMessageDetails> ReactionMessageDetails { get; set; } = [];
+
     }
 }

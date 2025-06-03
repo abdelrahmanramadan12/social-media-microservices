@@ -3,7 +3,6 @@ using Domain.CacheEntities;
 using Domain.CacheEntities.Comments;
 using Domain.CacheEntities.Reactions;
 using Domain.Enums;
-using Domain.Interfaces;
 
 namespace Application.Interfaces.Services
 {
@@ -19,14 +18,14 @@ namespace Application.Interfaces.Services
         List<NotificationsDTO> GetUnreadCommentNotifications(string userId);
         List<NotificationsDTO> GetUnreadFollowedNotifications(string userId);
         List<NotificationsDTO> GetAllUnseenNotification(string userId);
-        
+
         //Task<bool> MarkCommentNotificationAsRead(string userId, string notificationId);
         //Task<bool> MarkFollowingNotificationAsRead(string userId, string notificationId);
         //Task<bool> MarkReactionNotificationAsRead(string userId, string notificationId);
-        
-          Task<bool> MarkNotificationsReactionCommentAsRead(string userId, string reactionId);
-         Task<bool> MarkNotificationsReactionPostAsRead(string userId, string reactionId);
-         Task<bool> MarkNotificationsCommentAsRead(string userId, string CommentId);
-         Task<bool> MarkNotificationsFollowAsRead(string userId, string userFollowedId);
+
+        Task<bool> MarkNotificationsReactionCommentAsRead(string userId, string reactionId);
+        Task<bool> MarkNotificationsReactionPostAsRead(string userId, string reactionId);
+        Task<bool> MarkNotificationsCommentAsRead(string userId, string CommentId);
+        Task<bool> MarkNotificationsFollowAsRead(string userId, string userFollowedId);
     }
 }

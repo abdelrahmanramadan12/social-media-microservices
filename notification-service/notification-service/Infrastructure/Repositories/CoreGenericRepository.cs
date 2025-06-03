@@ -1,7 +1,4 @@
 ﻿using Application.Interfaces.Repositories;
-using Domain.Enums;
-using Domain.Interfaces;
-using Microsoft.EntityFrameworkCore.Query;
 using MongoDB.Driver;
 using System.Linq.Expressions;
 

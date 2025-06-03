@@ -58,10 +58,10 @@ namespace Infrastructure.SeedingData.CacheSeeding
                     {
                         new CommnetDetails
                         {
-                            User = new UserMostUsedData
+                            User = new UserSkeleton
                             {
                                 Id = "u1_1",
-                                UsersId = "user1",
+                                UserId = "user1",
                                 ProfileImageUrls = "https://example.com/user1.jpg",
                                 UserNames = "John Doe"
                             },
@@ -71,10 +71,10 @@ namespace Infrastructure.SeedingData.CacheSeeding
                         },
                         new CommnetDetails
                         {
-                            User = new UserMostUsedData
+                            User = new UserSkeleton
                             {
                                 Id = "u1_1",
-                                UsersId = "user1",
+                                UserId = "user1",
                                 ProfileImageUrls = "https://example.com/user1.jpg",
                                 UserNames = "John Doe"
                             },
@@ -93,10 +93,10 @@ namespace Infrastructure.SeedingData.CacheSeeding
                     {
                         new CommnetDetails
                         {
-                            User = new UserMostUsedData
+                            User = new UserSkeleton
                             {
                                 Id = "u2_1",
-                                UsersId = "user2",
+                                UserId = "user2",
                                 ProfileImageUrls = "https://example.com/user2.jpg",
                                 UserNames = "Jane Smith"
                             },
@@ -122,10 +122,10 @@ namespace Infrastructure.SeedingData.CacheSeeding
                     {
                         new CommnetDetails
                         {
-                            User = new UserMostUsedData
+                            User = new UserSkeleton
                             {
                                 Id = "u4_1",
-                                UsersId = "user4",
+                                UserId = "user4",
                                 ProfileImageUrls = "https://example.com/user4.jpg",
                                 UserNames = "Alice Johnson"
                             },
@@ -135,10 +135,10 @@ namespace Infrastructure.SeedingData.CacheSeeding
                         },
                         new CommnetDetails
                         {
-                            User = new UserMostUsedData
+                            User = new UserSkeleton
                             {
                                 Id = "u4_1",
-                                UsersId = "user4",
+                                UserId = "user4",
                                 ProfileImageUrls = "https://example.com/user4.jpg",
                                 UserNames = "Alice Johnson"
                             },
@@ -157,10 +157,10 @@ namespace Infrastructure.SeedingData.CacheSeeding
                     {
                         new CommnetDetails
                         {
-                            User = new UserMostUsedData
+                            User = new UserSkeleton
                             {
                                 Id = "u5_1",
-                                UsersId = "user5",
+                                UserId = "user5",
                                 ProfileImageUrls = "https://example.com/user5.jpg",
                                 UserNames = "Bob Brown"
                             },
@@ -179,10 +179,10 @@ namespace Infrastructure.SeedingData.CacheSeeding
                     {
                         new CommnetDetails
                         {
-                            User = new UserMostUsedData
+                            User = new UserSkeleton
                             {
                                 Id = "u6_1",
-                                UsersId = "user6",
+                                UserId = "user6",
                                 ProfileImageUrls = "https://example.com/user6.jpg",
                                 UserNames = "Charlie Davis"
                             },
@@ -208,10 +208,10 @@ namespace Infrastructure.SeedingData.CacheSeeding
                     {
                         new CommnetDetails
                         {
-                            User = new UserMostUsedData
+                            User = new UserSkeleton
                             {
                                 Id = "u8_1",
-                                UsersId = "user8",
+                                UserId = "user8",
                                 ProfileImageUrls = "https://example.com/user8.jpg",
                                 UserNames = "Diana Evans"
                             },
@@ -221,10 +221,10 @@ namespace Infrastructure.SeedingData.CacheSeeding
                         },
                         new CommnetDetails
                         {
-                            User = new UserMostUsedData
+                            User = new UserSkeleton
                             {
                                 Id = "u8_1",
-                                UsersId = "user8",
+                                UserId = "user8",
                                 ProfileImageUrls = "https://example.com/user8.jpg",
                                 UserNames = "Diana Evans"
                             },
@@ -243,10 +243,10 @@ namespace Infrastructure.SeedingData.CacheSeeding
                     {
                         new CommnetDetails
                         {
-                            User = new UserMostUsedData
+                            User = new UserSkeleton
                             {
                                 Id = "u9_1",
-                                UsersId = "user9",
+                                UserId = "user9",
                                 ProfileImageUrls = "https://example.com/user9.jpg",
                                 UserNames = "Ethan Wilson"
                             },

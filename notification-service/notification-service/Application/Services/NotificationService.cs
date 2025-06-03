@@ -6,7 +6,6 @@ using Domain.CacheEntities.Comments;
 using Domain.CacheEntities.Reactions;
 using Domain.CoreEntities;
 using Domain.Enums;
-using Domain.Interfaces;
 using System.Linq.Expressions;
 
 namespace Application.Services
@@ -45,7 +44,7 @@ namespace Application.Services
                     SourceUserImageUrl = x.ProfileImageUrls,
                     IsRead=x.Seen,
                     CreatedTime= DateTime.Now,
-                    EntityId = x.UsersId, // Assuming UsersId is the ID of the user who followed
+                    EntityId = x.UserId, // Assuming UsersId is the ID of the user who followed
                     EntityName = NotificationEntity.Follow,
                     NotificatoinPreview = $"{x.UserNames} started following you.",
                     SourceUsername= x.UserNames // Assuming UserNames is the name of the user who followed
@@ -147,7 +146,7 @@ namespace Application.Services
                     SourceUserImageUrl = x.ProfileImageUrls,
                     IsRead = x.Seen,
                     CreatedTime = DateTime.Now,
-                    EntityId = x.UsersId, // Assuming UsersId is the ID of the user who followed
+                    EntityId = x.UserId, // Assuming UsersId is the ID of the user who followed
                     EntityName = NotificationEntity.Follow,
                     NotificatoinPreview = $"{x.UserNames} started following you.",
                     SourceUsername = x.UserNames // Assuming UserNames is the name of the user who followed
@@ -284,7 +283,7 @@ namespace Application.Services
             // cache repo Found , null , not Found 
             var usercached = await _unitOfWork.CacheRepository<CachedFollowed>().GetSingleByIdAsync(userId)
                                                              ?? throw new ArgumentException("UserId not Found  in Cash");
-           var userFollowed = usercached.Followers.FirstOrDefault(i => i.UsersId == userFollowedId)
+           var userFollowed = usercached.Followers.FirstOrDefault(i => i.UserId == userFollowedId)
                                                              ?? throw new ArgumentException("user userFollowedId not Found in Cash");
             userFollowed.Seen = true;
             await _unitOfWork.CacheRepository<CachedFollowed>().UpdateAsync(usercached, usercached.UserId);

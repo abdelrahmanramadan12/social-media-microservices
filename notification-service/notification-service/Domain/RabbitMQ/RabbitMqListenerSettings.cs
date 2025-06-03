@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Infrastructure.Settings.RabbitMQ
+﻿namespace Domain.RabbitMQ
 {
     public class RabbitMqListenerSettings
     {
-        public string HostName { get; set; }
-        public string UserName { get; set; }
-        public string Password { get; set; }
-        public string QueueName { get; set; }
+        public string HostName { get; set; } = string.Empty;
+        public string UserName { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+        public string QueueName { get; set; } = string.Empty;
     }
 
 }

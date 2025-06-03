@@ -1,8 +1,4 @@
 ﻿using Application.Interfaces.Repositories;
-using Domain.Enums;
-using Domain.Interfaces;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query;
 using Newtonsoft.Json;
 using StackExchange.Redis;
 using System.Linq.Expressions;

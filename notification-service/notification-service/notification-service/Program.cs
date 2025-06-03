@@ -4,7 +4,6 @@ using Infrastructure;
 using Infrastructure.SeedingData.CacheSeeding;
 using Infrastructure.SeedingData.mongdbSeeding;
 using Infrastructure.Settings.Mongodb;
-using Infrastructure.Settings.RabbitMQ;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using StackExchange.Redis;

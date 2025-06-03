@@ -56,10 +56,10 @@ namespace Infrastructure.SeedingData.CacheSeeding
                 {
                     new ReactionPostDetails
                     {
-                        User = new UserMostUsedData
+                        User = new UserSkeleton
                         {
                             Id = "u1_1",
-                            UsersId = "user101",
+                            UserId = "user101",
                             ProfileImageUrls = "https://example.com/user101.jpg",
                             UserNames = "Alex Johnson"
                         },
@@ -70,10 +70,10 @@ namespace Infrastructure.SeedingData.CacheSeeding
                     },
                     new ReactionPostDetails
                     {
-                        User = new UserMostUsedData
+                        User = new UserSkeleton
                         {
                             Id = "u1_2",
-                            UsersId = "user102",
+                            UserId = "user102",
                             ProfileImageUrls = "https://example.com/user102.jpg",
                             UserNames = "Maria Garcia"
                         },
@@ -87,10 +87,10 @@ namespace Infrastructure.SeedingData.CacheSeeding
                 {
                     new ReactionCommentDetails
                     {
-                        User = new UserMostUsedData
+                        User = new UserSkeleton
                         {
                             Id = "u1_3",
-                            UsersId = "user103",
+                            UserId = "user103",
                             ProfileImageUrls = "https://example.com/user103.jpg",
                             UserNames = "James Smith"
                         },
@@ -110,10 +110,10 @@ namespace Infrastructure.SeedingData.CacheSeeding
                 {
                     new ReactionPostDetails
                     {
-                        User = new UserMostUsedData
+                        User = new UserSkeleton
                         {
                             Id = "u2_1",
-                            UsersId = "user104",
+                            UserId = "user104",
                             ProfileImageUrls = "https://example.com/user104.jpg",
                             UserNames = "Emma Wilson"
                         },
@@ -135,10 +135,10 @@ namespace Infrastructure.SeedingData.CacheSeeding
                 {
                     new ReactionCommentDetails
                     {
-                        User = new UserMostUsedData
+                        User = new UserSkeleton
                         {
                             Id = "u3_1",
-                            UsersId = "user105",
+                            UserId = "user105",
                             ProfileImageUrls = "https://example.com/user105.jpg",
                             UserNames = "Liam Brown"
                         },
@@ -158,10 +158,10 @@ namespace Infrastructure.SeedingData.CacheSeeding
                 {
                     new ReactionPostDetails
                     {
-                        User = new UserMostUsedData
+                        User = new UserSkeleton
                         {
                             Id = "u4_1",
-                            UsersId = "user106",
+                            UserId = "user106",
                             ProfileImageUrls = "https://example.com/user106.jpg",
                             UserNames = "Olivia Davis"
                         },
@@ -172,10 +172,10 @@ namespace Infrastructure.SeedingData.CacheSeeding
                     },
                     new ReactionPostDetails
                     {
-                        User = new UserMostUsedData
+                        User = new UserSkeleton
                         {
                             Id = "u4_2",
-                            UsersId = "user107",
+                            UserId = "user107",
                             ProfileImageUrls = "https://example.com/user107.jpg",
                             UserNames = "Noah Martinez"
                         },
@@ -189,10 +189,10 @@ namespace Infrastructure.SeedingData.CacheSeeding
                 {
                     new ReactionCommentDetails
                     {
-                        User = new UserMostUsedData
+                        User = new UserSkeleton
                         {
                             Id = "u4_3",
-                            UsersId = "user108",
+                            UserId = "user108",
                             ProfileImageUrls = "https://example.com/user108.jpg",
                             UserNames = "Sophia Anderson"
                         },

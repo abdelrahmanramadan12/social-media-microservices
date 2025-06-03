@@ -3,7 +3,6 @@ using Domain.CacheEntities;
 using Domain.CacheEntities.Comments;
 using Domain.CacheEntities.Reactions;
 using Domain.CoreEntities;
-using Domain.Interfaces;
 using Infrastructure.Repositories;
 using Infrastructure.SeedingData.CacheSeeding;
 using Infrastructure.SeedingData.mongdbSeeding;
