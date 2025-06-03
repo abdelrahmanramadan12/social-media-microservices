@@ -381,6 +381,39 @@ namespace Application.Services
 
         }
 
+        public async Task<bool> MarkNotificationsReactionMessagesAsRead(string userId, string reactionId)
+        {
+
+            // cache repo Found , null , not Found 
+            var usercached = await _unitOfWork.CacheRepository<CachedReactions>().GetSingleByIdAsync(userId);
+
+            if (usercached == null)
+            {
+                throw new ArgumentException("UserId not Found  in Cash");
+            }
+            var userReactPost = usercached.ReactionMessageDetails.FirstOrDefault(i => i.ReactionId == reactionId)
+                                                                                ?? throw new ArgumentException("user ReactionPost not Found in Cash");
+            if (!userReactPost.User.Seen)
+            {
+                userReactPost.User.Seen = true;
+                await _unitOfWork.CacheRepository<CachedReactions>().UpdateAsync(usercached, usercached.AuthorId);
+            }
+
+
+            var userCore = await _unitOfWork.CoreRepository<Reaction>()
+                .GetSingleIncludingAsync(
+                    f => f.AuthorId == userId) ?? throw new ArgumentException("UserId not Found in Core");
+
+            if (!userCore.MessageReactionsNotifReadByAuthor.Any(r => r == reactionId))
+            {
+                userCore.MessageReactionsNotifReadByAuthor.Add(reactionId);
+                await _unitOfWork.CoreRepository<Reaction>().UpdateAsync(userCore);
+                await _unitOfWork.SaveChangesAsync();
+            }
+            return true;
+
+        }
+
 
         public async Task<bool> MarkNotificationsReactionCommentAsRead(string userId, string reactionId)
         {
@@ -414,36 +447,6 @@ namespace Application.Services
         }
 
 
-        public async Task<bool> MarkNotificationsReactionMesAsRead(string userId, string reactionId)
-        {
-
-            // cache repo Found , null , not Found 
-            var usercached = await _unitOfWork.CacheRepository<CachedReactions>().GetSingleByIdAsync(userId)
-                                                                                    ?? throw new ArgumentException("UserId not Found  in Cash");
-
-            var userReactComment = usercached.ReactionsOnComments.FirstOrDefault(i => i.ReactionId == reactionId)
-                                                                                ?? throw new ArgumentException("userReactComment not Found in Cash");
-
-            if (!userReactComment.User.Seen)
-            {
-                userReactComment.User.Seen = true;
-                await _unitOfWork.CacheRepository<CachedReactions>().UpdateAsync(usercached, usercached.AuthorId);
-            }
-
-
-            var userCore = await _unitOfWork.CoreRepository<Reaction>()
-                .GetSingleIncludingAsync(
-                    f => f.AuthorId == userId) ?? throw new ArgumentException("UserId not Found in Core");
-
-            if (!userCore.CommentReactionsNotifReadByAuthor.Any(r => r == reactionId))
-            {
-                userCore.CommentReactionsNotifReadByAuthor.Add(reactionId);
-                await _unitOfWork.CoreRepository<Reaction>().UpdateAsync(userCore);
-                await _unitOfWork.SaveChangesAsync();
-            }
-            return true;
-
-        }
 
         // mark all not reactions 
         public async Task<bool> MarkAllNotificationsAsRead(string userId)
@@ -470,7 +473,8 @@ namespace Application.Services
                 .GetSingleAsync(x => x.AuthorId == userId) ?? throw new ArgumentException($"User {userId} not found in cache");
 
             if ((userCached.ReactionsOnPosts == null || userCached.ReactionsOnPosts.Count == 0) &&
-                (userCached.ReactionsOnComments == null || userCached.ReactionsOnComments.Count == 0))
+                (userCached.ReactionsOnComments == null || userCached.ReactionsOnComments.Count == 0) &&
+                (userCached.ReactionMessageDetails == null || userCached.ReactionMessageDetails.Count == 0))
             {
                 return true; // No reactions to mark as read
             }
@@ -485,6 +489,15 @@ namespace Application.Services
             }
 
             foreach (var reaction in userCached.ReactionsOnComments)
+            {
+                if (!reaction.User.Seen)
+                {
+                    reaction.User.Seen = true;
+                    anyUnread = true;
+                }
+            }
+
+            foreach (var reaction in userCached.ReactionMessageDetails)
             {
                 if (!reaction.User.Seen)
                 {
@@ -522,11 +535,21 @@ namespace Application.Services
                     needsUpdate = true;
                 }
             }
+            foreach (var reaction in userCached.ReactionMessageDetails)
+            {
+                if (!userCore.MessageReactionsNotifReadByAuthor.Any(r => r == reaction.ReactionId))
+                {
+                    userCore.MessageReactionsNotifReadByAuthor.Add(reaction.ReactionId);
+                    needsUpdate = true;
+                }
+            }
             if (needsUpdate)
             {
                 await _unitOfWork.CoreRepository<Reaction>().UpdateAsync(userCore);
                 await _unitOfWork.SaveChangesAsync();
             }
+
+
 
 
             return true;
