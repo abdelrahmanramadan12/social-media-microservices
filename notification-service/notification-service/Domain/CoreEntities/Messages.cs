@@ -1,10 +1,5 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Bson;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace Domain.CoreEntities
 {
@@ -18,5 +13,7 @@ namespace Domain.CoreEntities
 
         public string DestinationUserId { get; set; } = string.Empty;
         public bool IsRead { get; set; }  // Indicates if the message has been read    
+        
+        public DateTime SentAt{ get; set; }  // Timestamp of when the message was created
     }
 }
