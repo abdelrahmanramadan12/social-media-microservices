@@ -5,12 +5,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 
 namespace Application.Services.Listeners
 {
-    public class FollowListenerService(IOptions<RabbitMqListenerSettings> options, IServiceScopeFactory scopeFactory) : IAsyncDisposable
+    public class CommentListenerService(IOptions<RabbitMqListenerSettings> options, IServiceScopeFactory scopeFactory) : IAsyncDisposable
     {
         private readonly RabbitMqListenerSettings _settings = options.Value;
         private readonly IServiceScopeFactory _scopeFactory = scopeFactory;
@@ -44,22 +45,20 @@ namespace Application.Services.Listeners
 
                     var body = ea.Body.ToArray();
                     var message = Encoding.UTF8.GetString(body);
-                    FollowEvent followEvent = JsonSerializer.Deserialize<FollowEvent>(message);
+                    CommentEvent commentEvent = JsonSerializer.Deserialize<CommentEvent>(message);
 
                     using (var scope = _scopeFactory.CreateScope())
                     {
                         // Call the service to handle the Follow Event
-                        var followService = scope.ServiceProvider.GetRequiredService<IFollowNotificationService>();
-                        if (followEvent == null || string.IsNullOrEmpty(followEvent.FollowerId) || string.IsNullOrEmpty(followEvent.UserId))
+                        var CommentService = scope.ServiceProvider.GetRequiredService<ICommentNotificationService>();
+                        if (commentEvent == null || string.IsNullOrEmpty(commentEvent.Id) || string.IsNullOrEmpty(commentEvent.Id))
                         {
                             //Console.WriteLine("Invalid follow event received. Skipping processing.");
                             return;
                         }
-                        if (followEvent.EventType == FollowEventType.FOLLOW)
-                            // Update the follow counter based on the event type
-                            await followService.UpdateFollowersListNotification(followEvent);
-                        else
-                            await followService.RemoveFollowerFromNotificationList(followEvent);
+
+                        await CommentService.UpdatCommentListNotification(commentEvent);
+                        
 
                     }
                     _channel.BasicConsume(_settings.QueueName, true, consumer);

@@ -109,8 +109,19 @@ namespace Application.Services
                 NotificatoinPreview = $"{x.User.UserNames} reacted to your comment.",
                 SourceUsername = x.User.UserNames // Assuming UserNames is the name of the user who reacted
             }).ToList() ?? [];
-
             notificationDto.AddRange(ReactionOnCommentDto);
+            var ReactionMessageNotifications = NotificationBasedOnType.Result?.ReactionMessageDetails;
+            var ReactionOnMessageDto = ReactionMessageNotifications?.Select(x => new NotificationsDTO
+            {
+                SourceUserImageUrl = x.User.ProfileImageUrls,
+                IsRead = x.User.Seen,
+                CreatedTime = DateTime.Now,
+                EntityId = x.ReactionId, // Assuming EntityId is the ID of the message entity
+                EntityName = NotificationEntity.React,
+                NotificatoinPreview = $"{x.User.UserNames} reacted to your message.",
+                SourceUsername = x.User.UserNames // Assuming UserNames is the name of the user who reacted
+            }).ToList() ?? [];
+            notificationDto.AddRange(ReactionOnMessageDto);
 
             return notificationDto;
         }
@@ -376,6 +387,38 @@ namespace Application.Services
 
             // cache repo Found , null , not Found 
             var usercached = await _unitOfWork.CacheRepository<CachedReactions>().GetSingleByIdAsync(userId )
+                                                                                    ?? throw new ArgumentException("UserId not Found  in Cash");
+
+            var userReactComment = usercached.ReactionsOnComments.FirstOrDefault(i => i.ReactionId == reactionId)
+                                                                                ?? throw new ArgumentException("userReactComment not Found in Cash");
+
+            if (!userReactComment.User.Seen)
+            {
+                userReactComment.User.Seen = true;
+                await _unitOfWork.CacheRepository<CachedReactions>().UpdateAsync(usercached, usercached.AuthorId);
+            }
+
+
+            var userCore = await _unitOfWork.CoreRepository<Reaction>()
+                .GetSingleIncludingAsync(
+                    f => f.AuthorId == userId) ?? throw new ArgumentException("UserId not Found in Core");
+
+            if (!userCore.CommentReactionsNotifReadByAuthor.Any(r => r == reactionId))
+            {
+                userCore.CommentReactionsNotifReadByAuthor.Add(reactionId);
+                await _unitOfWork.CoreRepository<Reaction>().UpdateAsync(userCore);
+                await _unitOfWork.SaveChangesAsync();
+            }
+            return true;
+
+        }
+
+
+        public async Task<bool> MarkNotificationsReactionMesAsRead(string userId, string reactionId)
+        {
+
+            // cache repo Found , null , not Found 
+            var usercached = await _unitOfWork.CacheRepository<CachedReactions>().GetSingleByIdAsync(userId)
                                                                                     ?? throw new ArgumentException("UserId not Found  in Cash");
 
             var userReactComment = usercached.ReactionsOnComments.FirstOrDefault(i => i.ReactionId == reactionId)

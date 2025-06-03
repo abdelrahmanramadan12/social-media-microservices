@@ -28,7 +28,7 @@ namespace Application.Services
             else if (ReactionEventDTO.ReactedOn == ReactedEntity.Comment)
                 CoreUsersReactionResult.ReactionsOnCommentId.Add(ReactionEventDTO.ReactionEntityId!);
             else if (ReactionEventDTO.ReactedOn == ReactedEntity.Message)
-                CoreUsersReactionResult.ReactionsOnMessageId.Add(ReactionEventDTO.ReactionEntityId!);
+                CoreUsersReactionResult.ReactionsOnCommentId.Add(ReactionEventDTO.ReactionEntityId!);
 
             var CacheUsersReaction = _unitOfWork.CacheRepository<CachedReactions>().GetAsync(ReactionEventDTO.AuthorEntityId!);
 
