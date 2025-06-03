@@ -1,4 +1,4 @@
-namespace Application.DTOs.Requests
+namespace Services.DTOs.Requests
 {
     public class IsFollowingRequest
     {

@@ -1,4 +1,4 @@
-namespace Services.DTOs
+namespace Services.DTOs.Requests
 {
     public class ListFollowPageRequest
     {

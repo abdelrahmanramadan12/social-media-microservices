@@ -1,14 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
 using Application.Abstractions;
-using Application.DTOs;
-using Services.DTOs;
-using Application.DTOs.Requests;
+using Application.DTOs.Responses;
+using Services.DTOs.Requests;
+using System.Net;
 
 namespace Web.Controllers
 {
-    [Route("api/internal/follows")]
+    [Route("api/internal/follow")]
     [ApiController]
-    public class FollowQueryController : ControllerBase
+    public class FollowQueryController : BaseController
     {
         private readonly IFollowQueryService _followQueryService;
 
@@ -18,51 +18,119 @@ namespace Web.Controllers
         }
 
         [HttpPost("is-following")]
-        [ProducesResponseType(typeof(CheckDTO), StatusCodes.Status200OK)]
         public async Task<IActionResult> IsFollowing([FromBody] IsFollowingRequest request)
         {
-            var res = await _followQueryService.IsFollowing(request.UserId, request.OtherId);
-            return Ok(new CheckDTO { Result = res });
+            var result = await _followQueryService.IsFollowing(request.UserId, request.OtherId);
+            var response = new ResponseWrapper<bool>
+            {
+                Data = result,
+                Message = "Successfully checked follow status"
+            };
+            
+            if (!response.Success)
+            {
+                return HandleError(response);
+            }
+            return Ok(new { data = response.Data , message = response.Message });
         }
 
         [HttpPost("is-follower")]
-        [ProducesResponseType(typeof(CheckDTO), StatusCodes.Status200OK)]
         public async Task<IActionResult> IsFollower([FromBody] IsFollowingRequest request)
         {
-            var res = await _followQueryService.IsFollower(request.UserId, request.OtherId);
-            return Ok(new CheckDTO { Result = res });
+            var result = await _followQueryService.IsFollower(request.UserId, request.OtherId);
+            var response = new ResponseWrapper<bool>
+            {
+                Data = result,
+                Message = "Successfully checked follower status"
+            };
+            
+            if (!response.Success)
+            {
+                return HandleError(response);
+            }
+            return Ok(new { data = response.Data , message = response.Message });
         }
 
         [HttpPost("list-following")]
-        [ProducesResponseType(typeof(FollowsDTO), StatusCodes.Status200OK)]
         public async Task<IActionResult> ListFollowing([FromBody] ListFollowRequest request)
         {
-            var res = await _followQueryService.ListFollowing(request.UserId);
-            return Ok(res);
+            var result = await _followQueryService.ListFollowing(request.UserId);
+            var response = new ResponseWrapper<ICollection<string>>
+            {
+                Data = result.Follows?.ToList() ?? new List<string>(),
+                Message = "Successfully retrieved following list"
+            };
+            
+            if (!response.Success)
+            {
+                return HandleError(response);
+            }
+            return Ok(new { data = response.Data , message = response.Message });
         }
 
         [HttpPost("list-followers")]
-        [ProducesResponseType(typeof(FollowsDTO), StatusCodes.Status200OK)]
         public async Task<IActionResult> ListFollowers([FromBody] ListFollowRequest request)
         {
-            var res = await _followQueryService.ListFollowers(request.UserId);
-            return Ok(res);
+            var result = await _followQueryService.ListFollowers(request.UserId);
+            var response = new ResponseWrapper<ICollection<string>>
+            {
+                Data = result.Follows?.ToList() ?? new List<string>(),
+                Message = "Successfully retrieved followers list"
+            };
+            
+            if (!response.Success)
+            {
+                return HandleError(response);
+            }
+            return Ok(new { data = response.Data , message = response.Message });
         }
 
         [HttpPost("list-following-page")]
-        [ProducesResponseType(typeof(FollowsPageDTO), StatusCodes.Status200OK)]
         public async Task<IActionResult> ListFollowingPage([FromBody] ListFollowPageRequest request)
         {
-            var res = await _followQueryService.ListFollowingPage(request.UserId, request.Next);
-            return Ok(res);
+            var result = await _followQueryService.ListFollowingPage(request.UserId, request.Next);
+            var response = new ResponseWrapper<ICollection<string>>
+            {
+                Data = result.Follows?.ToList() ?? new List<string>(),
+                Message = "Successfully retrieved paginated following list"
+            };
+            
+            if (!response.Success)
+            {
+                return HandleError(response);
+            }
+            
+            return Ok(new 
+            { 
+                data = response.Data ?? new List<string>(),
+                next = result.Next ?? string.Empty,
+                hasMore = !string.IsNullOrEmpty(result.Next),
+                message = response.Message
+            });
         }
 
         [HttpPost("list-followers-page")]
-        [ProducesResponseType(typeof(FollowsPageDTO), StatusCodes.Status200OK)]
         public async Task<IActionResult> ListFollowersPage([FromBody] ListFollowPageRequest request)
         {
-            var res = await _followQueryService.ListFollowersPage(request.UserId, request.Next);
-            return Ok(res);
+            var result = await _followQueryService.ListFollowersPage(request.UserId, request.Next);
+            var response = new ResponseWrapper<ICollection<string>>
+            {
+                Data = result.Follows?.ToList() ?? new List<string>(),
+                Message = "Successfully retrieved paginated followers list"
+            };
+            
+            if (!response.Success)
+            {
+                return HandleError(response);
+            }
+            
+            return Ok(new 
+            { 
+                data = response.Data ?? new List<string>(),
+                next = result.Next ?? string.Empty,
+                hasMore = !string.IsNullOrEmpty(result.Next),
+                message = response.Message
+            });
         }
     }
 }

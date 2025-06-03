@@ -1,4 +1,4 @@
-﻿using Domain.Entities;
+using Domain.Entities;
 using Application.Abstractions;
 using Application.Events;
 
@@ -9,9 +9,10 @@ namespace Application.Implementations
         private readonly IUnitOfWork _unitOfWork;
         private readonly IQueuePublisher<FollowEvent> _followPublisher;
 
-        public FollowCommandService(IUnitOfWork unitOfWork)
+        public FollowCommandService(IUnitOfWork unitOfWork, IQueuePublisher<FollowEvent> followPublisher)
         {
             _unitOfWork = unitOfWork;
+            _followPublisher = followPublisher;
         }
 
         public async Task<bool> Follow(string userId, string otherId)
