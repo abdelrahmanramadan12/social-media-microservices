@@ -214,6 +214,34 @@ namespace Service.Implementations.CommentServices
         {
             try
             {
+                // 1. Validate required fields
+                if (string.IsNullOrEmpty(dto.CommentId) ||
+                    string.IsNullOrEmpty(dto.Content) ||
+                    string.IsNullOrEmpty(dto.UserId))
+                {
+                    return new ResponseWrapper<CommentResponse>
+                    {
+                        Message = "Validation error",
+                        ErrorType = ErrorType.Validation,
+                        Errors = new List<string>
+                {
+                    "Comment ID, Content, and User ID are required for update"
+                }
+                    };
+                }
+
+                // 2. Validate media type if media file is present
+                if (dto.HasMedia && dto.Media != null && dto.MediaType == MediaType.UNKNOWN)
+                {
+                    return new ResponseWrapper<CommentResponse>
+                    {
+                        Message = "Invalid media type",
+                        ErrorType = ErrorType.Validation,
+                        Errors = new List<string> { "A valid media type must be specified when including media" }
+                    };
+                }
+
+                // 3. Get and validate comment
                 var comment = await _commentRepository.GetByIdAsync(dto.CommentId);
                 if (comment == null)
                 {
@@ -235,16 +263,125 @@ namespace Service.Implementations.CommentServices
                     };
                 }
 
+                // 4. Update content
                 comment.Content = dto.Content;
                 comment.IsEdited = true;
 
-                if (dto.Media != null)
+                // 5. Handle media logic
+                if (dto.HasMedia)
                 {
-                    //comment.MediaUrl = Url returns from media service
+                    try
+                    {
+                        if (dto.Media != null)
+                        {
+                            // Add or replace media
+                            var mediaRequest = new MediaUploadRequestDto
+                            {
+                                File = dto.Media,
+                                usageCategory = Service.Enums.UsageCategory.Comment,
+                                MediaType = dto.MediaType
+                            };
+
+                            if (!string.IsNullOrEmpty(comment.MediaUrl))
+                            {
+                                // Update existing media
+                                var mediaResponse = await _mediaServiceClient.EditMediaAsync(mediaRequest, new List<string> { comment.MediaUrl });
+                                if (mediaResponse?.Success != true || mediaResponse.Urls == null || !mediaResponse.Urls.Any())
+                                {
+                                    return new ResponseWrapper<CommentResponse>
+                                    {
+                                        Message = "Failed to update media",
+                                        ErrorType = ErrorType.InternalServerError,
+                                        Errors = new List<string> { "Failed to update media file" }
+                                    };
+                                }
+                                comment.MediaUrl = mediaResponse.Urls.First();
+                            }
+                            else
+                            {
+                                // Upload new media
+                                var mediaResponse = await _mediaServiceClient.UploadMediaAsync(mediaRequest);
+                                if (mediaResponse?.Success != true || mediaResponse.Urls == null || !mediaResponse.Urls.Any())
+                                {
+                                    return new ResponseWrapper<CommentResponse>
+                                    {
+                                        Message = "Failed to upload media",
+                                        ErrorType = ErrorType.InternalServerError,
+                                        Errors = new List<string> { "Failed to upload media file" }
+                                    };
+                                }
+                                comment.MediaUrl = mediaResponse.Urls.First();
+                            }
+                        }
+                        else if (!string.IsNullOrEmpty(dto.MediaUrl) && dto.MediaUrl == comment.MediaUrl)
+                        {
+                            // No change to media
+                        }
+                        else if (string.IsNullOrEmpty(dto.MediaUrl))
+                        {
+                            return new ResponseWrapper<CommentResponse>
+                            {
+                                Message = "Media URL is required when HasMedia is true",
+                                ErrorType = ErrorType.Validation,
+                                Errors = new List<string> { "Media URL must be provided when HasMedia is true" }
+                            };
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        return new ResponseWrapper<CommentResponse>
+                        {
+                            Message = "Failed to process media",
+                            ErrorType = ErrorType.InternalServerError,
+                            Errors = new List<string> { $"An error occurred while processing media: {ex.Message}" }
+                        };
+                    }
+                }
+                else // HasMedia == false
+                {
+                    if (string.IsNullOrEmpty(dto.MediaUrl))
+                    {
+                        // Remove existing media
+                        if (!string.IsNullOrEmpty(comment.MediaUrl))
+                        {
+                            try
+                            {
+                                var deleted = await _mediaServiceClient.DeleteMediaAsync(new List<string> { comment.MediaUrl });
+                                if (!deleted)
+                                {
+                                    Console.WriteLine($"Warning: Failed to delete media for comment {comment.Id}");
+                                }
+                                comment.MediaUrl = string.Empty;
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Error deleting media for comment {comment.Id}: {ex.Message}");
+                                comment.MediaUrl = string.Empty;
+                            }
+                        }
+                    }
+                    else if (dto.MediaUrl == comment.MediaUrl)
+                    {
+                        // Media URL matches existing — retain it
+                        // No action needed
+                    }
+                    else
+                    {
+                        // Invalid state: HasMedia is false but media URL differs
+                        return new ResponseWrapper<CommentResponse>
+                        {
+                            Message = "Invalid media state",
+                            ErrorType = ErrorType.Validation,
+                            Errors = new List<string> { "HasMedia is false, but a different MediaUrl was provided" }
+                        };
+                    }
                 }
 
+                // 6. Save changes
                 await _commentRepository.UpdateAsync(comment);
-                
+
+                // 7. Publish update event
+                var post = await _postRepository.GetPostByIdAsync(comment.PostId);
                 await _commentPublisher.PublishAsync(new CommentEvent
                 {
                     EventType = CommentEventType.Updated,
@@ -256,11 +393,12 @@ namespace Service.Implementations.CommentServices
                         Content = comment.Content,
                         MediaUrl = comment.MediaUrl,
                         CreatedAt = comment.CreatedAt,
-                        PostAuthorId = (await _postRepository.GetPostByIdAsync(comment.PostId))?.AuthorId ?? string.Empty,
+                        PostAuthorId = post?.AuthorId ?? string.Empty,
                         IsEdited = true
                     }
                 });
 
+                // 8. Return success response
                 return new ResponseWrapper<CommentResponse>
                 {
                     Data = ToDto(comment),
