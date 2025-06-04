@@ -1,4 +1,5 @@
 ﻿using Application.DTO;
+using Application.Hubs;
 using Application.Interfaces;
 using Application.Interfaces.Services;
 using Domain.CacheEntities;
@@ -6,12 +7,15 @@ using Domain.CacheEntities.Reactions;
 using Domain.CoreEntities;
 using Domain.Enums;
 using Domain.Events;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Application.Services
 {
-    public class ReactionNotificationService(IUnitOfWork unitOfWork1) : IReactionNotificationService
+    public class ReactionNotificationService(IUnitOfWork unitOfWork1, IHubContext<ReactionNotificationHub> hubContext)
+     : IReactionNotificationService
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork1;
+        private readonly IHubContext<ReactionNotificationHub> _hubContext = hubContext;
         public async Task UpdateReactionsListNotification(ReactionEvent ReactionEventDTO)
         {
 
@@ -105,6 +109,24 @@ namespace Application.Services
 
                 });
             }
+            await _hubContext.Clients.User(ReactionEventDTO.AuthorEntityId)
+                .SendAsync("ReceiveReactionNotification", new
+                {
+                    ReactionId = ReactionEventDTO.Id,
+                    ReactedOn = ReactionEventDTO.ReactedOn.ToString(),
+                    Content = ReactionEventDTO.Content,
+                    EntityId = ReactionEventDTO.ReactionEntityId,
+                    User = new
+                    {
+                        ReactionEventDTO.User.Id,
+                        ReactionEventDTO.User.UserId,
+                        ReactionEventDTO.User.UserNames,
+                        ReactionEventDTO.User.ProfileImageUrls,
+                        ReactionEventDTO.User.CreatedAt
+                    }
+                });
+
+
         }
         public Task RemovReactionsFromNotificationList(ReactionEvent ReactionEventDTO)
         {

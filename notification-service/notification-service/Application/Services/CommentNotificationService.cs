@@ -1,15 +1,21 @@
-﻿using Application.Interfaces;
+﻿using Application.Hubs;
+using Application.Interfaces;
 using Application.Interfaces.Services;
 using Domain.CacheEntities;
 using Domain.CacheEntities.Comments;
 using Domain.CoreEntities;
 using Domain.Events;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Application.Services
 {
-    public class CommentNotificationService(IUnitOfWork unitOfWork) : ICommentNotificationService
+    
+    public class CommentNotificationService(IUnitOfWork unitOfWork, IHubContext<CommentNotificationHub> hubContext)
+        : ICommentNotificationService
     {
         private readonly IUnitOfWork unitOfWork = unitOfWork;
+        private readonly IHubContext<CommentNotificationHub> _hubContext = hubContext;
+
 
         public async Task UpdatCommentListNotification(CommentEvent commentEvent)
         {
@@ -62,6 +68,14 @@ namespace Application.Services
             await unitOfWork.SaveChangesAsync();
 
             // TODO: Send SignalR notifications here if needed
+            await _hubContext.Clients.User(commentEvent.PostAuthorId.ToString())
+                .SendAsync("ReceiveCommentNotification", new
+                {
+                    CommentId = commentEvent.Id,
+                    commentEvent.PostId,
+                    commentEvent.CommentorId
+                });
+
         }
 
         public async Task RemoveCommentListNotification(CommentEvent commentEvent)
@@ -103,6 +117,15 @@ namespace Application.Services
                 .UpdateAsync(authorNotification);
 
             await unitOfWork.SaveChangesAsync();
+
+            await _hubContext.Clients.User(commentEvent.PostAuthorId.ToString())
+            .SendAsync("RemoveCommentNotification", new
+            {
+                CommentId = commentEvent.Id,
+                commentEvent.PostId,
+                commentEvent.CommentorId
+            });
+
         }
 
     }
