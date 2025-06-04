@@ -5,32 +5,34 @@ using Application.Interfaces;
 using Domain.CoreEntities;
 using Domain.Events;
 
-public class MessageNotificationService(IUnitOfWork unitOfWork, IHubContext<MessageNotificationHub> hubContext)
-    : IMessageNotificationService
+namespace Application.Services
 {
-    private readonly IUnitOfWork _unitOfWork = unitOfWork;
-    private readonly IHubContext<MessageNotificationHub> _hubContext = hubContext;
-
-    public async Task UpdatMessageListNotification(MessageEvent messageEvent)
+    public class MessageNotificationService(IUnitOfWork unitOfWork, IHubContext<MessageNotificationHub> hubContext)
+        : IMessageNotificationService
     {
-        Messages newMessage = new()
-        {
-            Id = messageEvent.MessageId ?? Guid.NewGuid().ToString(),
-            SourceUserId = messageEvent.SenderId ?? "",
-            DestinationUserId = messageEvent.ReceiverId ?? "",
-            IsRead = false,
-            SentAt = messageEvent.Timestamp
-        };
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly IHubContext<MessageNotificationHub> _hubContext = hubContext;
 
-        await _unitOfWork.CoreRepository<Messages>().AddAsync(newMessage);
-        await _unitOfWork.SaveChangesAsync();
-
-        // Notify the receiver in real-time
-        await _hubContext.Clients.User(messageEvent.ReceiverId).SendAsync("ReceiveMessageNotification", new
+        public async Task UpdatMessageListNotification(MessageEvent messageEvent)
         {
-            MessageId = newMessage.Id,
-            SenderId = newMessage.SourceUserId,
-            Timestamp = newMessage.SentAt
-        });
+            var msg = _unitOfWork.CoreRepository<Messages>().GetSingleAsync(x => x.RevieverId == messageEvent.ReceiverId).Result
+                                                                            ?? throw new Exception("Error updating message");
+
+            var messages = msg.MessageList.Where(x => x.Key == messageEvent.SenderId).FirstOrDefault();
+
+            var message = messages.Value.Where(x => x.Id == messageEvent.MessageId).FirstOrDefault();
+            message.IsRead = true;
+
+            await _unitOfWork.CoreRepository<Messages>().AddAsync(msg);
+            await _unitOfWork.SaveChangesAsync();
+
+            // Notify the receiver in real-time
+            await _hubContext.Clients.User(messageEvent.ReceiverId).SendAsync("ReceiveMessageNotification", new
+            {
+                MessageId = message.Id,
+                SenderId = messages.Key,
+                Timestamp = message.SentAt
+            });
+        }
     }
 }

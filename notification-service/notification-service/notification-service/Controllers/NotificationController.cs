@@ -1,5 +1,6 @@
 ﻿using Application.Interfaces;
 using Application.Interfaces.Services;
+using Domain.CoreEntities;
 using Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
 using StackExchange.Redis;
@@ -11,7 +12,7 @@ namespace notification_service.Controllers
     [Route("api/internal/[controller]")]
     [ApiController]
 
-        
+
 
     public class NotificationController(INotificationService notificationService, IConnectionMultiplexer connectionMultiplexer) : ControllerBase
     {
@@ -78,7 +79,13 @@ namespace notification_service.Controllers
             return Ok(likeNotifications);
         }
 
+        [HttpGet("MessageNotification")]
+        public IActionResult GetMessagesNotification([FromHeader(Name = "userId")] string userId)
+        {
+            var MessageNotifications = _notificationService.GetMessageNotifications(userId);
+            return Ok(MessageNotifications);
 
+        }
         #endregion
 
 
@@ -121,6 +128,15 @@ namespace notification_service.Controllers
             return Ok(unreadFollowedNotifications);
         }
 
+        [HttpGet("UnreadMessageNotifications")]
+        public IActionResult GetUnreadMessageNotifications([FromHeader(Name = "userId")] string userId)
+        {
+            var unreadMessageNotifications = _notificationService.GetUnreadMessageNotifications(userId).Result; // Example usage of the service
+            return Ok(unreadMessageNotifications);
+        }
+
+
+
         #endregion
 
 
@@ -130,14 +146,11 @@ namespace notification_service.Controllers
         {
             try
             {
-               await  _notificationService.MarkNotificationsFollowAsRead(userId, followerId);
-
-
+                await _notificationService.MarkNotificationsFollowAsRead(userId, followerId);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw ex;
-
             }
             return Ok();
         }
@@ -159,7 +172,14 @@ namespace notification_service.Controllers
         [HttpPost("mark-notifications-reaction-post-as-read")]
         public async Task<IActionResult> MarkNotificationsReactionPostAsRead([FromHeader(Name = "userId")] string userId, [FromQuery] string reactionId)
         {
-           await  _notificationService.MarkNotificationsReactionPostAsRead(userId, reactionId);
+            await _notificationService.MarkNotificationsReactionPostAsRead(userId, reactionId);
+            return Ok();
+        }
+
+        [HttpPost("mark-notifications-message-as-read")]
+        public async Task<IActionResult> MarkNotificationsMessageAsRead([FromHeader(Name = "userId")] string userId, [FromQuery] string messageId)
+        {
+            await _notificationService.MarkNotificationsMessagesAsRead(userId, messageId);
             return Ok();
         }
 
