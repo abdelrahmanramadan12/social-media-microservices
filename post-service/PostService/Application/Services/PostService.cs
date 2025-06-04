@@ -149,7 +149,7 @@ namespace Application.Services
             }
 
             // Filter out OnlyMe posts where user is not the author
-            profilePosts = profilePosts.Where(post => 
+            profilePosts = profilePosts.Where(post =>
                 post.Privacy != Privacy.OnlyMe || post.AuthorId == userId
             ).ToList();
 

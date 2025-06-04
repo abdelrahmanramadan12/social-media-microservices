@@ -1,6 +1,5 @@
 using Application.DTOs;
 using Application.IServices;
-using Microsoft.AspNetCore.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
@@ -34,8 +33,8 @@ public class MediaServiceClient : IMediaServiceClient
 
         var response = await _http.PostAsync(BASE_ROUTE, form, ct);
         response.EnsureSuccessStatusCode();
-        
-        return await response.Content.ReadFromJsonAsync<MediaUploadResponse>(cancellationToken: ct) 
+
+        return await response.Content.ReadFromJsonAsync<MediaUploadResponse>(cancellationToken: ct)
             ?? throw new InvalidOperationException("Failed to deserialize media upload response");
     }
 
@@ -63,7 +62,7 @@ public class MediaServiceClient : IMediaServiceClient
 
         var response = await _http.PutAsync(BASE_ROUTE, form, ct);
         response.EnsureSuccessStatusCode();
-        
+
         return await response.Content.ReadFromJsonAsync<MediaUploadResponse>(cancellationToken: ct)
             ?? throw new InvalidOperationException("Failed to deserialize media edit response");
     }
@@ -73,7 +72,7 @@ public class MediaServiceClient : IMediaServiceClient
         var request = new DeleteMediaRequest { Urls = urls.ToList() };
         var response = await _http.DeleteAsync($"{BASE_ROUTE}?urls={string.Join(",", urls)}", ct);
         response.EnsureSuccessStatusCode();
-        
+
         return await response.Content.ReadFromJsonAsync<bool>(cancellationToken: ct);
     }
 }

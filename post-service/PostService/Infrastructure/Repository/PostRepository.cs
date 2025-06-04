@@ -1,13 +1,7 @@
 using Domain.Entities;
 using Domain.Enums;
 using Domain.IRepository;
-using Domain.ValueObjects;
 using MongoDB.Driver;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Repository
 {
@@ -68,7 +62,7 @@ namespace Infrastructure.Repository
         {
             // Create filter for the post IDs
             var postIdsFilter = Builders<Post>.Filter.In(p => p.Id, postIds);
-            
+
             // Combine with not deleted filter
             var filter = postIdsFilter & NotDeletedFilter;
 
@@ -76,7 +70,7 @@ namespace Infrastructure.Repository
             var posts = await _posts.Find(filter).ToListAsync();
 
             // Filter out OnlyMe posts where user is not the author
-            return posts.Where(post => 
+            return posts.Where(post =>
                 post.Privacy != Privacy.OnlyMe || post.AuthorId == userId
             ).ToList();
         }

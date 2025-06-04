@@ -1,12 +1,7 @@
 using Domain.Enums;
 using Domain.ValueObjects;
-using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace Domain.Entities
 {
@@ -22,9 +17,9 @@ namespace Domain.Entities
         public DateTime? UpdatedAt { get; set; }
         public DateTime? DeletedAt { get; set; }
         public bool IsDeleted { get; set; }
-        public int NumberOfLikes { get; set; }  
+        public int NumberOfLikes { get; set; }
         public int NumberOfComments { get; set; }
-        public List<Media> MediaList { get; set; } 
+        public List<Media> MediaList { get; set; }
 
         // Media Property
 

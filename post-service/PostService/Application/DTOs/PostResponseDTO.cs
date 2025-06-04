@@ -1,15 +1,10 @@
 using Domain.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.DTOs
 {
     public class PostResponseDTO
     {
-        public string AuthorId {  get; set; }
+        public string AuthorId { get; set; }
         public string PostId { get; set; }
         public string PostContent { get; set; }
         public Privacy Privacy { get; set; }

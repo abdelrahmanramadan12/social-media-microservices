@@ -1,6 +1,5 @@
 using Application.DTOs;
 using Application.IServices;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Presentation.Controllers.Internal
