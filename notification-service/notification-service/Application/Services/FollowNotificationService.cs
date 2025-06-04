@@ -74,12 +74,6 @@ namespace Application.Services
             await _unitOfWork.CoreRepository<Follows>().UpdateAsync(coreUserFollower);
             await _unitOfWork.SaveChangesAsync();
 
-            // SignalR push (optional)
-            await _hubContext.Clients.User(followedDTO.UserId.ToString())
-                .SendAsync("FollowerRemoved", new
-                {
-                    FollowerId = followedDTO.FollowerId
-                });
         }
     }
 }

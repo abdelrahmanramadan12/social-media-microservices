@@ -19,14 +19,13 @@ namespace Application.Services
 
         public async Task UpdatCommentListNotification(CommentEvent commentEvent)
         {
-            // Get the core notification for the post author
             var authorNotification = await unitOfWork.CoreRepository<CommentNotification>()
                 .GetSingleIncludingAsync(n => n.PostAuthorId == commentEvent.PostAuthorId);
 
             if (authorNotification == null)
                 return;
 
-            // Safely add the comment ID to the dictionary
+            // Add the comment ID
             if (!authorNotification.UserID_CommentIds.TryGetValue(commentEvent.CommentorId, out var commentList))
             {
                 commentList = [];
@@ -34,7 +33,7 @@ namespace Application.Services
             }
             commentList.Add(commentEvent.Id);
 
-            // Update each user's cached comment notification
+            // Broadcast to all users in the comment notification map
             foreach (var kvp in authorNotification.UserID_CommentIds)
             {
                 var userId = kvp.Key;
@@ -59,24 +58,22 @@ namespace Application.Services
 
                 await unitOfWork.CacheRepository<CachedCommentsNotification>()
                     .UpdateAsync(cacheUser);
-            }
 
-            // Update core data after processing all cache records
-            await unitOfWork.CoreRepository<CommentNotification>()
-                .UpdateAsync(authorNotification);
-
-            await unitOfWork.SaveChangesAsync();
-
-            // TODO: Send SignalR notifications here if needed
-            await _hubContext.Clients.User(commentEvent.PostAuthorId.ToString())
-                .SendAsync("ReceiveCommentNotification", new
+                // SignalR send to each user
+                await _hubContext.Clients.User(userId.ToString()).SendAsync("ReceiveCommentNotification", new
                 {
                     CommentId = commentEvent.Id,
                     commentEvent.PostId,
                     commentEvent.CommentorId
                 });
+            }
 
+            await unitOfWork.CoreRepository<CommentNotification>()
+                .UpdateAsync(authorNotification);
+
+            await unitOfWork.SaveChangesAsync();
         }
+
 
         public async Task RemoveCommentListNotification(CommentEvent commentEvent)
         {
@@ -118,13 +115,7 @@ namespace Application.Services
 
             await unitOfWork.SaveChangesAsync();
 
-            await _hubContext.Clients.User(commentEvent.PostAuthorId.ToString())
-            .SendAsync("RemoveCommentNotification", new
-            {
-                CommentId = commentEvent.Id,
-                commentEvent.PostId,
-                commentEvent.CommentorId
-            });
+        
 
         }
 
