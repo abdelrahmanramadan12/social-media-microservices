@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Domain.DTOs
 {
-    public class EditCommentRequestDto
+    public class EditCommentRequest
     {
         public string CommentId { get; set; } = default!;
         public string Content { get; set; } = default!;

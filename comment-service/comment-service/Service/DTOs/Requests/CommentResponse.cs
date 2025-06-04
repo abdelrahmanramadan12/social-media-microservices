@@ -1,6 +1,6 @@
-﻿namespace Domain.DTOs
+namespace Service.DTOs.Requests
 {
-    public class CommentResponseDto
+    public class CommentResponse
     {
         public string CommentId { get; set; } = default!;
         public string PostId { get; set; } = default!;

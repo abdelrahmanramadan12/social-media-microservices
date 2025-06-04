@@ -1,15 +1,17 @@
-﻿using Domain.DTOs;
+using Domain.DTOs;
+using Service.DTOs.Requests;
+using Service.DTOs.Responses;
 
 namespace Service.Interfaces.CommentServices
 {
     public interface ICommentService
     {
-        Task<CommentResponseDto> CreateCommentAsync(CreateCommentRequestDto dto);
+        Task<ResponseWrapper<CommentResponse>> CreateCommentAsync(CreateCommentRequest dto);
 
-        Task<PagedCommentsDto> ListCommentsAsync(string postId, string? nextCommentIdHash = null);
+        Task<ResponseWrapper<PagedCommentsResponse>> ListCommentsAsync(string postId, string? nextCommentIdHash = null);
 
-        Task<CommentResponseDto?> UpdateCommentAsync(EditCommentRequestDto dto);
+        Task<ResponseWrapper<CommentResponse>> UpdateCommentAsync(EditCommentRequest dto);
 
-        Task<bool> DeleteCommentAsync(string CommentId, string userId);
+        Task<ResponseWrapper<bool>> DeleteCommentAsync(string CommentId, string userId);
     }
 }

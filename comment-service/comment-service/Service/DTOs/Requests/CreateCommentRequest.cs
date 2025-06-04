@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 
-namespace Domain.DTOs
+namespace Service.DTOs.Requests
 {
-    public class CreateCommentRequestDto
+    public class CreateCommentRequest
     {
         public string PostId { get; set; } = default!;
         public string Content { get; set; } = default!;

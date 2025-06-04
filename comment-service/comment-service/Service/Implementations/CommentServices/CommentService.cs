@@ -1,8 +1,10 @@
-﻿using Domain.DTOs;
+using Domain.DTOs;
 using Domain.Entities;
 using Domain.Events;
 using Domain.IRepository;
 using MongoDB.Bson;
+using Service.DTOs.Requests;
+using Service.DTOs.Responses;
 using Service.Interfaces.CommentServices;
 using Service.Interfaces.RabbitMQServices;
 
@@ -22,125 +24,219 @@ namespace Service.Implementations.CommentServices
             _commentCreatedPublisher = commentCreatedPublisher;
         }
 
-        public async Task<PagedCommentsDto> ListCommentsAsync(string postId, string? nextCommentId = null)
+        public async Task<ResponseWrapper<PagedCommentsResponse>> ListCommentsAsync(string postId, string? nextCommentId = null)
         {
-            var PageSize = 10;
-            string? decryptedCursor = null;
-            if (!string.IsNullOrWhiteSpace(nextCommentId))
+            try
             {
-                try
+                var PageSize = 10;
+                string? decryptedCursor = null;
+                if (!string.IsNullOrWhiteSpace(nextCommentId))
                 {
-                    decryptedCursor = nextCommentId;
+                    try
+                    {
+                        decryptedCursor = nextCommentId;
+                    }
+                    catch
+                    {
+                        decryptedCursor = null;
+                    }
                 }
-                catch
+
+                var comments = (await _commentRepository
+                                    .GetByPostIdCursorAsync(postId, decryptedCursor, PageSize))
+                                    .ToList();
+
+                string? nextCursor =
+                    comments.Count < PageSize
+                        ? null
+                        : comments.Last().Id.ToString();
+
+                var dto = new PagedCommentsResponse();
+                dto.AddRange(comments.Select(ToDto));
+
+                return new ResponseWrapper<PagedCommentsResponse>
                 {
-                    decryptedCursor = null;
+                    Data = dto,
+                    Message = "Comments retrieved successfully",
+                    Pagination = new PaginationMetadata
+                    {
+                        Next = nextCursor
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseWrapper<PagedCommentsResponse>
+                {
+                    Message = "Failed to retrieve comments",
+                    Errors = new List<string> { ex.Message },
+                    ErrorType = ErrorType.InternalServerError
+                };
+            }
+        }
+
+        public async Task<ResponseWrapper<CommentResponse>> CreateCommentAsync(CreateCommentRequest dto)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(dto.PostId))
+                {
+                    return new ResponseWrapper<CommentResponse>
+                    {
+                        Message = "PostId is required",
+                        ErrorType = ErrorType.Validation,
+                        Errors = new List<string> { "PostId is required" }
+                    };
                 }
+
+                var comment = new Comment
+                {
+                    Id = ObjectId.GenerateNewId(),
+                    PostId = dto.PostId,
+                    AuthorId = dto.UserId,
+                    Content = dto.Content,
+                    CreatedAt = DateTime.Now,
+                    IsEdited = false,
+                    ReactCount = 0
+                };
+
+                await _commentRepository.CreateAsync(comment);
+
+                var post = await _postRepository.GetPostByIdAsync(comment.PostId);
+
+                await _commentCreatedPublisher.PublishAsync(new CommentCreatedEvent
+                {
+                    PostId = comment.PostId,
+                    Content = comment.Content,
+                    MediaURL = comment?.MediaUrl,
+                    CommentAuthorId = comment.AuthorId,
+                    CreatedAt = comment.CreatedAt,
+                    PostAuthorId = post.AuthorId,
+                    IsEdited = false
+                });
+
+                return new ResponseWrapper<CommentResponse>
+                {
+                    Data = ToDto(comment),
+                    Message = "Comment created successfully",
+                };
             }
-
-            var comments = (await _commentRepository
-                                .GetByPostIdCursorAsync(postId, decryptedCursor, PageSize))
-                                .ToList();
-
-            string? nextCursor =
-                comments.Count < PageSize
-                    ? null
-                    : comments.Last().Id.ToString();
-
-
-            var dto = new PagedCommentsDto
+            catch (Exception ex)
             {
-                Comments = comments.Select(ToDto),
-                NextCommentIdHash = nextCursor
-            };
-
-            return dto;
-
-        }
-
-
-        public async Task<CommentResponseDto> CreateCommentAsync(CreateCommentRequestDto dto)
-        {
-            ///====> call post/follow service to check the ability to add comment in this post  --> based on privacy
-            /// if allowed
-
-            if (string.IsNullOrWhiteSpace(dto.PostId))
-                throw new NullReferenceException("PostId is required.");
-
-            var comment = new Comment
-            {
-                Id = ObjectId.GenerateNewId(),
-                PostId = dto.PostId,
-                AuthorId = dto.UserId,
-                Content = dto.Content,
-                CreatedAt = DateTime.Now,
-                // MediaUrl = await ---> call media service via gateway 
-                IsEdited = false,
-                ReactCount = 0
-            };
-
-            await _commentRepository.CreateAsync(comment);
-
-            var post = await _postRepository.GetPostByIdAsync(comment.PostId);
-
-            // Notify the post service about the new comment
-            await _commentCreatedPublisher.PublishAsync(new CommentCreatedEvent
-            {
-                PostId = comment.PostId,
-                Content = comment.Content,
-                MediaURL = comment?.MediaUrl,
-                CommentAuthorId = comment.AuthorId,
-                CreatedAt = comment.CreatedAt,
-                PostAuthorId = post.AuthorId,
-                IsEdited = false
-            });
-
-            return ToDto(comment);
-        }
-
-        public async Task<CommentResponseDto?> UpdateCommentAsync(EditCommentRequestDto dto)
-        {
-            var comment = await _commentRepository.GetByIdAsync(dto.CommentId);
-            if (comment == null)
-                return null;
-
-            if (comment.AuthorId != dto.UserId)
-                throw new UnauthorizedAccessException("You can only edit your own comments.");
-
-            comment.Content = dto.Content;
-            comment.IsEdited = true;
-
-            if (dto.Media != null)
-            {
-                //comment.MediaUrl = Url returns from media service
+                return new ResponseWrapper<CommentResponse>
+                {
+                    Message = "Failed to create comment",
+                    Errors = new List<string> { ex.Message },
+                    ErrorType = ErrorType.InternalServerError
+                };
             }
-
-            await _commentRepository.UpdateAsync(comment);
-            return ToDto(comment);
         }
-        public async Task<bool> DeleteCommentAsync(string commentId, string userId)
+
+        public async Task<ResponseWrapper<CommentResponse>> UpdateCommentAsync(EditCommentRequest dto)
         {
-            var comment = await _commentRepository.GetByIdAsync(commentId);
-            if (comment is null)
-                return false;
-
-            if (comment.AuthorId != userId)
-                throw new UnauthorizedAccessException("You can only delete your own comments.");
-
-            await _commentRepository.DeleteAsync(commentId);
-
-            // Notify the post service about the deleted comment
-            await _commentDeletedPublisher.PublishAsync(new CommentDeletedEvent
+            try
             {
-                PostId = comment.PostId,
-            });
-            return true;
+                var comment = await _commentRepository.GetByIdAsync(dto.CommentId);
+                if (comment == null)
+                {
+                    return new ResponseWrapper<CommentResponse>
+                    {
+                        Message = "Comment not found",
+                        ErrorType = ErrorType.NotFound,
+                        Errors = new List<string> { "Comment not found" }
+                    };
+                }
+
+                if (comment.AuthorId != dto.UserId)
+                {
+                    return new ResponseWrapper<CommentResponse>
+                    {
+                        Message = "Unauthorized",
+                        ErrorType = ErrorType.UnAuthorized,
+                        Errors = new List<string> { "You can only edit your own comments" }
+                    };
+                }
+
+                comment.Content = dto.Content;
+                comment.IsEdited = true;
+
+                if (dto.Media != null)
+                {
+                    //comment.MediaUrl = Url returns from media service
+                }
+
+                await _commentRepository.UpdateAsync(comment);
+                
+                return new ResponseWrapper<CommentResponse>
+                {
+                    Data = ToDto(comment),
+                    Message = "Comment updated successfully",
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseWrapper<CommentResponse>
+                {
+                    Message = "Failed to update comment",
+                    Errors = new List<string> { ex.Message },
+                    ErrorType = ErrorType.InternalServerError
+                };
+            }
         }
 
+        public async Task<ResponseWrapper<bool>> DeleteCommentAsync(string commentId, string userId)
+        {
+            try
+            {
+                var comment = await _commentRepository.GetByIdAsync(commentId);
+                if (comment is null)
+                {
+                    return new ResponseWrapper<bool>
+                    {
+                        Data = false,
+                        Message = "Comment not found",
+                        ErrorType = ErrorType.NotFound,
+                        Errors = new List<string> { "Comment not found" }
+                    };
+                }
 
-        //-----------------------------------------------------
-        // Helper method to convert Comment to CommentResponseDto
-        private CommentResponseDto ToDto(Comment c) => new()
+                if (comment.AuthorId != userId)
+                {
+                    return new ResponseWrapper<bool>
+                    {
+                        Data = false,
+                        Message = "Unauthorized",
+                        ErrorType = ErrorType.UnAuthorized,
+                        Errors = new List<string> { "You can only delete your own comments" }
+                    };
+                }
+
+                await _commentRepository.DeleteAsync(commentId);
+
+                await _commentDeletedPublisher.PublishAsync(new CommentDeletedEvent
+                {
+                    PostId = comment.PostId,
+                });
+
+                return new ResponseWrapper<bool>
+                {
+                    Data = true,
+                    Message = "Comment deleted successfully",
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseWrapper<bool>
+                {
+                    Data = false,
+                    Message = "Failed to delete comment",
+                    Errors = new List<string> { ex.Message },
+                    ErrorType = ErrorType.InternalServerError
+                };
+            }
+        }
+
+        private CommentResponse ToDto(Comment c) => new()
         {
             CommentId = c.Id.ToString(),
             PostId = c.PostId,
@@ -150,6 +246,5 @@ namespace Service.Implementations.CommentServices
             CreatedAt = c.CreatedAt,
             IsEdited = c.IsEdited
         };
-
     }
 }
