@@ -1,4 +1,3 @@
-using Domain.DTOs;
 using Domain.IRepository;
 using Microsoft.AspNetCore.Mvc;
 using Service.DTOs.Requests;
@@ -23,7 +22,7 @@ namespace Web.Controllers.Public
         {
             createCommentRequestDto.UserId = userId;
             var response = await _commentService.CreateCommentAsync(createCommentRequestDto);
-            return HandleResponse(response);
+            return HandleCreatedResponse(response);
         }
 
         [HttpPut]
@@ -40,7 +39,7 @@ namespace Web.Controllers.Public
         public async Task<IActionResult> Delete(string id, [FromHeader(Name = "userId")] string userId)
         {
             var response = await _commentService.DeleteCommentAsync(id, userId);
-            return HandleResponse(response);
+            return HandleNoContentResponse(response);
         }
     }
 }

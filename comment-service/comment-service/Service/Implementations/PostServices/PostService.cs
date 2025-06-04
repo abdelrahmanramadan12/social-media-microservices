@@ -1,6 +1,5 @@
-﻿using Domain.Enums;
-using Domain.Events;
 using Domain.IRepository;
+using Service.Events;
 using Service.Interfaces.PostServices;
 
 namespace Service.Implementations.PostServices

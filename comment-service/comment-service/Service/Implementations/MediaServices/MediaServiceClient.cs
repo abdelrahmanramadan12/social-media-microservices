@@ -1,8 +1,10 @@
-﻿using System.Net.Http.Headers;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using Domain.DTOs;
 using Domain.Enums;
 using Microsoft.Extensions.Configuration;
+using Service.DTOs.Requests;
+using Service.DTOs.Responses;
+using Service.Enums;
 using Service.Interfaces.MediaServices;
 
 namespace Service.Implementations.MediaServices
@@ -75,7 +77,7 @@ namespace Service.Implementations.MediaServices
             return await response.Content.ReadFromJsonAsync<bool>(cancellationToken: ct);
         }
 
-        public async Task<MediaUploadResponseDto> AssignMediaToPostInput(CreateCommentRequestDto commentInputDTO)
+        public async Task<MediaUploadResponseDto> AssignMediaToPostInput(CreateCommentRequest commentInputDTO)
         {
             var mediaUploadResponse = new MediaUploadResponseDto();
 

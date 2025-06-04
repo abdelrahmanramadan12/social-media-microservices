@@ -49,8 +49,32 @@ namespace Web.Controllers
                 data = response.Data,
                 next = response?.Pagination?.Next,
                 hasMore = response?.Pagination?.HasMore,
-                message = response?.Message
+                message = response.Message
             });
+        }
+
+        protected ActionResult HandleCreatedResponse<T>(ResponseWrapper<T> response)
+        {
+            if (!response.Success)
+            {
+                return HandleErrorResponse(response);
+            }
+
+            return Created(string.Empty, new
+            {
+                data = response.Data,
+                message = response.Message
+            });
+        }
+
+        protected ActionResult HandleNoContentResponse<T>(ResponseWrapper<T> response)
+        {
+            if (!response.Success)
+            {
+                return HandleErrorResponse(response);
+            }
+
+            return NoContent();
         }
     }
 }

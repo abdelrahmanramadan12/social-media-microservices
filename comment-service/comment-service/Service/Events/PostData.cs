@@ -1,6 +1,6 @@
-﻿using Domain.Entities;
+using Domain.Entities;
 
-namespace Domain.Events
+namespace Service.Events
 {
     public class PostData
     {

@@ -1,4 +1,4 @@
-﻿namespace Domain.Enums
+namespace Service.Events
 {
     public enum postEventType
     {

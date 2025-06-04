@@ -1,6 +1,4 @@
-﻿using Domain.Enums;
-
-namespace Domain.Events
+namespace Service.Events
 {
     public class PostEvent
     {

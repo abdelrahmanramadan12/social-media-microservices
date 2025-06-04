@@ -1,16 +1,16 @@
-﻿using System.Text;
-using System.Text.Json;
-using Domain.Events;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using Service.Events;
 using Service.Interfaces.PostServices;
 using Service.Interfaces.RabbitMQServices;
+using System.Text;
+using System.Text.Json;
 
 namespace Service.Implementations.RabbitMQServices
 {
-    public class PostListener:IAsyncDisposable, IPostListener
+    public class PostListener : IAsyncDisposable, IPostListener
     {
         private IConnection? _connection;
         private IChannel? _channel;
@@ -61,14 +61,14 @@ namespace Service.Implementations.RabbitMQServices
                     var message = Encoding.UTF8.GetString(body);
                     // Deserialize the message
                     var postEvent = JsonSerializer.Deserialize<PostEvent>(message);
-                    if (postEvent != null && postEvent.Data!=null &&!string.IsNullOrEmpty(postEvent.Data.PostId))
+                    if (postEvent != null && postEvent.Data != null && !string.IsNullOrEmpty(postEvent.Data.PostId))
                     {
                         using (var scope = _scopeFactory.CreateScope())
                         {
 
                             // Call the service to handle the post deletion ==> delete all comments related to this post
                             var postService = scope.ServiceProvider.GetRequiredService<IPostService>();
-                            await postService.HandlePostEventAsync( postEvent);
+                            await postService.HandlePostEventAsync(postEvent);
                         }
                     }
 

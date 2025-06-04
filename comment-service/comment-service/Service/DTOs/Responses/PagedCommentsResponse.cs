@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using Service.DTOs.Requests;
 
-namespace Service.DTOs.Requests
+namespace Service.DTOs.Responses
 {
     public class PagedCommentsResponse : List<CommentResponse>
     {

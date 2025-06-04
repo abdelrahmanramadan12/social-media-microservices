@@ -1,8 +1,9 @@
-﻿namespace Domain.Enums
+namespace Service.Events
 {
     public enum CommentEventType
     {
         Created,
-        Deleted
+        Deleted,
+        Updated
     }
 }

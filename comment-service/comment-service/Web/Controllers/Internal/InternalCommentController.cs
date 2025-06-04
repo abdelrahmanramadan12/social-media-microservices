@@ -21,5 +21,12 @@ namespace Web.Controllers.Internal
             var response = await _commentService.ListCommentsAsync(request);
             return HandlePaginatedResponse(response);
         }
+
+        [HttpGet("{commentId}")]
+        public async Task<IActionResult> GetComment([FromRoute] string commentId)
+        {
+            var response = await _commentService.GetCommentAsync(commentId);
+            return HandleResponse(response);
+        }
     }
 }

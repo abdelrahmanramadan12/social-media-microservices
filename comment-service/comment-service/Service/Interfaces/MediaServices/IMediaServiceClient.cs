@@ -1,4 +1,5 @@
-﻿using Domain.DTOs;
+using Service.DTOs.Requests;
+using Service.DTOs.Responses;
 
 namespace Service.Interfaces.MediaServices
 {
@@ -29,6 +30,6 @@ namespace Service.Interfaces.MediaServices
         /// <summary>
         /// Assigns media to a post input, typically used when creating a comment with media.
         /// </summary>
-        Task<MediaUploadResponseDto> AssignMediaToPostInput(CreateCommentRequestDto commentInputDTO);
+        Task<MediaUploadResponseDto> AssignMediaToPostInput(CreateCommentRequest commentInputDTO);
     }
 }

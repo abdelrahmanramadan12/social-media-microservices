@@ -1,4 +1,4 @@
-﻿using Domain.Events;
+using Service.Events;
 
 namespace Service.Interfaces.PostServices
 {

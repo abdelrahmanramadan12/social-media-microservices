@@ -1,5 +1,5 @@
-﻿using Domain.Events;
 using Microsoft.Extensions.Configuration;
+using Service.Events;
 using Service.Interfaces.RabbitMQServices;
 
 namespace Service.Implementations.RabbitMQServices

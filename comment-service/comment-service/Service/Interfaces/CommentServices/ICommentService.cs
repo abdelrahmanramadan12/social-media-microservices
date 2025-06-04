@@ -1,4 +1,3 @@
-using Domain.DTOs;
 using Service.DTOs.Requests;
 using Service.DTOs.Responses;
 
@@ -13,5 +12,7 @@ namespace Service.Interfaces.CommentServices
         Task<ResponseWrapper<CommentResponse>> UpdateCommentAsync(EditCommentRequest dto);
 
         Task<ResponseWrapper<bool>> DeleteCommentAsync(string CommentId, string userId);
+
+        Task<ResponseWrapper<CommentResponse>> GetCommentAsync(string commentId);
     }
 }
