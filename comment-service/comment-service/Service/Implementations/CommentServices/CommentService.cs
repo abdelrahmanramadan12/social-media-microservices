@@ -1,10 +1,12 @@
 using Domain.Entities;
+using Domain.Enums;
 using Domain.IRepository;
 using MongoDB.Bson;
 using Service.DTOs.Requests;
 using Service.DTOs.Responses;
 using Service.Events;
 using Service.Interfaces.CommentServices;
+using Service.Interfaces.MediaServices;
 using Service.Interfaces.RabbitMQServices;
 
 namespace Service.Implementations.CommentServices
@@ -14,15 +16,18 @@ namespace Service.Implementations.CommentServices
         private readonly ICommentRepository _commentRepository;
         private readonly IPostRepository _postRepository;
         private readonly ICommentPublisher _commentPublisher;
+        private readonly IMediaServiceClient _mediaServiceClient;
 
         public CommentService(
             ICommentRepository commentRepository,
             IPostRepository postRepository,
-            ICommentPublisher commentPublisher)
+            ICommentPublisher commentPublisher,
+            IMediaServiceClient mediaServiceClient)
         {
             _commentRepository = commentRepository;
             _postRepository = postRepository;
             _commentPublisher = commentPublisher;
+            _mediaServiceClient = mediaServiceClient;
         }
 
         public async Task<ResponseWrapper<PagedCommentsResponse>> ListCommentsAsync(GetPagedCommentRequest request)
@@ -90,6 +95,20 @@ namespace Service.Implementations.CommentServices
                     };
                 }
 
+                // Validate media if present
+                if (dto.HasMedia && dto.Media != null)
+                {
+                    if (dto.MediaType == MediaType.UNKNOWN)
+                    {
+                        return new ResponseWrapper<CommentResponse>
+                        {
+                            Message = "Invalid media type",
+                            ErrorType = ErrorType.Validation,
+                            Errors = new List<string> { "A valid media type must be specified when including media" }
+                        };
+                    }
+                }
+
                 var comment = new Comment
                 {
                     Id = ObjectId.GenerateNewId(),
@@ -98,8 +117,61 @@ namespace Service.Implementations.CommentServices
                     Content = dto?.Content ?? "",
                     CreatedAt = DateTime.Now,
                     IsEdited = false,
-                    ReactCount = 0
+                    ReactCount = 0,
+                    MediaUrl = ""
                 };
+
+                // Handle media upload if present
+                if (dto.HasMedia && dto.Media != null)
+                {
+                    try
+                    {
+                        var mediaResponse = await _mediaServiceClient.AssignMediaToPostInput(dto);
+                        
+                        if (mediaResponse == null)
+                        {
+                            return new ResponseWrapper<CommentResponse>
+                            {
+                                Message = "Failed to upload media",
+                                ErrorType = ErrorType.InternalServerError,
+                                Errors = new List<string> { "Media service did not return a valid response" }
+                            };
+                        }
+                        
+                        if (!mediaResponse.Success)
+                        {
+                            return new ResponseWrapper<CommentResponse>
+                            {
+                                Message = "Failed to upload media",
+                                ErrorType = ErrorType.InternalServerError,
+                                Errors = new List<string> { "Media service returned an error" }
+                            };
+                        }
+                        
+                        var mediaUrl = mediaResponse.Urls?.FirstOrDefault();
+                        if (string.IsNullOrEmpty(mediaUrl))
+                        {
+                            return new ResponseWrapper<CommentResponse>
+                            {
+                                Message = "Failed to upload media",
+                                ErrorType = ErrorType.InternalServerError,
+                                Errors = new List<string> { "No media URL was returned from the media service" }
+                            };
+                        }
+                        
+                        comment.MediaUrl = mediaUrl;
+                        Console.WriteLine(mediaUrl);
+                    }
+                    catch (Exception ex)
+                    {
+                        return new ResponseWrapper<CommentResponse>
+                        {
+                            Message = "Failed to upload media",
+                            ErrorType = ErrorType.InternalServerError,
+                            Errors = new List<string> { $"An error occurred while uploading media: {ex.Message}" }
+                        };
+                    }
+                }
 
                 await _commentRepository.CreateAsync(comment);
 

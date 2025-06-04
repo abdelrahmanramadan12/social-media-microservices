@@ -1,11 +1,15 @@
 using Domain.IRepository;
 using Infrastructure.Repositories;
+using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using Scalar.AspNetCore;
+using Service.Configuration;
 using Service.Implementations.CommentServices;
+using Service.Implementations.MediaServices;
 using Service.Implementations.PostServices;
 using Service.Implementations.RabbitMQServices;
 using Service.Interfaces.CommentServices;
+using Service.Interfaces.MediaServices;
 using Service.Interfaces.PostServices;
 using Service.Interfaces.RabbitMQServices;
 
@@ -42,6 +46,17 @@ namespace Web
             // Register Application Services
             builder.Services.AddScoped<ICommentService, CommentService>();
             builder.Services.AddScoped<IPostService, PostService>();
+            // Configure Media Service Client
+            // Read MediaService:HostUrl from configuration
+            builder.Services.AddHttpClient<IMediaServiceClient, MediaServiceClient>((sp, client) =>
+            {
+                var settings = sp.GetRequiredService<IOptions<MediaServiceSettings>>().Value;
+                // Override BaseAddress with value from configuration if present
+                var config = sp.GetRequiredService<IConfiguration>();
+                var hostUrl = config.GetSection("MediaService:HostUrl").Value;
+                client.BaseAddress = new Uri(!string.IsNullOrEmpty(hostUrl) ? hostUrl : settings.BaseUrl);
+                client.Timeout = TimeSpan.FromSeconds(settings.TimeoutSeconds);
+            });
 
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
