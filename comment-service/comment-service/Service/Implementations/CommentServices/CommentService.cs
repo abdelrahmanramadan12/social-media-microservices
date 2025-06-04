@@ -1,11 +1,13 @@
 using Domain.DTOs;
 using Domain.Entities;
+using Domain.Enums;
 using Domain.Events;
 using Domain.IRepository;
 using MongoDB.Bson;
 using Service.DTOs.Requests;
 using Service.DTOs.Responses;
 using Service.Interfaces.CommentServices;
+using Service.Interfaces.MediaServices;
 using Service.Interfaces.RabbitMQServices;
 
 namespace Service.Implementations.CommentServices
@@ -14,27 +16,28 @@ namespace Service.Implementations.CommentServices
     {
         private readonly ICommentRepository _commentRepository;
         private readonly IPostRepository _postRepository;
-        private readonly ICommentDeletedPublisher _commentDeletedPublisher;
-        private readonly ICommentCreatedPublisher _commentCreatedPublisher;
+        private readonly ICommentPublisher _commentPublisher;
+        private readonly IMediaServiceClient _mediaServiceClient;
 
-        public CommentService(ICommentRepository commentRepository, ICommentDeletedPublisher commentDeletedPublisher, ICommentCreatedPublisher commentCreatedPublisher)
+        public CommentService(ICommentRepository commentRepository, ICommentPublisher commentPublisher ,IPostRepository postRepository,IMediaServiceClient mediaServiceClient)
         {
             _commentRepository = commentRepository;
-            _commentDeletedPublisher = commentDeletedPublisher;
-            _commentCreatedPublisher = commentCreatedPublisher;
+            _postRepository = postRepository;
+            _commentPublisher = commentPublisher;
+            _mediaServiceClient = mediaServiceClient;
         }
 
-        public async Task<ResponseWrapper<PagedCommentsResponse>> ListCommentsAsync(string postId, string? nextCommentId = null)
+        public async Task<ResponseWrapper<PagedCommentsResponse>> ListCommentsAsync(GetPagedCommentRequest request)
         {
             try
             {
                 var PageSize = 10;
                 string? decryptedCursor = null;
-                if (!string.IsNullOrWhiteSpace(nextCommentId))
+                if (!string.IsNullOrWhiteSpace(request.Next))
                 {
                     try
                     {
-                        decryptedCursor = nextCommentId;
+                        decryptedCursor = request.Next;
                     }
                     catch
                     {
@@ -43,7 +46,7 @@ namespace Service.Implementations.CommentServices
                 }
 
                 var comments = (await _commentRepository
-                                    .GetByPostIdCursorAsync(postId, decryptedCursor, PageSize))
+                                    .GetByPostIdCursorAsync(request.PostId, decryptedCursor, PageSize))
                                     .ToList();
 
                 string? nextCursor =
@@ -129,6 +132,89 @@ namespace Service.Implementations.CommentServices
                     Errors = new List<string> { ex.Message },
                     ErrorType = ErrorType.InternalServerError
                 };
+            }
+        }
+
+        public async Task<CommentDto> CreateCommentAsync(CreateCommentRequestDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.PostId))
+                throw new NullReferenceException("PostId is required.");
+
+            var comment = new Comment
+            {
+                Id = ObjectId.GenerateNewId(),
+                PostId = dto.PostId,
+                AuthorId = dto.UserId,
+                Content = dto.Content,
+                CreatedAt = DateTime.Now,
+                IsEdited = false,
+                ReactCount = 0
+            };
+
+            if (dto.Media != null)
+            {
+                var mediaUploadResponse = await _mediaServiceClient.UploadMediaAsync(new MediaUploadRequestDto
+                {
+                    File = dto.Media,
+                    MediaType = MediaType.IMAGE,
+                    usageCategory = UsageCategory.Comment
+                });
+                if (mediaUploadResponse.Success && mediaUploadResponse.Urls[0] != null )
+                {
+                    comment.MediaUrl = mediaUploadResponse.Urls[0];
+                }
+            }
+
+            await _commentRepository.CreateAsync(comment);
+
+            var post = await _postRepository.GetPostByIdAsync(comment.PostId);
+
+            await _commentPublisher.PublishAsync(new CommentEvent
+            {
+                EventType = CommentEventType.Created,
+                Data = new CommentData
+                {
+                    CommentId = comment.Id.ToString(),
+                    PostId = comment.PostId,
+                    CommentAuthorId = comment.AuthorId,
+                    Content = comment.Content ?? "",
+                    CreatedAt = comment.CreatedAt,
+                    PostAuthorId = post?.AuthorId ?? string.Empty
+                }
+            });
+
+            return ToDto(comment);
+        }
+
+        public async Task<CommentDto?> UpdateCommentAsync(EditCommentRequestDto dto)
+        {
+            var comment = await _commentRepository.GetByIdAsync(dto.CommentId);
+            if (comment == null)
+                return null;
+
+            if (comment.AuthorId != dto.UserId)
+                throw new UnauthorizedAccessException("You can only edit your own comments.");
+
+            comment.Content = dto.Content;
+            comment.IsEdited = true;
+
+            if (dto.Media != null)
+            {
+                var mediaUploadResponse = await _mediaServiceClient.UploadMediaAsync(new MediaUploadRequestDto
+                {
+                    File = dto.Media,
+                    MediaType = MediaType.IMAGE,
+                    usageCategory = UsageCategory.Comment
+                });
+
+                if (mediaUploadResponse.Success && mediaUploadResponse.Urls[0] != null)
+                {
+                    if (!string.IsNullOrWhiteSpace(comment.MediaUrl))
+                    {
+                        await _mediaServiceClient.DeleteMediaAsync(new[] { comment.MediaUrl });
+                    }
+                    comment.MediaUrl = mediaUploadResponse.Urls[0];
+                }
             }
         }
 
@@ -234,6 +320,25 @@ namespace Service.Implementations.CommentServices
                     ErrorType = ErrorType.InternalServerError
                 };
             }
+        }
+
+        public async Task<CommentResponseDto?> GetCommentAsync(string commentId)
+        {
+            var comment = await _commentRepository.GetByIdAsync(commentId);
+            if (comment == null)
+                return new CommentResponseDto
+                {
+                    Data = null,
+                    Messages = new List<string> { "Comment not found." },
+                    Success = false
+                };
+
+            var dto = new CommentResponseDto
+            {
+                Success = true,
+                Data = ToDto(comment)
+            };
+            return dto;
         }
 
         private CommentResponse ToDto(Comment c) => new()

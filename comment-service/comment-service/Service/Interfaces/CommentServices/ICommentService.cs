@@ -8,7 +8,7 @@ namespace Service.Interfaces.CommentServices
     {
         Task<ResponseWrapper<CommentResponse>> CreateCommentAsync(CreateCommentRequest dto);
 
-        Task<ResponseWrapper<PagedCommentsResponse>> ListCommentsAsync(string postId, string? nextCommentIdHash = null);
+        Task<ResponseWrapper<PagedCommentsResponse>> ListCommentsAsync(GetPagedCommentRequest request);
 
         Task<ResponseWrapper<CommentResponse>> UpdateCommentAsync(EditCommentRequest dto);
 

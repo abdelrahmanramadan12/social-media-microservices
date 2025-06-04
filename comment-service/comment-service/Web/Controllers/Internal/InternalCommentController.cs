@@ -1,5 +1,6 @@
 using Domain.IRepository;
 using Microsoft.AspNetCore.Mvc;
+using Service.DTOs.Requests;
 using Service.Interfaces.CommentServices;
 
 namespace Web.Controllers.Internal
@@ -14,12 +15,10 @@ namespace Web.Controllers.Internal
             _commentService = commentService;
         }
 
-        [HttpGet("{postId}")]
-        public async Task<IActionResult> Get(
-            [FromRoute] string postId,
-            [FromQuery] string? next = null)
+        [HttpPost("list")]
+        public async Task<IActionResult> Get([FromBody] GetPagedCommentRequest request)
         {
-            var response = await _commentService.ListCommentsAsync(postId, next);
+            var response = await _commentService.ListCommentsAsync(request);
             return HandlePaginatedResponse(response);
         }
     }
