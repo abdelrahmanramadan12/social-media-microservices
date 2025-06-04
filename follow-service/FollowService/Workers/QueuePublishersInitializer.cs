@@ -1,6 +1,5 @@
 ﻿using Application.Abstractions;
 using Application.Events;
-using Application.Implementations;
 using Microsoft.Extensions.Hosting;
 
 namespace Workers

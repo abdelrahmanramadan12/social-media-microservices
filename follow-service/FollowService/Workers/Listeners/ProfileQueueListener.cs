@@ -33,10 +33,10 @@ namespace Workers.Listeners
         {
             var factory = new ConnectionFactory
             {
-                UserName = _userName,
-                Password = _password,
+                //UserName = _userName,
+                //Password = _password,
                 HostName = _hostName,
-                Port = _port
+                //Port = _port
             };
 
             _connection = await factory.CreateConnectionAsync();

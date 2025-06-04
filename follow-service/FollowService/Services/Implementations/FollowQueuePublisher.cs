@@ -30,10 +30,10 @@ namespace Application.Implementations
         {
             var factory = new ConnectionFactory
             {
-                UserName = _userName,
-                Password = _password,
+                //UserName = _userName,
+                //Password = _password,
                 HostName = _hostName,
-                Port = _port
+                //Port = _port
             };
 
             _connection = await factory.CreateConnectionAsync();
@@ -59,7 +59,7 @@ namespace Application.Implementations
 
             await _channel.BasicPublishAsync(
                 exchange: string.Empty,
-                routingKey: "ProfileQueue",
+                routingKey: _queueName,
                 mandatory: true,
                 basicProperties: new BasicProperties
                 {

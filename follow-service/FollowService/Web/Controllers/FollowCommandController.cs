@@ -31,9 +31,9 @@ namespace Web.Controllers
             {
                 response.ErrorType = ErrorType.BadRequest;
                 response.Errors = new List<string> { "Unable to follow user" };
+                return HandleError(response);
             }
-            
-            return HandleError(response);
+            return Ok(response);
         }
 
         [HttpDelete("unfollow")]
@@ -48,7 +48,7 @@ namespace Web.Controllers
                     Data = true,
                     Message = "Successfully unfollowed user"
                 };
-                return HandleError(response);
+                return Ok(response);
             }
             catch (Exception ex)
             {

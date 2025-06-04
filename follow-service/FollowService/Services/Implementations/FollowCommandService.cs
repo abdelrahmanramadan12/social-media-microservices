@@ -51,7 +51,7 @@ namespace Application.Implementations
                     Timestamp = follow.FollowedAt
                 };
 
-                await _followPublisher.PublishAsync(args);
+                //await _followPublisher.PublishAsync(args);
             }
 
             return true;
@@ -73,7 +73,7 @@ namespace Application.Implementations
                     Timestamp = DateTime.UtcNow
                 };
 
-                await _followPublisher.PublishAsync(args);
+                //await _followPublisher.PublishAsync(args);
             }
         }
     }
