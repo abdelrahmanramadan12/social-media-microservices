@@ -2,7 +2,7 @@
 
 namespace Domain.Events
 {
-    public class PostAddedEvent
+    public class PostData
     {
         public string PostId { get; set; }
         public string PostAuthorId { get; set; }

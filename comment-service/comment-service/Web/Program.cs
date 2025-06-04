@@ -3,9 +3,11 @@ using Infrastructure.Repositories;
 using MongoDB.Driver;
 using Scalar.AspNetCore;
 using Service.Implementations.CommentServices;
+using Service.Implementations.MediaServices;
 using Service.Implementations.PostServices;
 using Service.Implementations.RabbitMQServices;
 using Service.Interfaces.CommentServices;
+using Service.Interfaces.MediaServices;
 using Service.Interfaces.PostServices;
 using Service.Interfaces.RabbitMQServices;
 
@@ -16,6 +18,8 @@ namespace Web
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            var configuration = builder.Configuration;
 
             // Add services to the container.
             // Configure MongoDB connection
@@ -36,16 +40,19 @@ namespace Web
 
             // Register services
             builder.Services.AddScoped<ICommentService, CommentService>();
-            builder.Services.AddScoped<IPostDeletedService, PostDeletedService>();
-            builder.Services.AddScoped<IPostAddedService, PostAddedService>();
+            builder.Services.AddScoped<IPostService, PostService>();
+
+            // Register MediaServiceClient with HttpClient
+            builder.Services.AddHttpClient<IMediaServiceClient, MediaServiceClient>(client =>
+            {
+                client.BaseAddress = new Uri(configuration["MediaService:HostUrl"]);
+            });
 
             // Register RabbitMQ services
             builder.Services.AddSingleton<IRabbitMqPublisher, RabbitMqPublisher>();
-            builder.Services.AddSingleton<ICommentCreatedPublisher, CommentCreatedPublisher>();
-            builder.Services.AddSingleton<ICommentDeletedPublisher, CommentDeletedPublisher>();
+            builder.Services.AddSingleton<ICommentPublisher, CommentPublisher>();
 
-            builder.Services.AddSingleton<IPostDeletedListener, PostDeletedListener>();
-            builder.Services.AddSingleton<IPostAddedListener, PostAddedListener>();
+            builder.Services.AddSingleton<IPostListener, PostListener>();
 
             //builder.Services.AddHostedService<RabbitMqWorker>();
 

@@ -5,26 +5,26 @@ namespace Worker
 {
     public class RabbitMqWorker: BackgroundService
     {
-        private readonly IPostDeletedListener _postDeletedListener;
-        public RabbitMqWorker(IPostDeletedListener  postDeletedListener )
+        private readonly IPostListener _postListener;
+        public RabbitMqWorker(IPostListener  postListener )
         {
-            _postDeletedListener = postDeletedListener;
+            _postListener = postListener;
         }
 
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
-            await _postDeletedListener.InitializeAsync();
+            await _postListener.InitializeAsync();
             await base.StartAsync(cancellationToken);  
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var task = _postDeletedListener.ListenAsync(stoppingToken);
+            var task = _postListener.ListenAsync(stoppingToken);
             await Task.WhenAll(task);
         }
         public override async Task StopAsync(CancellationToken cancellationToken)
         {
-            await _postDeletedListener.DisposeAsync();
+            await _postListener.DisposeAsync();
             await base.StopAsync(cancellationToken);
 
         }
