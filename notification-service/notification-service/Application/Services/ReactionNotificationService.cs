@@ -5,7 +5,6 @@ using Application.Interfaces.Services;
 using Domain.CacheEntities;
 using Domain.CacheEntities.Reactions;
 using Domain.CoreEntities;
-using Domain.Enums;
 using Domain.Events;
 using Microsoft.AspNetCore.SignalR;
 
@@ -16,118 +15,118 @@ namespace Application.Services
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork1;
         private readonly IHubContext<ReactionNotificationHub> _hubContext = hubContext;
+
         public async Task UpdateReactionsListNotification(ReactionEvent ReactionEventDTO)
         {
+            var coreUserReaction = await GetCoreUserReaction(ReactionEventDTO.AuthorEntityId!);
+            if (coreUserReaction == null) return;
 
-            var CoreUsersReaction = _unitOfWork.CoreRepository<Reaction>().GetAsync(ReactionEventDTO.AuthorEntityId!);
-            if (CoreUsersReaction == null)
-                return;
-            var CoreUsersReactionResult = await CoreUsersReaction;
-            if (CoreUsersReactionResult == null)
-                return;
+            UpdateCoreUserReactionList(coreUserReaction, ReactionEventDTO);
 
-            // Implementation for updating the Reactions list notification
-            if (ReactionEventDTO.ReactedOn == ReactedEntity.Post)
-                CoreUsersReactionResult.ReactionsOnPostId.Add(ReactionEventDTO.ReactionEntityId!);
-            else if (ReactionEventDTO.ReactedOn == ReactedEntity.Comment)
-                CoreUsersReactionResult.ReactionsOnCommentId.Add(ReactionEventDTO.ReactionEntityId!);
-            else if (ReactionEventDTO.ReactedOn == ReactedEntity.Message)
-                CoreUsersReactionResult.ReactionsOnCommentId.Add(ReactionEventDTO.ReactionEntityId!);
+            var cachedUserReactions = await GetCachedUserReaction(ReactionEventDTO.AuthorEntityId!);
+            if (cachedUserReactions == null) return;
 
-            var CacheUsersReaction = _unitOfWork.CacheRepository<CachedReactions>().GetAsync(ReactionEventDTO.AuthorEntityId!);
+            var profileDTO = HelperRequestDataFromProfileService();
 
-            if (CacheUsersReaction == null)
-                return;
+            UpdateCachedReactionList(cachedUserReactions, ReactionEventDTO, profileDTO);
 
-            var CacheUsersReactionResult = await CacheUsersReaction;
-            if (CacheUsersReactionResult == null)
-                return;
+            await NotifyUserAsync(ReactionEventDTO);
+        }
+        private async Task<Reaction?> GetCoreUserReaction(string authorEntityId)
+        {
+            var coreUserReactionTask = _unitOfWork.CoreRepository<Reaction>().GetAsync(authorEntityId);
+            return coreUserReactionTask == null ? null : await coreUserReactionTask;
+        }
 
-            ProfileDTO profileDTO = HelperRequestDataFromProfileService();
-            if (ReactionEventDTO.ReactedOn == ReactedEntity.Post)
+        private void UpdateCoreUserReactionList(Reaction coreUserReaction, ReactionEvent reactionEvent)
+        {
+            switch (reactionEvent.ReactedOn)
             {
-                //request to get all the skelton data
-                CacheUsersReactionResult.ReactionsOnPosts.Add(new ReactionPostDetails
-                {
-                    PostId = ReactionEventDTO.ReactionEntityId!,
-                    ReactionId = ReactionEventDTO.Id!,
-                    //this should be aggregated once every day as the content of the post may change
-                    PostContent = ReactionEventDTO.Content ?? "",
-                    ReactionType = ReactionEventDTO.Type,
-                    User = new UserSkeleton
-                    {
-                        Seen = false,
-                        CreatedAt = ReactionEventDTO.User.CreatedAt,
-                        Id = ReactionEventDTO.Id,
-                        UserId = profileDTO.UserId,
-                        ProfileImageUrls = profileDTO.ProfileImageUrl,
-                        UserNames = profileDTO.UserNames
-                    }
-                });
-
+                case ReactedEntity.Post:
+                    coreUserReaction.ReactionsOnPostId.Add(reactionEvent.ReactionEntityId!);
+                    break;
+                case ReactedEntity.Comment:
+                case ReactedEntity.Message:
+                    coreUserReaction.ReactionsOnCommentId.Add(reactionEvent.ReactionEntityId!);
+                    break;
             }
+        }
 
-            else if (ReactionEventDTO.ReactedOn == ReactedEntity.Comment)
+        private async Task<CachedReactions?> GetCachedUserReaction(string authorEntityId)
+        {
+            var cacheReactionTask = _unitOfWork.CacheRepository<CachedReactions>().GetAsync(authorEntityId);
+            return cacheReactionTask == null ? null : await cacheReactionTask;
+        }
+
+        private void UpdateCachedReactionList(CachedReactions cache, ReactionEvent reactionEvent, ProfileDTO profile)
+        {
+            var userSkeleton = new UserSkeleton
             {
-                CacheUsersReactionResult.ReactionsOnComments.Add(new ReactionCommentDetails
-                {
-                    CommentId = ReactionEventDTO.ReactionEntityId!,
-                    ReactionId = ReactionEventDTO.Id!,
-                    //this should be aggregated once every day as the content of the post may change
-                    CommentContent = ReactionEventDTO.Content ?? "",
-                    ReactionType = ReactionEventDTO.Type,
-                    User = new UserSkeleton
-                    {
-                        Seen = false,
-                        CreatedAt = ReactionEventDTO.User.CreatedAt,
-                        Id = ReactionEventDTO.Id,
-                        UserId = profileDTO.UserId,
-                        ProfileImageUrls = profileDTO.ProfileImageUrl,
-                        UserNames = profileDTO.UserNames
-                    }
-                });
-            }
+                Seen = false,
+                CreatedAt = reactionEvent.User.CreatedAt,
+                Id = reactionEvent.Id,
+                UserId = profile.UserId,
+                ProfileImageUrls = profile.ProfileImageUrl,
+                UserNames = profile.UserNames
+            };
 
-            else if (ReactionEventDTO.ReactedOn == ReactedEntity.Message)
+            switch (reactionEvent.ReactedOn)
             {
-                CacheUsersReactionResult.ReactionMessageDetails.Add(new ReactionMessageDetails
-                {
-                    MessageId = ReactionEventDTO.ReactionEntityId!,
-                    ReactionId = ReactionEventDTO.Id!,
-                    //this should be aggregated once every day as the content of the post may change
-                    MessageContent = ReactionEventDTO.Content ?? "",
-                    ReactionType = ReactionEventDTO.Type,
-                    User = new UserSkeleton
+                case ReactedEntity.Post:
+                    cache.ReactionsOnPosts.Add(new ReactionPostDetails
                     {
-                        Seen = false,
-                        CreatedAt = ReactionEventDTO.User.CreatedAt,
-                        Id = ReactionEventDTO.Id,
-                        UserId = profileDTO.UserId,
-                        ProfileImageUrls = profileDTO.ProfileImageUrl,
-                        UserNames = profileDTO.UserNames
-                    }
+                        PostId = reactionEvent.ReactionEntityId!,
+                        ReactionId = reactionEvent.Id!,
+                        PostContent = reactionEvent.Content ?? "",
+                        ReactionType = reactionEvent.Type,
+                        User = userSkeleton
+                    });
+                    break;
 
-                });
+                case ReactedEntity.Comment:
+                    cache.ReactionsOnComments.Add(new ReactionCommentDetails
+                    {
+                        CommentId = reactionEvent.ReactionEntityId!,
+                        ReactionId = reactionEvent.Id!,
+                        CommentContent = reactionEvent.Content ?? "",
+                        ReactionType = reactionEvent.Type,
+                        User = userSkeleton
+                    });
+                    break;
+
+                case ReactedEntity.Message:
+                    cache.ReactionMessageDetails.Add(new ReactionMessageDetails
+                    {
+                        MessageId = reactionEvent.ReactionEntityId!,
+                        ReactionId = reactionEvent.Id!,
+                        MessageContent = reactionEvent.Content ?? "",
+                        ReactionType = reactionEvent.Type,
+                        User = userSkeleton
+                    });
+                    break;
             }
-            await _hubContext.Clients.User(ReactionEventDTO.AuthorEntityId)
+        }
+
+        private async Task NotifyUserAsync(ReactionEvent reactionEvent)
+        {
+            await _hubContext.Clients.User(reactionEvent.AuthorEntityId)
                 .SendAsync("ReceiveReactionNotification", new
                 {
-                    ReactionId = ReactionEventDTO.Id,
-                    ReactedOn = ReactionEventDTO.ReactedOn.ToString(),
-                    Content = ReactionEventDTO.Content,
-                    EntityId = ReactionEventDTO.ReactionEntityId,
+                    ReactionId = reactionEvent.Id,
+                    ReactedOn = reactionEvent.ReactedOn.ToString(),
+                    Content = reactionEvent.Content,
+                    EntityId = reactionEvent.ReactionEntityId,
                     User = new
                     {
-                        ReactionEventDTO.User.Id,
-                        ReactionEventDTO.User.UserId,
-                        ReactionEventDTO.User.UserNames,
-                        ReactionEventDTO.User.ProfileImageUrls,
-                        ReactionEventDTO.User.CreatedAt
+                        reactionEvent.User.Id,
+                        reactionEvent.User.UserId,
+                        reactionEvent.User.UserNames,
+                        reactionEvent.User.ProfileImageUrls,
+                        reactionEvent.User.CreatedAt
                     }
                 });
-
-
         }
+
         public Task RemovReactionsFromNotificationList(ReactionEvent ReactionEventDTO)
         {
             // Implementation for removing Reactions from the notification list
