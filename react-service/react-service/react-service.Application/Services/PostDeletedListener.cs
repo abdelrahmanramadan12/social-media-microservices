@@ -15,7 +15,7 @@ namespace react_service.Application.Services
     public class PostDeletedListener : IPostDeletedListener, IAsyncDisposable
     {
         private IConnection? _connection;
-        private IModel? _channel;
+        private IChannel? _channel;
         private readonly string _hostname;
         private readonly string _username;
         private readonly string _password;
@@ -36,7 +36,7 @@ namespace react_service.Application.Services
             _reactionPostService = reactionPostService;
         }
 
-        public Task InitializeAsync()
+        public async Task InitializeAsync()
         {
             var factory = new ConnectionFactory
             {
@@ -45,17 +45,16 @@ namespace react_service.Application.Services
                 Password = _password
             };
 
-            _connection = factory.CreateConnection();
-            _channel = _connection.CreateModel();
+            _connection =await  factory.CreateConnectionAsync();
+            _channel = await  _connection.CreateChannelAsync();
 
-            _channel.QueueDeclare(
+           await _channel.QueueDeclareAsync(
                 queue: _queueName,
                 durable: true,
                 exclusive: false,
                 autoDelete: false,
                 arguments: null);
 
-            return Task.CompletedTask;
         }
 
         public Task ListenAsync(CancellationToken cancellationToken)
@@ -65,7 +64,7 @@ namespace react_service.Application.Services
 
             var consumer = new AsyncEventingBasicConsumer(_channel);
 
-            consumer.Received += async (model, ea) =>
+            consumer.ReceivedAsync += async (model, ea) =>
             {
                 var body = ea.Body.ToArray();
                 var messageJson = Encoding.UTF8.GetString(body);
@@ -85,7 +84,7 @@ namespace react_service.Application.Services
                 }
             };
 
-            _channel.BasicConsume(
+            _channel.BasicConsumeAsync(
                 queue: _queueName,
                 autoAck: true,
                 consumer: consumer);
@@ -95,8 +94,8 @@ namespace react_service.Application.Services
 
         public ValueTask DisposeAsync()
         {
-            _channel?.Close();
-            _connection?.Close();
+            _channel?.CloseAsync();
+            _connection?.CloseAsync();
 
             _channel?.Dispose();
             _connection?.Dispose();

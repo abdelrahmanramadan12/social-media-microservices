@@ -10,6 +10,11 @@ using react_service.Application.Interfaces.Publishers;
 using react_service.Application.Mapper;
 using react_service.Application.Pagination;
 using react_service.Application.Services;
+using Workers;
+using react_service.Domain.RabbitSetting;
+using react_service.Domain.interfaces;
+using react_service.Domain.Events;
+using Application.Implementations;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,9 +34,24 @@ builder.Services.AddSingleton<IMongoClient>(sp =>
     var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
     return new MongoClient(settings.ConnectionString);
 });
-builder.Services.AddScoped<IPostDeletedListener,PostDeletedListener>();
-builder.Services.AddScoped<IReactionPublisher, ReactionPublisher>();
+//builder.Services.AddScoped<IPostDeletedListener,PostDeletedListener>();
+builder.Services.AddSingleton<IQueuePublisher<ReactionEvent>, ReactionQueuePublisher>();
 
+builder.Services.AddHostedService<ReactionPublisherWorker>();
+
+
+
+
+
+// Bind RabbitSettings from config
+builder.Services.Configure<RabbitSetting>(
+    builder.Configuration.GetSection("RabbitMQ:Publisher"));
+
+builder.Services.AddSingleton(sp =>
+    sp.GetRequiredService<IOptions<RabbitSetting>>().Value);
+
+
+// Register interface to concrete
 
 
 // add infrastructure services

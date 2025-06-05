@@ -18,6 +18,8 @@ using System.Text;
 using System.Threading.Tasks;
 using static System.Collections.Specialized.BitVector32;
 using react_service.Application.DTO;
+using react_service.Domain.Events;
+using react_service.Domain.interfaces;
 
 namespace react_service.Application.Services
 {
@@ -27,10 +29,10 @@ namespace react_service.Application.Services
         private readonly IReactionPostRepository reactionRepository;
         private readonly IMapper mapper;
         private readonly IOptions<PaginationSettings> paginationSetting;
-        private readonly IReactionPublisher reactionPublisher;
+        private readonly IQueuePublisher<ReactionEvent> reactionPublisher;
 
         public ReactionPostService(IReactionPostRepository reactionRepository, IMapper mapper, IOptions<PaginationSettings> paginationSetting
-            , IReactionPublisher reactionPublisher)
+            , IQueuePublisher<ReactionEvent> reactionPublisher)
         {
             this.reactionRepository = reactionRepository;
             this.mapper = mapper;
@@ -85,6 +87,25 @@ namespace react_service.Application.Services
             reactionObj.UserId = userId;
             await reactionRepository.AddReactionAsync(reactionObj);
             response.Message = "Reaction added successfully.";
+
+            // Publish the reaction event to the queue
+            var reactionEvent = new ReactionEvent
+            {
+                Id = reactionObj.Id,
+                ReactionEntityId = reactionObj.PostId,
+                AuthorEntityId = userId,
+                User = new UserSkeleton
+                {
+                    Id = reactionObj.Id,
+                    UserId = userId,
+                    Seen = false,
+                    CreatedAt = reactionObj.PostCreatedTime
+                },
+                Type = reactionObj.ReactionType,
+                ReactedOn = ReactedEntity.Post,
+            };
+            await reactionPublisher.PublishAsync(reactionEvent);
+           
             return response;
         }
 

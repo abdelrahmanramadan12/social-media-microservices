@@ -1,61 +1,77 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
+
 using Microsoft.Extensions.Configuration;
 using RabbitMQ.Client;
-using react_service.Application.Interfaces.Publishers;
-namespace react_service.Application.Services
+using react_service.Domain.Events;
+using react_service.Domain.interfaces;
+using react_service.Domain.RabbitSetting;
+using System.Text;
+using System.Text.Json;
+
+namespace Application.Implementations
 {
-
-
-
-    public class ReactionPublisher : IReactionPublisher
+    public class ReactionQueuePublisher : IQueuePublisher<ReactionEvent>
     {
-        private readonly string _hostname;
-        private readonly string _username;
-        private readonly string _password;
-        private readonly string _queueName;
+        private IConnection? _connection;
+        private IChannel? _channel;
 
-        public ReactionPublisher(IConfiguration configuration)
+        public RabbitSetting RabbitMQ { get; }
+
+        public ReactionQueuePublisher(RabbitSetting rabbitMQ)
         {
-            _hostname = configuration["RabbitMQ:HostName"];
-            _username = configuration["RabbitMQ:UserName"];
-            _password = configuration["RabbitMQ:Password"];
-            _queueName = configuration["RabbitMQ:QueueName"];
+            RabbitMQ = rabbitMQ;
         }
 
-        public void Publish<T>(T message)
+        public async Task InitializeAsync()
         {
-            var factory = new ConnectionFactory()
+            var factory = new ConnectionFactory
             {
-                HostName = _hostname,
-                UserName = _username,
-                Password = _password
+               UserName = RabbitMQ.UserName,
+                Password = RabbitMQ.Password,
+                HostName = RabbitMQ.HostName,
+                Port = RabbitMQ.Port,
             };
 
-            using var connection = factory.CreateConnection();
-            using var channel = connection.CreateModel();
-
-            channel.QueueDeclare(queue: _queueName,
-                                 durable: false,
-                                 exclusive: false,
-                                 autoDelete: false,
-                                 arguments: null);
-
-            // Serialize object to JSON string
-            var jsonString = JsonSerializer.Serialize(message);
-
-            // Convert JSON string to byte array
-            var body = Encoding.UTF8.GetBytes(jsonString);
-
-            channel.BasicPublish(exchange: "",
-                                 routingKey: _queueName,
-                                 basicProperties: null,
-                                 body: body);
+            _connection = await factory.CreateConnectionAsync();
+            _channel = await _connection.CreateChannelAsync();
         }
-    }
 
+        public async Task PublishAsync(ReactionEvent args)
+        {
+            if (_channel == null)
+                throw new InvalidOperationException("Listener not initialized.");
+
+            await _channel.QueueDeclareAsync(
+                queue: RabbitMQ.QueueName,
+                durable: true,
+                exclusive: false,
+                autoDelete: false,
+                arguments: null
+            );
+
+            var message = JsonSerializer.Serialize(args);
+
+            var bin = Encoding.UTF8.GetBytes(message);
+
+            await _channel.BasicPublishAsync(
+                exchange: string.Empty,
+                routingKey: RabbitMQ.QueueName,
+                mandatory: true,
+                basicProperties: new BasicProperties
+                {
+                    Persistent = true
+                },
+                body: bin);
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (_channel != null)
+                await _channel.CloseAsync();
+
+            if (_connection != null)
+                await _connection.CloseAsync();
+        }
+
+       
+    }
 }
