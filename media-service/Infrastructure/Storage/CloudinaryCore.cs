@@ -38,11 +38,12 @@ namespace Infrastructure.Storage
    
             return true;
         }
-        //public async Task<string> EditMediaAsync(string MediaUrl, string filePath, UsageCategory usageCategory, string? folder = null)
-        //{
-        //    var IsDeleted = await DeleteSingleMediaAsync(MediaUrl);
-        //    return await (IsDeleted ? UploadMediaAsync(filePath, usageCategory, folder) : throw new Exception("could not delete the media"));
-        //}
+        public async Task<string> EditMediaAsync(string mediaUrl, string filePath, UsageCategory usageCategory, string? folder = null)
+        {
+            var isDeleted = await DeleteSingleMediaAsync(mediaUrl);
+            return await (isDeleted ? UploadMediaAsync(filePath, usageCategory, folder)
+                                    : throw new Exception("could not delete the media"));
+        }
 
         public async Task<RawUploadResult> UploadRawAsync(RawUploadParams uploadParams)
                                     => await _cloudinary.UploadAsync(uploadParams);

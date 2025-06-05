@@ -4,6 +4,11 @@ using Domain.Enums;
 using Domain.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Media.Controllers
@@ -30,8 +35,33 @@ namespace Media.Controllers
         [HttpPut]
         public async Task<IActionResult> EditMedia([FromForm] ReceivedMediaDto editMediaDto, [FromForm] IEnumerable<string> MediaUrls)
         {
-            var TryAddingNewFiles = UploadMedia(editMediaDto);
-            return TryAddingNewFiles.IsFaulted ? await DeleteMedia(MediaUrls) : throw new Exception("Could not Add the media");
+            if (editMediaDto.Files == null || !editMediaDto.Files.Any())
+                return BadRequest("No files were uploaded.");
+
+            if (!AreFilesValid(editMediaDto.Files, editMediaDto.MediaType, out var validationError))
+                return BadRequest(validationError);
+
+            var uploadResult = await ProcessFilesAsync(editMediaDto);
+            if (uploadResult == null || uploadResult.Count == 0)
+                throw new Exception("Could not Add the media");
+
+            if (MediaUrls != null && MediaUrls.Any())
+            {
+                try
+                {
+                    var cloudinaryCore = HttpContext.RequestServices.GetRequiredService<ICloudinaryCore>();
+                    foreach (var url in MediaUrls)
+                    {
+                        await cloudinaryCore.DeleteSingleMediaAsync(url);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Warning: Could not delete some media: {ex.Message}");
+                }
+            }
+
+            return Ok(new { Success = true, Uploaded = uploadResult.Count, Urls = uploadResult });
         }
 
         [HttpDelete]
