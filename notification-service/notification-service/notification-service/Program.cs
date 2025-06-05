@@ -2,6 +2,7 @@
 using Application.Hubs;
 using Application.Interfaces.Listeners;
 using Application.Services.Listeners;
+using Domain.RabbitMQ;
 using Infrastructure;
 using Infrastructure.SeedingData.CacheSeeding;
 using Infrastructure.SeedingData.mongdbSeeding;
@@ -47,12 +48,16 @@ builder.Services.AddScoped<IConnectionMultiplexer>(sp =>
 });
 
 // ✅ Add RabbitMQ using MassTransit
-// Configure settings
-//builder.Services.Configure<RabbitMqListenerSettings>("PostListener", builder.Configuration.GetSection("RabbitMQ:PostListener"));
-//builder.Services.Configure<RabbitMqListenerSettings>("CommentListener", builder.Configuration.GetSection("RabbitMQ:CommentListener"));
+//Configure settings
+builder.Services.Configure<RabbitMqListenerSettings>("FollowListener", builder.Configuration.GetSection("RabbitMQ:PostListener"));
+builder.Services.Configure<RabbitMqListenerSettings>("CommentListener", builder.Configuration.GetSection("RabbitMQ:CommentListener"));
+builder.Services.Configure<RabbitMqListenerSettings>("ReactionListener", builder.Configuration.GetSection("RabbitMQ:CommentListener"));
+
+builder.Services.Configure<RabbitMqListenerSettings>("MessageListener", builder.Configuration.GetSection("RabbitMQ:CommentListener"));
+
 
 // Register listeners
-//builder.Services.AddSingleton<PostListenerService>(sp =>
+//builder.Services.AddSingleton<PostListenerSearvice>(sp =>
 //{
 //    var options = sp.GetRequiredService<IOptionsMonitor<RabbitMqListenerSettings>>().Get("PostListener");
 //    return new PostListenerService(Options.Create(options));
