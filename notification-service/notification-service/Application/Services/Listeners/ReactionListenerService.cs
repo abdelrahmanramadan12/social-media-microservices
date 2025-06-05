@@ -21,14 +21,16 @@ namespace Application.Services.Listeners
         {
             var factory = new ConnectionFactory
             {
-                HostName = _settings.HostName,
-                UserName = _settings.UserName,
-                Password = _settings.Password
+                HostName = "localhost"
+                //_settings.HostName,
+                //UserName = _settings.UserName,
+                //Password = _settings.Password
             };
 
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
-            _channel.QueueDeclare(_settings.QueueName, durable: true, exclusive: false, autoDelete: false);
+            //_channel.QueueDeclare(_settings.QueueName, durable: true, exclusive: false, autoDelete: false);
+            _channel.QueueDeclare("ReactionQueue", durable: true, exclusive: false, autoDelete: false);
 
             return Task.CompletedTask;
         }
@@ -61,7 +63,9 @@ namespace Application.Services.Listeners
 
                     Console.WriteLine($"[ReactionQueue] Message received: {message}");
 
-                    _channel.BasicConsume(_settings.QueueName, true, consumer);
+                    _channel.BasicConsume("ReactionQueue", true, consumer);
+
+                    //_channel.BasicConsume(_settings.QueueName, true, consumer);
                 }
                 catch (Exception ex)
                 {

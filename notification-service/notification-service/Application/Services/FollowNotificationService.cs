@@ -4,7 +4,6 @@ using Application.Interfaces.Services;
 using Domain.CacheEntities;
 using Domain.CoreEntities;
 using Domain.Events;
-using Application.Hubs;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Application.Services
@@ -47,9 +46,9 @@ namespace Application.Services
             await _hubContext.Clients.User(followedDTO.UserId.ToString())
                 .SendAsync("ReceiveFollowNotification", new
                 {
-                    FollowerId = followedDTO.FollowerId,
-                    UserNames = followedDTO.UserNames,
-                    ProfileImageUrls = followedDTO.ProfileImageUrls,
+                    followedDTO.FollowerId,
+                    followedDTO.UserNames,
+                    followedDTO.ProfileImageUrls,
                     Timestamp = DateTime.UtcNow
                 });
         }

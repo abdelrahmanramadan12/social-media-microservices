@@ -8,7 +8,7 @@ using Domain.Events;
 namespace Application.Services
 {
     public class MessageNotificationService(IUnitOfWork unitOfWork, IHubContext<MessageNotificationHub> hubContext)
-        : IMessageNotificationService
+                                            : IMessageNotificationService
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly IHubContext<MessageNotificationHub> _hubContext = hubContext;

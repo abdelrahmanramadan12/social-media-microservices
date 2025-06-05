@@ -1,14 +1,15 @@
 ﻿using Application;
 using Application.Hubs;
+using Application.Interfaces.Listeners;
 using Application.Services.Listeners;
 using Infrastructure;
-using Application.Hubs;
 using Infrastructure.SeedingData.CacheSeeding;
 using Infrastructure.SeedingData.mongdbSeeding;
 using Infrastructure.Settings.Mongodb;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using StackExchange.Redis;
+using Workers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,7 +65,8 @@ builder.Services.AddScoped<IConnectionMultiplexer>(sp =>
 //});
 
 
-
+builder.Services.AddSingleton<IFollowListener, FollowListenerService>();
+builder.Services.AddHostedService<RabbitMqWorker>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -80,7 +82,7 @@ var app = builder.Build();
 app.MapHub<CommentNotificationHub>("/hubs/comment-notifications");
 app.MapHub<FollowNotificationHub>("/hubs/follow-notifications");
 app.MapHub<ReactionNotificationHub>("/hubs/reaction-notifications");
-app.MapHub<MessageNotificationHub>("/hubs/message-notifications"); 
+app.MapHub<MessageNotificationHub>("/hubs/message-notifications");
 app.MapHub<ReactionNotificationHub>("/hubs/reactions");
 #endregion
 
@@ -99,25 +101,25 @@ if (app.Environment.IsDevelopment())
         try
         {
             // seed CacheDB data 
-            var followsCacheSeeder = scope.ServiceProvider.GetRequiredService<RedisFollowsSeeder>();
+            //var followsCacheSeeder = scope.ServiceProvider.GetRequiredService<RedisFollowsSeeder>();
 
-            await followsCacheSeeder.SeedInitialFollowsDataAsync();
+            //await followsCacheSeeder.SeedInitialFollowsDataAsync();
 
-            var reactionCacheReactions = scope.ServiceProvider.GetRequiredService<RedisReactionsSeeder>();
-            await reactionCacheReactions.SeedInitialReactionsDataAsync();
+            //var reactionCacheReactions = scope.ServiceProvider.GetRequiredService<RedisReactionsSeeder>();
+            //await reactionCacheReactions.SeedInitialReactionsDataAsync();
 
-            var commentsCacheSeeder = scope.ServiceProvider.GetRequiredService<RedisCommentsSeeder>();
+            //var commentsCacheSeeder = scope.ServiceProvider.GetRequiredService<RedisCommentsSeeder>();
 
-            await commentsCacheSeeder.SeedInitialCommentsDataAsync();
+            //await commentsCacheSeeder.SeedInitialCommentsDataAsync();
             // Seed MongoDB data
-            var mongoFollowsSeeder = scope.ServiceProvider.GetRequiredService<MongoFollowsSeeder>();
-            await mongoFollowsSeeder.SeedInitialFollowsDataAsync();
+            //var mongoFollowsSeeder = scope.ServiceProvider.GetRequiredService<MongoFollowsSeeder>();
+            //await mongoFollowsSeeder.SeedInitialFollowsDataAsync();
 
-            var mongoReactionsSeeder = scope.ServiceProvider.GetRequiredService<MongoReactionsSeeder>();
-            await mongoReactionsSeeder.SeedInitialReactionsDataAsync();
+            //var mongoReactionsSeeder = scope.ServiceProvider.GetRequiredService<MongoReactionsSeeder>();
+            //await mongoReactionsSeeder.SeedInitialReactionsDataAsync();
 
-            var mongoCommentsSeeder = scope.ServiceProvider.GetRequiredService<MongoCommentsSeeder>();
-            await mongoCommentsSeeder.SeedInitialCommentsDataAsync();
+            //var mongoCommentsSeeder = scope.ServiceProvider.GetRequiredService<MongoCommentsSeeder>();
+            //await mongoCommentsSeeder.SeedInitialCommentsDataAsync();
 
 
 

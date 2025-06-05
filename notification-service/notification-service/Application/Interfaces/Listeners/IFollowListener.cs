@@ -1,8 +1,8 @@
 ﻿namespace Application.Interfaces.Listeners
 {
-    internal interface IFollowListener : IAsyncDisposable
+    public interface IFollowListener : IAsyncDisposable
     {
         Task InitializeAsync();
-        Task ListenAsync(CancellationToken cancellationToken);
+        public void ListenAsync(CancellationToken cancellationToken);
     }
 }

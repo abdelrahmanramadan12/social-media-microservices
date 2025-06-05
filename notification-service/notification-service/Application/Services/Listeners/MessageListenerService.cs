@@ -22,14 +22,17 @@ namespace Application.Services.Listeners
         {
             var factory = new ConnectionFactory
             {
-                HostName = _settings.HostName,
-                UserName = _settings.UserName,
-                Password = _settings.Password
+                HostName = "localhost"
+                //_settings.HostName,
+                //UserName = _settings.UserName,
+                //Password = _settings.Password
             };
 
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
-            _channel.QueueDeclare(_settings.QueueName, durable: true, exclusive: false, autoDelete: false);
+            //_channel.QueueDeclare(_settings.QueueName, durable: true, exclusive: false, autoDelete: false);
+            _channel.QueueDeclare("MessageQueue", durable: true, exclusive: false, autoDelete: false);
+
 
             return Task.CompletedTask;
         }
@@ -59,7 +62,10 @@ namespace Application.Services.Listeners
 
                             await MessageService.UpdatMessageListNotification(MessageEvent);
                     }
-                    _channel.BasicConsume(_settings.QueueName, true, consumer);
+
+                    _channel.BasicConsume("MessageQueue", true, consumer);
+
+                    //_channel.BasicConsume(_settings.QueueName, true, consumer);
                 }
                 catch (Exception ex)
                 {
