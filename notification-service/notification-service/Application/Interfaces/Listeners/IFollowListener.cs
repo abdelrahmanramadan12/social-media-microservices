@@ -3,6 +3,6 @@
     public interface IFollowListener : IAsyncDisposable
     {
         Task InitializeAsync();
-        public void ListenAsync(CancellationToken cancellationToken);
+        Task ListenAsync(CancellationToken cancellationToken);
     }
 }

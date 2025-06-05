@@ -8,84 +8,99 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Application.Services.Listeners
 {
-    public class FollowListenerService(IOptions<RabbitMqListenerSettings> options, IServiceScopeFactory scopeFactory) : IFollowListener
+    public class FollowListenerService : IFollowListener, IAsyncDisposable
     {
-        private readonly RabbitMqListenerSettings _settings = options.Value;
-        private readonly IServiceScopeFactory _scopeFactory = scopeFactory;
+        private readonly RabbitMqListenerSettings _settings;
+        private readonly IServiceScopeFactory _scopeFactory;
         private IConnection? _connection;
-        private IModel? _channel;
+        private IChannel? _channel;
 
-        public Task InitializeAsync()
+        public FollowListenerService(
+            IOptions<RabbitMqListenerSettings> options,
+            IServiceScopeFactory scopeFactory)
+        {
+            _settings = options.Value;
+            _scopeFactory = scopeFactory;
+        }
+
+        public async Task InitializeAsync()
         {
             var factory = new ConnectionFactory
             {
-                HostName = "localhost"
-                //_settings.HostName,
-                //UserName = _settings.UserName,
-                //Password = _settings.Password
+                HostName = _settings.HostName,
+                UserName = _settings.UserName,
+                Password = _settings.Password
             };
 
-            _connection = factory.CreateConnection();
-            _channel = _connection.CreateModel();
-            //_channel.QueueDeclare(_settings.QueueName, durable: true, exclusive: false, autoDelete: false);
-            //_channel.QueueDeclare("FollowQueue", durable: true, exclusive: false, autoDelete: false);
+            _connection = await factory.CreateConnectionAsync();
+            _channel = await _connection.CreateChannelAsync();
 
-
-            return Task.CompletedTask;
+            await _channel.QueueDeclareAsync(
+                queue: _settings.QueueName,
+                durable: true,
+                exclusive: false,
+                autoDelete: false,
+                arguments: null);
         }
 
-        public void ListenAsync(CancellationToken cancellationToken)
+        public Task ListenAsync(CancellationToken cancellationToken)
         {
-            _channel.QueueDeclare("FollowQueue", durable: true, exclusive: false, autoDelete: false);
+            if (_channel == null)
+                throw new InvalidOperationException("Listener not initialized.");
 
             var consumer = new AsyncEventingBasicConsumer(_channel);
 
-            _channel.BasicConsume("FollowQueue", autoAck: false, consumer);
-
-            consumer.Received += async (model, ea) =>
+            consumer.ReceivedAsync += async (model, ea) =>
             {
-                Console.WriteLine("Message received.");
+                var body = ea.Body.ToArray();
+                var message = Encoding.UTF8.GetString(body);
+
                 try
                 {
-                    var body = ea.Body.ToArray();
-                    var message = Encoding.UTF8.GetString(body);
                     var followEvent = JsonSerializer.Deserialize<FollowEvent>(message);
-
-                    using var scope = _scopeFactory.CreateScope();
-                    var followService = scope.ServiceProvider.GetRequiredService<IFollowNotificationService>();
 
                     if (followEvent == null || string.IsNullOrEmpty(followEvent.FollowerId) || string.IsNullOrEmpty(followEvent.UserId))
                         return;
+
+                    using var scope = _scopeFactory.CreateScope();
+                    var followService = scope.ServiceProvider.GetRequiredService<IFollowNotificationService>();
 
                     if (followEvent.EventType == FollowEventType.FOLLOW)
                         await followService.UpdateFollowersListNotification(followEvent);
                     else
                         await followService.RemoveFollowerFromNotificationList(followEvent);
 
-                    _channel.BasicAck(ea.DeliveryTag, false);
+                    await _channel.BasicAckAsync(ea.DeliveryTag, multiple: false);
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error processing message: {ex}");
-                    _channel.BasicNack(ea.DeliveryTag, false, requeue: false);
+                    Console.WriteLine($"Error processing follow message: {ex.Message}");
+                    await _channel.BasicNackAsync(ea.DeliveryTag, multiple: false, requeue: false);
                 }
             };
 
-            //_channel.BasicConsume(_settings.QueueName, true, consumer);
-            //_channel.BasicConsume("FollowQueue", true, consumer);
+            _channel.BasicConsumeAsync(
+                queue: _settings.QueueName,
+                autoAck: false,
+                consumer: consumer);
+
+            return Task.CompletedTask;
         }
 
         public ValueTask DisposeAsync()
         {
-            _channel?.Close();
-            _connection?.Close();
+            _channel?.CloseAsync();
+            _connection?.CloseAsync();
             _channel?.Dispose();
             _connection?.Dispose();
+
             return ValueTask.CompletedTask;
         }
-    }
 
+    }
 }

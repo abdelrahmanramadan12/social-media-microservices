@@ -2,8 +2,7 @@
 
 namespace Application.Interfaces.Listeners
 {
-    interface IMessageNotificationService
+    interface IMessageListenerService   
     {
-        public Task UpdatMessageListNotification(MessageEvent messageEvent);
     }
 }

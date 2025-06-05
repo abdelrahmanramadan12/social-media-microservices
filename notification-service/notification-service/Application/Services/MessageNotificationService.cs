@@ -4,6 +4,7 @@ using Application.Interfaces.Listeners;
 using Application.Interfaces;
 using Domain.CoreEntities;
 using Domain.Events;
+using Application.Interfaces.Services;
 
 namespace Application.Services
 {
