@@ -15,6 +15,15 @@ namespace Infrastructure.Repository
             var client = new MongoClient(connectionString);
             var database = client.GetDatabase(databaseName);
             _posts = database.GetCollection<Post>("Posts");
+
+            // Create indexes for efficient pagination
+            var indexKeys = Builders<Post>.IndexKeys
+                .Descending(p => p.CreatedAt)
+                .Ascending(p => p.AuthorId);
+            
+            var indexOptions = new CreateIndexOptions { Background = true };
+            var indexModel = new CreateIndexModel<Post>(indexKeys, indexOptions);
+            _posts.Indexes.CreateOne(indexModel);
         }
 
         public async Task<Post> CreatePostAsync(Post post, bool HasMedia)
@@ -79,12 +88,18 @@ namespace Infrastructure.Repository
                 var lastPost = await GetPostAsync(cursorPostId);
                 if (lastPost != null)
                 {
-                    filter &= Builders<Post>.Filter.Lt(p => p.CreatedAt, lastPost.CreatedAt);
+                    var timeFilter = Builders<Post>.Filter.Lt(p => p.CreatedAt, lastPost.CreatedAt);
+                    var tieBreakerFilter = Builders<Post>.Filter.And(
+                        Builders<Post>.Filter.Eq(p => p.CreatedAt, lastPost.CreatedAt),
+                        Builders<Post>.Filter.Lt(p => p.Id, lastPost.Id)
+                    );
+
+                    filter &= Builders<Post>.Filter.Or(timeFilter, tieBreakerFilter);
                 }
             }
 
             return await _posts.Find(filter)
-                .SortByDescending(p => p.CreatedAt)
+                .Sort(Builders<Post>.Sort.Descending(p => p.CreatedAt).Descending(p => p.Id))
                 .Limit(pageSize)
                 .ToListAsync();
         }

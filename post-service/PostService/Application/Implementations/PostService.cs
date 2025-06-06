@@ -144,10 +144,12 @@ namespace Application.Services
             if (profilePosts == null || profilePosts.Count() <= 0)
             {
                 response.Data = new List<PostResponseDTO>();
+                response.Message = "No posts found";
                 return response;
             }
             profilePosts = profilePosts.Where(post => post.Privacy != Privacy.OnlyMe || post.AuthorId == userId).ToList();
             response.Data = _helperService.AgregatePostResponseList(profilePosts);
+            response.Message = "Posts retrieved successfully";
             return response;
         }
 

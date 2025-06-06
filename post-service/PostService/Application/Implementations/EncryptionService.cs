@@ -10,7 +10,6 @@ namespace Application.Services
 
         public EncryptionService(string key)
         {
-            // Ensure the key is exactly 32 bytes (256 bits) for AES-256
             using var sha256 = SHA256.Create();
             _key = sha256.ComputeHash(Encoding.UTF8.GetBytes(key));
         }
@@ -22,14 +21,19 @@ namespace Application.Services
             aes.GenerateIV();
 
             using MemoryStream ms = new();
-            ms.Write(aes.IV, 0, aes.IV.Length);
+            {
+                ms.Write(aes.IV, 0, aes.IV.Length);
 
-            using CryptoStream cs = new(ms, aes.CreateEncryptor(), CryptoStreamMode.Write);
-            using StreamWriter writer = new(cs);
-            writer.Write(plainText);
+                using (CryptoStream cs = new(ms, aes.CreateEncryptor(), CryptoStreamMode.Write))
+                using (StreamWriter writer = new(cs))
+                {
+                    writer.Write(plainText);
+                }
 
-            return Convert.ToBase64String(ms.ToArray());
+                return Convert.ToBase64String(ms.ToArray());
+            }
         }
+
 
         public string Decrypt(string encryptedBase64)
         {
