@@ -28,31 +28,44 @@ namespace Presentation.Controllers.Internal
         public async Task<IActionResult> GetProfilePostList(string profileUserId, [FromBody] GetProfilePostListRequest request)
         {
             // Encrypt the Key if exists
-            if (!string.IsNullOrWhiteSpace(request.NextCursor))
-                request.NextCursor = _encryptionService.Decrypt(request.NextCursor);
+            if (!string.IsNullOrWhiteSpace(request.Next))
+                request.Next = _encryptionService.Decrypt(request.Next);
 
             const int pageSize = 15 + 1;
-            var res = await _postService.GetProfilePostListAsync(request.UserId, profileUserId, pageSize, request.NextCursor);
+            var res = await _postService.GetProfilePostListAsync(request.UserId, profileUserId, pageSize, request.Next);
 
             if (!res.Success)
                 return HandleErrorResponse(res);
 
+            var formattedList = res.Data.Select(post => new
+            {
+                post.PostId,
+                post.AuthorId,
+                post.PostContent,
+                post.Privacy,
+                media = post.Media?.Select(m => new { url = m.Url, type = (int)m.Type }).ToList(),
+                post.HasMedia,
+                post.CreatedAt,
+                post.IsEdited,
+                post.NumberOfLikes,
+                post.NumberOfComments
+            }).ToList();
+
             if (res.Data?.Count >= pageSize)
             {
                 var lastPost = res.Data[^1];
-                res.Data.RemoveAt(res.Data.Count - 1);
+                formattedList.RemoveAt(formattedList.Count - 1);
                 string nextPostIdEncrpted = _encryptionService.Encrypt(lastPost.PostId);
-                return Ok(new { data = res.Data, next = nextPostIdEncrpted });
+                return Ok(new { data = formattedList, next = nextPostIdEncrpted, message = res.Message });
             }
 
-            return Ok(new { data = res.Data, next = (string?)null });
+            return Ok(new { data = formattedList, next = (string?)null, message = res.Message });
         }
 
         [HttpPost("list")]
         public async Task<IActionResult> GetPostList([FromBody] GetPostListRequest request)
         {
             var res = await _postService.GetPostListAsync(request.UserId, request.PostIds);
-
             return HandleResponse(res);
         }
     }

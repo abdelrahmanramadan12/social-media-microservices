@@ -8,8 +8,8 @@ namespace Application.DTOs
         public string PostId { get; set; }
         public string PostContent { get; set; }
         public Privacy Privacy { get; set; }
-        public List<string> MediaUrls { get; set; } = new List<string>();
-        public bool HasMedia => MediaUrls.Count() > 0;
+        public List<MediaDTO> Media { get; set; } = new List<MediaDTO>();
+        public bool HasMedia => Media.Count > 0;
         public DateTime CreatedAt { get; set; }
         public bool IsEdited { get; set; }
         public int NumberOfLikes { get; set; }

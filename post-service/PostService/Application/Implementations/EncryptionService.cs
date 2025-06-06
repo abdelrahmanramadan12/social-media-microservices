@@ -6,18 +6,19 @@ namespace Application.Services
 {
     public class EncryptionService : IEncryptionService
     {
-        private readonly string _key;
+        private readonly byte[] _key;
 
         public EncryptionService(string key)
         {
-            _key = key;
+            // Ensure the key is exactly 32 bytes (256 bits) for AES-256
+            using var sha256 = SHA256.Create();
+            _key = sha256.ComputeHash(Encoding.UTF8.GetBytes(key));
         }
 
         public string Encrypt(string plainText)
         {
-            byte[] keyBytes = Encoding.UTF8.GetBytes(_key);
             using Aes aes = Aes.Create();
-            aes.Key = keyBytes;
+            aes.Key = _key;
             aes.GenerateIV();
 
             using MemoryStream ms = new();
@@ -33,10 +34,9 @@ namespace Application.Services
         public string Decrypt(string encryptedBase64)
         {
             byte[] fullCipher = Convert.FromBase64String(encryptedBase64);
-            byte[] keyBytes = Encoding.UTF8.GetBytes(_key);
 
             using Aes aes = Aes.Create();
-            aes.Key = keyBytes;
+            aes.Key = _key;
 
             byte[] iv = new byte[16];
             Array.Copy(fullCipher, 0, iv, 0, iv.Length);

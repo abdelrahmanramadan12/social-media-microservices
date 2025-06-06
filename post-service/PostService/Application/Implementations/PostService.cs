@@ -133,6 +133,7 @@ namespace Application.Services
                 return response;
             }
             response.Data = mappingResult.Item;
+            response.Message = "Post retrieved successfully";
             return response;
         }
 

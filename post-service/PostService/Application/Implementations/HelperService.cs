@@ -25,11 +25,11 @@ namespace Application.Services
             // Mapping Media
             if (post.MediaList != null && post.MediaList.Count() > 0)
             {
-                postResponseDTO.MediaUrls = new List<string>();
-                post.MediaList.ForEach(media =>
+                postResponseDTO.Media = post.MediaList.Select(media => new MediaDTO
                 {
-                    postResponseDTO.MediaUrls.Add(media.MediaUrl);
-                });
+                    Url = media.MediaUrl,
+                    Type = media.MediaType
+                }).ToList();
             }
 
             // Mapping Other Properties
@@ -309,7 +309,11 @@ namespace Application.Services
                     PostId = post.Id,
                     PostContent = post.Content,
                     Privacy = post.Privacy,
-                    MediaUrls = post.MediaList?.Select(m => m.MediaUrl).ToList() ?? new List<string>(),
+                    Media = post.MediaList?.Select(m => new MediaDTO
+                    {
+                        Url = m.MediaUrl,
+                        Type = m.MediaType
+                    }).ToList() ?? new List<MediaDTO>(),
                     CreatedAt = post.CreatedAt,
                     IsEdited = post.UpdatedAt.HasValue && post.UpdatedAt.Value > post.CreatedAt,
                     NumberOfLikes = post.NumberOfLikes,

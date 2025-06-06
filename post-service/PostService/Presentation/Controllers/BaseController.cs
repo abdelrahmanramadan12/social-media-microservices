@@ -1,3 +1,4 @@
+using Application.DTOs;
 using Application.DTOs.Responses;
 using Microsoft.AspNetCore.Mvc;
 
@@ -25,11 +26,47 @@ namespace Presentation.Controllers
             };
         }
 
+        protected object FormatPostData(PostResponseDTO post)
+        {
+            return new
+            {
+                post.PostId,
+                post.AuthorId,
+                post.PostContent,
+                post.Privacy,
+                media = post.Media,
+                post.HasMedia,
+                post.CreatedAt,
+                post.IsEdited,
+                post.NumberOfLikes,
+                post.NumberOfComments
+            };
+        }
+
         protected ActionResult HandleResponse<T>(ResponseWrapper<T> response)
         {
             if (!response.Success)
             {
                 return HandleErrorResponse(response);
+            }
+
+            if (response.Data is PostResponseDTO postData)
+            {
+                return Ok(new
+                {
+                    data = FormatPostData(postData),
+                    message = response.Message
+                });
+            }
+            else if (response.Data is List<PostResponseDTO> postList)
+            {
+                var formattedList = postList.Select(post => FormatPostData(post)).ToList();
+
+                return Ok(new
+                {
+                    data = formattedList,
+                    message = response.Message
+                });
             }
 
             return Ok(new
