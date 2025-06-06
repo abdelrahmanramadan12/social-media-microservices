@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace Application.DTOs.Reaction
 {
-    public class GetPostsReactedByUserRequest
+    public class FilteredPostsReactedByUserResponse
     {
-        public string UserId { get; set; }
-        public string Next { get; set; }
+        public List<string> PostIds { get; set; } = new List<string>();
     }
 }
