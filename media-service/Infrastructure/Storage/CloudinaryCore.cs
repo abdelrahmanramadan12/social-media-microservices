@@ -1,4 +1,4 @@
-﻿using CloudinaryDotNet;
+using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Domain.Enums;
 using Domain.Interfaces;
@@ -37,12 +37,6 @@ namespace Infrastructure.Storage
                     return false;
    
             return true;
-        }
-        public async Task<string> EditMediaAsync(string mediaUrl, string filePath, UsageCategory usageCategory, string? folder = null)
-        {
-            var isDeleted = await DeleteSingleMediaAsync(mediaUrl);
-            return await (isDeleted ? UploadMediaAsync(filePath, usageCategory, folder)
-                                    : throw new Exception("could not delete the media"));
         }
 
         public async Task<RawUploadResult> UploadRawAsync(RawUploadParams uploadParams)

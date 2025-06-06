@@ -1,4 +1,4 @@
-﻿using Application.DTOs;
+using Application.DTOs;
 using Application.Services;
 using Domain.Enums;
 using Domain.Interfaces;
@@ -29,38 +29,6 @@ namespace Media.Controllers
                 return BadRequest(validationError);
 
             var uploadResult = await ProcessFilesAsync(mediaDto);
-            return Ok(new { Success = true, Uploaded = uploadResult.Count, Urls = uploadResult });
-        }
-
-        [HttpPut]
-        public async Task<IActionResult> EditMedia([FromForm] ReceivedMediaDto editMediaDto, [FromForm] IEnumerable<string> MediaUrls)
-        {
-            if (editMediaDto.Files == null || !editMediaDto.Files.Any())
-                return BadRequest("No files were uploaded.");
-
-            if (!AreFilesValid(editMediaDto.Files, editMediaDto.MediaType, out var validationError))
-                return BadRequest(validationError);
-
-            var uploadResult = await ProcessFilesAsync(editMediaDto);
-            if (uploadResult == null || uploadResult.Count == 0)
-                throw new Exception("Could not Add the media");
-
-            if (MediaUrls != null && MediaUrls.Any())
-            {
-                try
-                {
-                    var cloudinaryCore = HttpContext.RequestServices.GetRequiredService<ICloudinaryCore>();
-                    foreach (var url in MediaUrls)
-                    {
-                        await cloudinaryCore.DeleteSingleMediaAsync(url);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Warning: Could not delete some media: {ex.Message}");
-                }
-            }
-
             return Ok(new { Success = true, Uploaded = uploadResult.Count, Urls = uploadResult });
         }
 

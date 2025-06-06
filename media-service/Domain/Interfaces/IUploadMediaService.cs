@@ -1,4 +1,4 @@
-﻿using Domain.Enums;
+using Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,8 +13,6 @@ namespace Domain.Interfaces
         Task<string> UploadAsync(string filePath, MediaType type ,UsageCategory usageCategory);
 
         Task<bool> DeleteMediaAsync(IEnumerable<string> id);
-
-        Task<string> EditMediaAsync(string oldMediaUrl, string newFilePath, UsageCategory usageCategory, MediaType type);
 
     }
 }

@@ -1,4 +1,4 @@
-﻿using Domain.Enums;
+using Domain.Enums;
 using Domain.Interfaces;
 using Microsoft.AspNetCore.Http;
 using System;
@@ -100,13 +100,6 @@ namespace Application.Services
             catch { }
             
             return false;
-        }
-
-        public async Task<string> EditMediaAsync(string oldMediaUrl, string newFilePath, UsageCategory usageCategory, MediaType type)
-        {
-            var isDeleted = await _cloudinary.DeleteSingleMediaAsync(oldMediaUrl);
-            return await (isDeleted ? UploadAsync(newFilePath, type, usageCategory)
-                                    : throw new Exception("Could not delete the media"));
         }
 
         
