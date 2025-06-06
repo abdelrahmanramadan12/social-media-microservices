@@ -1,7 +1,5 @@
-﻿using Application.Interfaces.Listeners;
-using Application.Interfaces.Services;
+﻿using Application.Interfaces.Services;
 using Application.Services;
-using Application.Services.Listeners;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 

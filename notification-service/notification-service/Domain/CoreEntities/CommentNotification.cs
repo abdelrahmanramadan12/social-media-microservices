@@ -6,7 +6,7 @@ namespace Domain.CoreEntities
     public class CommentNotification
     {
         [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
+        //[BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; } = string.Empty;
         public string PostAuthorId { get; set; } = string.Empty;
         public string PostId { get; set; } = string.Empty;

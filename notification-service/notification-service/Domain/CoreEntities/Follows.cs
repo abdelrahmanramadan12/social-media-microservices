@@ -11,7 +11,7 @@ namespace Domain.CoreEntities
     public class Follows
     {
         [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
+        //[BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; } = string.Empty; // Unique identifier for the follow relationship
 
         public string MyId { get; set; } = string.Empty;  

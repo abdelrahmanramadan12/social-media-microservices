@@ -8,8 +8,6 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Application.Services.Listeners
 {
@@ -32,16 +30,18 @@ namespace Application.Services.Listeners
         {
             var factory = new ConnectionFactory
             {
-                HostName = _settings.HostName,
-                UserName = _settings.UserName,
-                Password = _settings.Password
+                HostName = "localhost",
+                Port= 5672,
+                //_settings.HostName,
+                //UserName = _settings.UserName,
+                //Password = _settings.Password
             };
 
             _connection = await factory.CreateConnectionAsync();
             _channel = await _connection.CreateChannelAsync();
 
             await _channel.QueueDeclareAsync(
-                queue: _settings.QueueName,
+                queue: "FollowQueue",
                 durable: true,
                 exclusive: false,
                 autoDelete: false,
@@ -85,7 +85,7 @@ namespace Application.Services.Listeners
             };
 
             _channel.BasicConsumeAsync(
-                queue: _settings.QueueName,
+                queue: "FollowQueue",
                 autoAck: false,
                 consumer: consumer);
 

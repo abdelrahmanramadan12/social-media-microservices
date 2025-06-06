@@ -6,7 +6,7 @@ namespace Domain.CoreEntities
     public class Messages
     {
         [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
+        //[BsonRepresentation(BsonType.ObjectId)]
         public string RevieverId { get; set; } = string.Empty;
 
         public Dictionary<string, List<MessageInfo>> MessageList = [];

@@ -2,7 +2,6 @@
 using Application.Hubs;
 using Application.Interfaces.Listeners;
 using Application.Services.Listeners;
-using Domain.CoreEntities;
 using Domain.RabbitMQ;
 using Infrastructure;
 using Infrastructure.SeedingData.CacheSeeding;
@@ -39,22 +38,26 @@ builder.Services.AddSignalR();
 
 builder.Services.AddScoped<IConnectionMultiplexer>(sp =>
 {
+    var redisSettings = builder.Configuration.GetSection("RedisSettings");
+    var host = redisSettings["Host"];
+    var port = int.Parse(redisSettings["Port"]);
+    var user = redisSettings["User"];
+    var password = redisSettings["Password"];
+
     return ConnectionMultiplexer.Connect(new ConfigurationOptions
     {
-        EndPoints = { { builder.Configuration.GetConnectionString("RedisConnection")!,
-                            int.Parse(builder.Configuration.GetConnectionString("RedisPort")!) } },
-        User = builder.Configuration.GetConnectionString("RedisUserName"),
-        Password = builder.Configuration.GetConnectionString("RedisPassword")
+        EndPoints = { { host, port } },
+        User = user,
+        Password = password
     });
 });
 
 // ✅ Add RabbitMQ using MassTransit
 //Configure settings
-builder.Services.Configure<RabbitMqListenerSettings>("FollowListener", builder.Configuration.GetSection("RabbitMQ:PostListener"));
+builder.Services.Configure<RabbitMqListenerSettings>("FollowListener", builder.Configuration.GetSection("RabbitMQ:FollowListener"));
 builder.Services.Configure<RabbitMqListenerSettings>("CommentListener", builder.Configuration.GetSection("RabbitMQ:CommentListener"));
-builder.Services.Configure<RabbitMqListenerSettings>("ReactionListener", builder.Configuration.GetSection("RabbitMQ:CommentListener"));
-
-builder.Services.Configure<RabbitMqListenerSettings>("MessageListener", builder.Configuration.GetSection("RabbitMQ:CommentListener"));
+builder.Services.Configure<RabbitMqListenerSettings>("ReactionListener", builder.Configuration.GetSection("RabbitMQ:ReactionListener"));
+builder.Services.Configure<RabbitMqListenerSettings>("MessageListener", builder.Configuration.GetSection("RabbitMQ:MessageListener"));
 
 
 //Register listeners
@@ -128,41 +131,41 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 
-    using (var scope = app.Services.CreateScope())
-    {
-        try
-        {
-            // seed CacheDB data 
-            //var followsCacheSeeder = scope.ServiceProvider.GetRequiredService<RedisFollowsSeeder>();
+    //using (var scope = app.Services.CreateScope())
+    //{
+    //    try
+    //    {
+    //         //seed CacheDB data
+    //        var followsCacheSeeder = scope.ServiceProvider.GetRequiredService<RedisFollowsSeeder>();
 
-            //await followsCacheSeeder.SeedInitialFollowsDataAsync();
+    //        await followsCacheSeeder.SeedInitialFollowsDataAsync();
 
-            //var reactionCacheReactions = scope.ServiceProvider.GetRequiredService<RedisReactionsSeeder>();
-            //await reactionCacheReactions.SeedInitialReactionsDataAsync();
+    //        var reactionCacheReactions = scope.ServiceProvider.GetRequiredService<RedisReactionsSeeder>();
+    //        await reactionCacheReactions.SeedInitialReactionsDataAsync();
 
-            //var commentsCacheSeeder = scope.ServiceProvider.GetRequiredService<RedisCommentsSeeder>();
+    //        var commentsCacheSeeder = scope.ServiceProvider.GetRequiredService<RedisCommentsSeeder>();
 
-            //await commentsCacheSeeder.SeedInitialCommentsDataAsync();
-            // Seed MongoDB data
-            //var mongoFollowsSeeder = scope.ServiceProvider.GetRequiredService<MongoFollowsSeeder>();
-            //await mongoFollowsSeeder.SeedInitialFollowsDataAsync();
+    //        await commentsCacheSeeder.SeedInitialCommentsDataAsync();
+    //        //Seed MongoDB data
+    //       var mongoFollowsSeeder = scope.ServiceProvider.GetRequiredService<MongoFollowsSeeder>();
+    //        await mongoFollowsSeeder.SeedInitialFollowsDataAsync();
 
-            //var mongoReactionsSeeder = scope.ServiceProvider.GetRequiredService<MongoReactionsSeeder>();
-            //await mongoReactionsSeeder.SeedInitialReactionsDataAsync();
+    //        var mongoReactionsSeeder = scope.ServiceProvider.GetRequiredService<MongoReactionsSeeder>();
+    //        await mongoReactionsSeeder.SeedInitialReactionsDataAsync();
 
-            //var mongoCommentsSeeder = scope.ServiceProvider.GetRequiredService<MongoCommentsSeeder>();
-            //await mongoCommentsSeeder.SeedInitialCommentsDataAsync();
-
-
+    //        var mongoCommentsSeeder = scope.ServiceProvider.GetRequiredService<MongoCommentsSeeder>();
+    //        await mongoCommentsSeeder.SeedInitialCommentsDataAsync();
 
 
-        }
-        catch (Exception ex)
-        {
-            var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-            logger.LogError(ex, "An error occurred while seeding Redis data");
-        }
-    }
+
+
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    //        logger.LogError(ex, "An error occurred while seeding Redis data");
+    //    }
+    //}
 }
 
 app.UseHttpsRedirection();
