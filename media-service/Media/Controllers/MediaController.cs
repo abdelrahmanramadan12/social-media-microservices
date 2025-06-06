@@ -34,7 +34,7 @@ namespace Media.Controllers
 
         [HttpDelete]
         public async Task<IActionResult> DeleteMedia([FromBody] IEnumerable<string> Urls)
-                                                        => Ok(await _uploadMediaService.DeleteMediaAsync(Urls));
+            => Ok(await _uploadMediaService.DeleteMediaAsync(Urls));
 
         private static bool AreFilesValid(IEnumerable<IFormFile> files, MediaType mediaType, out string? error)
         {

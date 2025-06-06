@@ -12,7 +12,7 @@ namespace Domain.Interfaces
 
         Task<string> UploadAsync(string filePath, MediaType type ,UsageCategory usageCategory);
 
-        Task<bool> DeleteMediaAsync(IEnumerable<string> id);
+        Task<bool> DeleteMediaAsync(IEnumerable<string> urls);
 
     }
 }

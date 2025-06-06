@@ -16,7 +16,7 @@ namespace Domain.Interfaces
         Task<RawUploadResult> UploadRawAsync(RawUploadParams uploadParams);
 
         Task<string> UploadMediaAsync(string filePath, UsageCategory usageCategory, string? folder = null);
-        Task<bool> DeleteMediaAsync(IEnumerable<string> id);
+        Task<bool> DeleteMediaAsync(IEnumerable<string> urls);
         Task<bool> DeleteSingleMediaAsync(string id);
     }
 }

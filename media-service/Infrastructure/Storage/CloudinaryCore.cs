@@ -19,15 +19,24 @@ namespace Infrastructure.Storage
 
         public Cloudinary GetClient() => _cloudinary;
 
-        public async Task<bool> DeleteMediaAsync(IEnumerable<string> Url)
+        public async Task<bool> DeleteMediaAsync(IEnumerable<string> urls)
         {
-
-            foreach (var mediaUrl in Url)
+            var publicIds = urls.Select(ExtractPublicId).ToList();
+            var deletionParams = new DelResParams()
             {
-                var result = await _cloudinary.DestroyAsync(new DeletionParams(mediaUrl));
-                if (result.Result != "ok")
-                    return false;
+                PublicIds = publicIds,
+                Invalidate = true,
+                ResourceType = ResourceType.Image
+            };
+
+            var result = await _cloudinary.DeleteResourcesAsync(deletionParams);
+            
+            // Check if all deletions were successful
+            if (result.Deleted == null || result.Deleted.Count != publicIds.Count)
+            {
+                return false;
             }
+            
             return true;
         }
         public async Task<bool> DeleteSingleMediaAsync(string id)
@@ -86,6 +95,16 @@ namespace Infrastructure.Storage
 
                 _ => throw new ArgumentException("Invalid image type")
             };
+        }
+
+        private static string ExtractPublicId(string url)
+        {
+            // implement logic to extract public ID from URL
+            // for example:
+            var uri = new Uri(url);
+            var path = uri.AbsolutePath;
+            var publicId = path.Split('/').Last();
+            return publicId;
         }
 
     }

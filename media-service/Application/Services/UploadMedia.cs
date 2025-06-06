@@ -23,44 +23,8 @@ namespace Application.Services
         }
 
         public async Task<bool> DeleteMediaAsync(IEnumerable<string> urls)
-        {
-            var failed = new List<string>();
-            var extracted = new List<string>();
-            
-            foreach (var url in urls)
-            {
-                bool deleteSuccess = false;
-                
-                try
-                {
-                    var extractedId = ExtractPublicId(url);
-                    extracted.Add($"{url} => {extractedId}");
-                    
-                    deleteSuccess = await _cloudinary.DeleteSingleMediaAsync(extractedId);
-                    
-                    // If extraction didn't change the URL and deletion failed, try alternative approaches
-                    if (!deleteSuccess && extractedId == url)
-                    {
-                        deleteSuccess = await TryAlternativeDeleteMethods(url);
-                    }
-                }
-                catch
-                {
-                    deleteSuccess = await TryAlternativeDeleteMethods(url);
-                }
+            => await _cloudinary.DeleteMediaAsync(urls);
 
-                if (!deleteSuccess)
-                {
-                    failed.Add(url);
-                }
-            }
-            
-            if (failed.Any())
-                throw new Exception($"Could not delete the following media: {string.Join(", ", failed)}\nExtracted IDs: {string.Join(" | ", extracted)}");
-            
-            return true;
-        }
-        
         private async Task<bool> TryAlternativeDeleteMethods(string url)
         {
             try
