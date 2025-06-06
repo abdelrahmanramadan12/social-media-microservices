@@ -1,4 +1,5 @@
 using Application.Services.Interfaces;
+using Application.Configuration;
 
 namespace Application.Services.Implementations
 {
@@ -11,50 +12,46 @@ namespace Application.Services.Implementations
     public class FollowServiceClient : IFollowServiceClient
     {
         private readonly HttpClient _httpClient;
+        private readonly FollowServiceSettings _settings;
 
-        public FollowServiceClient(HttpClient httpClient)
+        public FollowServiceClient(HttpClient httpClient, FollowServiceSettings settings)
         {
             _httpClient = httpClient;
+            _settings = settings;
         }
 
-        public async Task<ServiceResponseDTO<bool>> IsFollower(IsFollowerRequest request)
+        public async Task<ResponseWrapper<bool>> IsFollower(IsFollowerRequest request)
         {
-            var result = new ServiceResponseDTO<bool>();
+            var result = new ResponseWrapper<bool>();
 
             try
             {
-                // Change this URL to the actual one you're calling
-                var response = await _httpClient.PostAsJsonAsync("https://sm-follow-service.com/api/follow/is-follower", request);
+                var response = await _httpClient.PostAsJsonAsync($"{_settings.BaseUrl}/api/follow/is-follower", request);
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    result.Success = false;
                     result.Errors = new List<string> { $"HTTP Error: {response.StatusCode}" };
                     return result;
                 }
 
-                var responseData = await response.Content.ReadFromJsonAsync<IsFollwerResponse>();
+                var responseData = await response.Content.ReadFromJsonAsync<ResponseWrapper<bool>>();
 
                 if (responseData is not null)
                 {
-                    result.Success = responseData.success;
-                    result.Item = responseData.IsFollwer;
+                    result.Data = responseData.Data;
                     result.Errors = responseData.Errors ?? new List<string>();
                 }
                 else
                 {
-                    result.Success = false;
                     result.Errors = new List<string> { "Null response from follow service." };
                 }
             }
             catch (Exception ex)
             {
-                result.Success = false;
                 result.Errors = new List<string> { ex.Message };
             }
 
             return result;
         }
     }
-
 }

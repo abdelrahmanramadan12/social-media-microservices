@@ -2,7 +2,7 @@ namespace Application.DTOs.Follow
 {
     public class IsFollowerRequest
     {
-        public string userId { get; set; }
-        public string targetUserId { get; set; }
+        public string UserId { get; set; }
+        public string OtherId { get; set; }
     }
 }

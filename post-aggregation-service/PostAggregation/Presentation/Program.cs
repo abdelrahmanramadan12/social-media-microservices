@@ -17,6 +17,11 @@ var reactionServiceSettings = builder.Configuration.GetSection(ReactionServiceSe
 builder.Services.AddSingleton(reactionServiceSettings);
 builder.Services.AddHttpClient<IReactionServiceClient, ReactionServiceClient>();
 
+// Configure Follow service
+var followServiceSettings = builder.Configuration.GetSection(FollowServiceSettings.ConfigurationSection).Get<FollowServiceSettings>();
+builder.Services.AddSingleton(followServiceSettings);
+builder.Services.AddHttpClient<IFollowServiceClient, FollowServiceClient>();
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
