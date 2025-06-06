@@ -50,17 +50,17 @@ namespace Infrastructure.Repositories
             return Task.FromResult(_collection.AsQueryable().AsEnumerable()); // Includes not applicable in MongoDB
         }
 
-        public async Task<T?> GetAsync(int id, string? id2 = "", long number = 0)
-        {
-            var filter = Builders<T>.Filter.Eq("Id", id.ToString());
-            return await _collection.Find(filter).FirstOrDefaultAsync();
-        }
+        //public async Task<T?> GetAsync(int id, string? id2 = "", long number = 0)
+        //{
+        //    var filter = Builders<T>.Filter.Eq("UserId", id.ToString());
+        //    return await _collection.Find(filter).FirstOrDefaultAsync();
+        //}
 
         public async Task<T?> GetAsync(string id, string? id2 = "", long number = 0)
         {
             var filter = Builders<T>.Filter.Eq("MyId", id);
             var res = await _collection.Find(filter).FirstOrDefaultAsync();
-            return res;
+                return res;
         }
 
         public async Task<T?> GetSingleAsync(Expression<Func<T, bool>> predicate)

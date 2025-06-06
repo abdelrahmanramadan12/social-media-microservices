@@ -131,41 +131,41 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 
-    //using (var scope = app.Services.CreateScope())
-    //{
-    //    try
-    //    {
-    //         //seed CacheDB data
-    //        var followsCacheSeeder = scope.ServiceProvider.GetRequiredService<RedisFollowsSeeder>();
+    using (var scope = app.Services.CreateScope())
+    {
+        try
+        {
+            //seed CacheDB data
+            var followsCacheSeeder = scope.ServiceProvider.GetRequiredService<RedisFollowsSeeder>();
 
-    //        await followsCacheSeeder.SeedInitialFollowsDataAsync();
+            await followsCacheSeeder.SeedInitialFollowsDataAsync();
 
-    //        var reactionCacheReactions = scope.ServiceProvider.GetRequiredService<RedisReactionsSeeder>();
-    //        await reactionCacheReactions.SeedInitialReactionsDataAsync();
+            var reactionCacheReactions = scope.ServiceProvider.GetRequiredService<RedisReactionsSeeder>();
+            await reactionCacheReactions.SeedInitialReactionsDataAsync();
 
-    //        var commentsCacheSeeder = scope.ServiceProvider.GetRequiredService<RedisCommentsSeeder>();
+            var commentsCacheSeeder = scope.ServiceProvider.GetRequiredService<RedisCommentsSeeder>();
 
-    //        await commentsCacheSeeder.SeedInitialCommentsDataAsync();
-    //        //Seed MongoDB data
-    //       var mongoFollowsSeeder = scope.ServiceProvider.GetRequiredService<MongoFollowsSeeder>();
-    //        await mongoFollowsSeeder.SeedInitialFollowsDataAsync();
+            await commentsCacheSeeder.SeedInitialCommentsDataAsync();
+            //Seed MongoDB data
+            var mongoFollowsSeeder = scope.ServiceProvider.GetRequiredService<MongoFollowsSeeder>();
+            await mongoFollowsSeeder.SeedInitialFollowsDataAsync();
 
-    //        var mongoReactionsSeeder = scope.ServiceProvider.GetRequiredService<MongoReactionsSeeder>();
-    //        await mongoReactionsSeeder.SeedInitialReactionsDataAsync();
+            var mongoReactionsSeeder = scope.ServiceProvider.GetRequiredService<MongoReactionsSeeder>();
+            await mongoReactionsSeeder.SeedInitialReactionsDataAsync();
 
-    //        var mongoCommentsSeeder = scope.ServiceProvider.GetRequiredService<MongoCommentsSeeder>();
-    //        await mongoCommentsSeeder.SeedInitialCommentsDataAsync();
-
-
+            var mongoCommentsSeeder = scope.ServiceProvider.GetRequiredService<MongoCommentsSeeder>();
+            await mongoCommentsSeeder.SeedInitialCommentsDataAsync();
 
 
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    //        logger.LogError(ex, "An error occurred while seeding Redis data");
-    //    }
-    //}
+
+
+        }
+        catch (Exception ex)
+        {
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+            logger.LogError(ex, "An error occurred while seeding Redis data");
+        }
+    }
 }
 
 app.UseHttpsRedirection();
