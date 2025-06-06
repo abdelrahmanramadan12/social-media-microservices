@@ -1,14 +1,7 @@
+using Application.DTOs.Responses;
+
 namespace Application.DTOs
 {
-    public enum ErrorType
-    {
-        None,
-        NotFound,
-        BadRequest,
-        UnAuthorized,
-        Validation,
-        InternalServerError
-    }
     public class ServiceResponse<T>
     {
         public T DataItem { get; set; }

@@ -1,4 +1,5 @@
 using Application.DTOs;
+using Application.DTOs.Responses;
 using Application.IServices;
 using Domain.Entities;
 using Domain.Enums;
@@ -19,9 +20,9 @@ namespace Application.Services
             _helperService = helperService;
         }
 
-        public async Task<ServiceResponse<PostResponseDTO>> AddPostAsync(string userId, PostInputDTO postInputDto)
+        public async Task<ResponseWrapper<PostResponseDTO>> AddPostAsync(string userId, PostInputDTO postInputDto)
         {
-            var res = new ServiceResponse<PostResponseDTO>();
+            var res = new ResponseWrapper<PostResponseDTO>();
             var post = new Post();
 
             // Validate Post Content
@@ -74,14 +75,13 @@ namespace Application.Services
                 res.ErrorType = mappingResult.ErrorType;
                 return res;
             }
-
-            res.DataItem = mappingResult.Item;
+            res.Data = mappingResult.Item;
             return res;
         }
 
-        public async Task<ServiceResponse<string>> DeletePostAsync(string userId, string postId)
+        public async Task<ResponseWrapper<string>> DeletePostAsync(string userId, string postId)
         {
-            var response = new ServiceResponse<string>();
+            var response = new ResponseWrapper<string>();
             if (string.IsNullOrEmpty(postId))
             {
                 response.ErrorType = ErrorType.BadRequest;
@@ -101,13 +101,13 @@ namespace Application.Services
                 response.Errors.Add("Invalid Rperation! post isn't found or you don't have permession");
                 return response;
             }
-            response.DataItem = postId;
+            response.Data = postId;
             return response;
         }
 
-        public async Task<ServiceResponse<PostResponseDTO>> GetPostByIdAsync(string postId)
+        public async Task<ResponseWrapper<PostResponseDTO>> GetPostByIdAsync(string postId)
         {
-            var response = new ServiceResponse<PostResponseDTO>();
+            var response = new ResponseWrapper<PostResponseDTO>();
             var postResponse = new PostResponseDTO();
 
             if (string.IsNullOrEmpty(postId))
@@ -132,60 +132,46 @@ namespace Application.Services
                 response.ErrorType = mappingResult.ErrorType;
                 return response;
             }
-            response.DataItem = mappingResult.Item;
+            response.Data = mappingResult.Item;
             return response;
         }
 
-        public async Task<ServiceResponse<PostResponseDTO>> GetProfilePostListAsync(string userId, string targetUserId, int pageSize, string cursorPostId)
+        public async Task<ResponseWrapper<List<PostResponseDTO>>> GetProfilePostListAsync(string userId, string targetUserId, int pageSize, string cursorPostId)
         {
-            var response = new ServiceResponse<PostResponseDTO>();
-
-            // GET: fetch posts based on the privacy constrains
+            var response = new ResponseWrapper<List<PostResponseDTO>>();
             List<Post> profilePosts = await _postRepository.GetUserPostsAsync(targetUserId, pageSize, cursorPostId);
             if (profilePosts == null || profilePosts.Count() <= 0)
             {
-                response.DataList = new List<PostResponseDTO>();
+                response.Data = new List<PostResponseDTO>();
                 return response;
             }
-
-            // Filter out OnlyMe posts where user is not the author
-            profilePosts = profilePosts.Where(post =>
-                post.Privacy != Privacy.OnlyMe || post.AuthorId == userId
-            ).ToList();
-
-            // Aggregate: 
-            response.DataList = _helperService.AgregatePostResponseList(profilePosts);
+            profilePosts = profilePosts.Where(post => post.Privacy != Privacy.OnlyMe || post.AuthorId == userId).ToList();
+            response.Data = _helperService.AgregatePostResponseList(profilePosts);
             return response;
         }
 
-        public async Task<ServiceResponse<PostResponseDTO>> GetPostListAsync(string userId, List<string> PostIds)
+        public async Task<ResponseWrapper<List<PostResponseDTO>>> GetPostListAsync(string userId, List<string> PostIds)
         {
-            var response = new ServiceResponse<PostResponseDTO>();
-
-            // Validate userId
+            var response = new ResponseWrapper<List<PostResponseDTO>>();
             if (string.IsNullOrEmpty(userId))
             {
                 response.ErrorType = ErrorType.UnAuthorized;
                 response.Errors.Add("Invalid Request! Missing the User Id");
                 return response;
             }
-
-            response.DataList = new List<PostResponseDTO>();
             List<Post> reactedPosts = await _postRepository.GetPostList(userId, PostIds);
             if (reactedPosts == null || !reactedPosts.Any())
             {
-                response.DataList = new List<PostResponseDTO>();
+                response.Data = new List<PostResponseDTO>();
                 return response;
             }
-
-            // Map to DTOs
-            response.DataList = _helperService.AgregatePostResponseList(reactedPosts);
+            response.Data = _helperService.AgregatePostResponseList(reactedPosts);
             return response;
         }
 
-        public async Task<ServiceResponse<PostResponseDTO>> UpdatePostAsync(string userId, PostInputDTO postInputDto)
+        public async Task<ResponseWrapper<PostResponseDTO>> UpdatePostAsync(string userId, PostInputDTO postInputDto)
         {
-            var response = new ServiceResponse<PostResponseDTO>();
+            var response = new ResponseWrapper<PostResponseDTO>();
             var postToUpdate = await _postRepository.GetPostAsync(postInputDto.PostId);
 
             // Validate Post Update (Including security)
@@ -202,21 +188,34 @@ namespace Application.Services
             postToUpdate.Privacy = postInputDto.Privacy;
 
             // Update Media
+            Console.WriteLine(postInputDto.MediaUrls.Count());
             var updateMediaResponse = await _helperService.UpdatePostMedia(postInputDto, postToUpdate);
-            if (!updateMediaResponse.IsValid)
+            if (!updateMediaResponse.Success)
             {
                 response.Errors = updateMediaResponse.Errors;
                 response.ErrorType = updateMediaResponse.ErrorType;
                 return response;
             }
-            postToUpdate = updateMediaResponse.DataItem;
 
-            // Add to the DB
-            var updateResult = await _postRepository.UpdatePostAsync(postToUpdate.Id, postToUpdate, postInputDto.HasMedia);
+            // Save changes
+            var updatedPost = await _postRepository.UpdatePostAsync(postToUpdate.Id, postToUpdate, postInputDto.HasMedia);
+            if (updatedPost == null)
+            {
+                response.ErrorType = ErrorType.InternalServerError;
+                response.Errors.Add("Failed to update the post in the database.");
+                return response;
+            }
 
-            var postResponseDto = _helperService.MapPostToPostResponseDto(postToUpdate);
-            response.DataItem = postResponseDto.Item;
-            return response!;
+            // Map to DTO
+            var mappingResult = _helperService.MapPostToPostResponseDto(updatedPost);
+            if (!mappingResult.Success)
+            {
+                response.Errors = mappingResult.Errors;
+                response.ErrorType = mappingResult.ErrorType;
+                return response;
+            }
+            response.Data = mappingResult.Item;
+            return response;
         }
     }
 }

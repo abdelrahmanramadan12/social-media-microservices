@@ -69,8 +69,12 @@ public class MediaServiceClient : IMediaServiceClient
 
     public async Task<bool> DeleteMediaAsync(IEnumerable<string> urls, CancellationToken ct = default)
     {
-        var request = new DeleteMediaRequest { Urls = urls.ToList() };
-        var response = await _http.DeleteAsync($"{BASE_ROUTE}?urls={string.Join(",", urls)}", ct);
+        var request = new HttpRequestMessage(HttpMethod.Delete, BASE_ROUTE)
+        {
+            Content = JsonContent.Create(urls.ToList())
+        };
+
+        var response = await _http.SendAsync(request, ct);
         response.EnsureSuccessStatusCode();
 
         return await response.Content.ReadFromJsonAsync<bool>(cancellationToken: ct);

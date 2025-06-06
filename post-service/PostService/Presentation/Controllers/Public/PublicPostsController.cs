@@ -1,4 +1,5 @@
 using Application.DTOs;
+using Application.DTOs.Responses;
 using Application.IServices;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,7 +7,7 @@ namespace Presentation.Controllers.Public
 {
     [Route("api/public/posts")]
     [ApiController]
-    public class PublicPostsController : ControllerBase
+    public class PublicPostsController : BaseController
     {
         private readonly IPostService _postService;
         private readonly IEncryptionService _encryptionService;
@@ -19,49 +20,86 @@ namespace Presentation.Controllers.Public
         [HttpPost]
         public async Task<IActionResult> AddPost([FromForm] PostInputDTO postDto, [FromHeader(Name = "userId")] string userId)
         {
-            ServiceResponse<PostResponseDTO> res = await _postService.AddPostAsync(userId, postDto);
-            if (!res.IsValid)
+            var res = await _postService.AddPostAsync(userId, postDto);
+            if (!res.Success)
+                return HandleErrorResponse(res);
+            var responseData = res.Data;
+            if (responseData == null)
+                return StatusCode(500, new { errors = new[] { "Unexpected error: response data is null." } });
+            var mediaWithType = new List<object>();
+            if (responseData.MediaUrls != null)
             {
-                return HandleServiceError(res);
+                foreach (var url in responseData.MediaUrls)
+                {
+                    mediaWithType.Add(new { url, mediaType = postDto.MediaType.ToString() });
+                }
             }
-
-            return Created($"api/public/posts/{res.DataItem.PostId}", res.DataItem);
+            var response = new
+            {
+                data = new {
+                    responseData.PostId,
+                    responseData.AuthorId,
+                    responseData.PostContent,
+                    responseData.Privacy,
+                    Media = mediaWithType,
+                    responseData.HasMedia,
+                    responseData.CreatedAt,
+                    responseData.IsEdited,
+                    responseData.NumberOfLikes,
+                    responseData.NumberOfComments
+                },
+                message = "Post created successfully",
+                success = res.Success,
+                errorType = res.ErrorType
+            };
+            return Created($"api/public/posts/{responseData.PostId}", response);
         }
 
         [HttpPut]
         public async Task<IActionResult> UpdatePost([FromForm] PostInputDTO postDto, [FromHeader(Name = "userId")] string userId)
         {
-            ServiceResponse<PostResponseDTO> res = await _postService.UpdatePostAsync(userId, postDto);
-            if (!res.IsValid)
+            var res = await _postService.UpdatePostAsync(userId, postDto);
+            if (!res.Success)
+                return HandleErrorResponse(res);
+            var responseData = res.Data;
+            if (responseData == null)
+                return StatusCode(500, new { errors = new[] { "Unexpected error: response data is null." } });
+            var mediaWithType = new List<object>();
+            if (responseData.MediaUrls != null)
             {
-                return HandleServiceError(res);
+                foreach (var url in responseData.MediaUrls)
+                {
+                    mediaWithType.Add(new { url, mediaType = postDto.MediaType.ToString() });
+                }
             }
-
-            return NoContent();
+            var response = new
+            {
+                data = new {
+                    responseData.PostId,
+                    responseData.AuthorId,
+                    responseData.PostContent,
+                    responseData.Privacy,
+                    Media = mediaWithType,
+                    responseData.HasMedia,
+                    responseData.CreatedAt,
+                    responseData.IsEdited,
+                    responseData.NumberOfLikes,
+                    responseData.NumberOfComments
+                },
+                message = "Post updated successfully",
+                success = res.Success,
+                errorType = res.ErrorType
+            };
+            return Ok(response);
         }
 
         [HttpDelete]
         public async Task<IActionResult> DeletePost([FromBody] DeletePostRequest request, [FromHeader(Name = "userId")] string userId)
         {
             var res = await _postService.DeletePostAsync(userId, request.PostId);
-            if (!res.IsValid)
-                return HandleServiceError(res);
-
+            if (!res.Success)
+                return HandleErrorResponse(res);
             return NoContent();
-        }
-
-
-        // Utilities
-        private ActionResult HandleServiceError<T>(ServiceResponse<T> res)
-        {
-            return res.ErrorType switch
-            {
-                ErrorType.NotFound => NotFound(new { errors = res.Errors }),
-                ErrorType.BadRequest => BadRequest(new { errors = res.Errors }),
-                ErrorType.UnAuthorized => Unauthorized(new { errors = res.Errors }),
-                ErrorType.InternalServerError => StatusCode(StatusCodes.Status500InternalServerError, res.Errors),
-                _ => BadRequest(new { errors = res.Errors }),
-            };
         }
     }
 }

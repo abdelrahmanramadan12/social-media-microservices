@@ -1,3 +1,5 @@
+using Application.DTOs.Responses;
+
 namespace Application.DTOs
 {
     public class ValidationResult

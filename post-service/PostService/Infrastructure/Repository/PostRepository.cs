@@ -23,14 +23,9 @@ namespace Infrastructure.Repository
             post.IsDeleted = false;
             post.NumberOfComments = 0;
             post.NumberOfLikes = 0;
-            post.MediaList = [];
-
-            if (HasMedia && post.MediaList.Count > 0)
-            {
-                foreach (var media in post.MediaList)
-                    post.MediaList.Add(media);
-            }
-
+            if (post.MediaList == null)
+                post.MediaList = new List<Domain.ValueObjects.Media>();
+            // Do not overwrite MediaList if already set by service
             await _posts.InsertOneAsync(post);
 
             return post;
@@ -101,10 +96,8 @@ namespace Infrastructure.Repository
             var update = Builders<Post>.Update
                 .Set(p => p.Content, newPost.Content)
                 .Set(p => p.Privacy, newPost.Privacy)
-                .Set(p => p.UpdatedAt, DateTime.UtcNow);
-
-            if (HasMedia)
-                update.Set(p => p.MediaList, newPost.MediaList);
+                .Set(p => p.UpdatedAt, DateTime.UtcNow)
+                .Set(p => p.MediaList, newPost.MediaList ?? new List<Domain.ValueObjects.Media>());
 
             var result = await _posts.UpdateOneAsync(filter, update);
 
