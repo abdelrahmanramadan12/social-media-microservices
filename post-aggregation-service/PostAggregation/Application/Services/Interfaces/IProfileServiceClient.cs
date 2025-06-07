@@ -10,6 +10,7 @@ namespace Application.Services.Interfaces
 {
     public interface IProfileServiceClient
     {
-        Task<ServiceResponseDTO<PostAuthorProfile>> GetProfileResponse (SingleProfileRequest singleProfileRequest);
+        Task<ResponseWrapper<SimpleUserProfile>> GetByUserIdMinAsync(string userId);
+        Task<ResponseWrapper<List<SimpleUserProfile>>> GetUsersByIdsAsync(GetUsersProfileByIdsRequest request);
     }
 }
