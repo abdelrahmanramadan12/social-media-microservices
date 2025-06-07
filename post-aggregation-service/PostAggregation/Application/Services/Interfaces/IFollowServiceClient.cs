@@ -6,7 +6,7 @@ namespace Application.Services.Interfaces
     public interface IFollowServiceClient
     {
         // IsFollower()
-        public Task<ServiceResponseDTO<bool>> IsFollower(IsFollowerRequest);
+        public Task<ResponseWrapper<bool>> IsFollower(IsFollowerRequest request);
 
 
     }

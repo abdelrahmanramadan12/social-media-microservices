@@ -1,7 +1,6 @@
 using Application.Configuration;
 using Application.Services.Implementations;
 using Application.Services.Interfaces;
-using System;
 
 var builder = WebApplication.CreateBuilder(args);
 

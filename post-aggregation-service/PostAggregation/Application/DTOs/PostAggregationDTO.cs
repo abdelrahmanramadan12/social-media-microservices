@@ -16,6 +16,6 @@ namespace Application.DTOs
         public int NumberOfLikes { get; set; }
         public int NumberOfComments { get; set; }
         public bool IsLiked { get; set; }
-        public PostAuthorProfile PostAuthorProfile { get; set; }
+        public SimpleUserProfile PostAuthorProfile { get; set; }
     }
 }

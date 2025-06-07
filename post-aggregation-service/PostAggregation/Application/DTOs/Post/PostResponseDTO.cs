@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace Application.DTOs.Post
 {
     public enum MediaType
@@ -35,4 +32,4 @@ namespace Application.DTOs.Post
         public int NumberOfLikes { get; set; }
         public int NumberOfComments { get; set; }
     }
-} 
+}
