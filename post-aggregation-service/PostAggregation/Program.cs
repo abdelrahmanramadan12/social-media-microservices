@@ -9,9 +9,26 @@ builder.Services.AddControllers();
 
 // Configure ProfileServiceClient
 builder.Services.Configure<ProfileServiceSettings>(
-    builder.Configuration.GetSection("ProfileService"));
-
+    builder.Configuration.GetSection("Services:Profile"));
 builder.Services.AddHttpClient<IProfileServiceClient, ProfileServiceClient>();
+
+// Configure PostServiceClient
+builder.Services.Configure<PostServiceSettings>(
+    builder.Configuration.GetSection("Services:Post"));
+builder.Services.AddHttpClient<IPostServiceClient, PostServiceClient>();
+
+// Configure ReactionServiceClient
+builder.Services.Configure<ReactionServiceSettings>(
+    builder.Configuration.GetSection("Services:Reaction"));
+builder.Services.AddHttpClient<IReactionServiceClient, ReactionServiceClient>();
+
+// Configure FollowServiceClient
+builder.Services.Configure<FollowServiceSettings>(
+    builder.Configuration.GetSection("Services:Follow"));
+builder.Services.AddHttpClient<IFollowServiceClient, FollowServiceClient>();
+
+// Register PostAggregationService
+builder.Services.AddScoped<IPostAggregationService, PostAggregationService>();
 
 // ... rest of your service configurations
 
@@ -30,4 +47,4 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.Run(); 
+app.Run();
