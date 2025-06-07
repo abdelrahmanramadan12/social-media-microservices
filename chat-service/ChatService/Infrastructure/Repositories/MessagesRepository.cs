@@ -19,6 +19,17 @@ namespace Infrastructure.Repositories
             return messageEntity;
         }
 
+        public async Task<bool> EditAsync(Message existingMessage)
+        {
+            var filter = Builders<Message>.Filter.Eq(m => m.Id, existingMessage.Id);
+            var msg= await _messages.ReplaceOneAsync(filter,existingMessage);
+            if (msg.IsAcknowledged && msg.ModifiedCount > 0)
+            {
+                return true;
+            }
+            return false;
+        }
+
         public async Task<Message> GetByIdAsync(string messageId)
         {
             var filter = Builders<Message>.Filter.Eq(m => m.Id, messageId);

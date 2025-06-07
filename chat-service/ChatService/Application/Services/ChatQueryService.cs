@@ -12,18 +12,18 @@ namespace Application.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<ConversationMessagesDTO> GetConversationMessagesAsync(string conversationId, string? next)
+        public async Task<ConversationMessagesDTO> GetConversationMessagesAsync(string conversationId, string? next , int pageSize)
         {
-            const int PageSize = 20;
+      
 
             var messagesPlusOne = (await _unitOfWork.Messages.GetMessagesPageAsync(
                 conversationId,
                 next,
-                PageSize + 1
+                pageSize + 1
             )).ToList();
 
-            var messages = messagesPlusOne.Take(PageSize).ToList();
-            next = messagesPlusOne.Count > PageSize ? messagesPlusOne[PageSize].Id : null;
+            var messages = messagesPlusOne.Take(pageSize).ToList();
+            next = messagesPlusOne.Count > pageSize ? messagesPlusOne[pageSize].Id : null;
 
             return new ConversationMessagesDTO
             {
@@ -38,18 +38,17 @@ namespace Application.Services
             };
         }
 
-        public async Task<UserConversationsDTO> GetUserConversationsAsync(string userId, string? next)
+        public async Task<UserConversationsDTO> GetUserConversationsAsync(string userId, string? next, int pageSize)
         {
-            const int PageSize = 20;
 
             var conversationsPlusOne = (await _unitOfWork.Conversations.GetConversationsAsync(
                 userId,
                 next,
-                PageSize + 1
+                pageSize + 1
             )).ToList();
 
-            var conversations = conversationsPlusOne.Take(PageSize).ToList();
-            next = conversationsPlusOne.Count > PageSize ? conversationsPlusOne[PageSize].Id : null;
+            var conversations = conversationsPlusOne.Take(pageSize).ToList();
+            next = conversationsPlusOne.Count > pageSize ? conversationsPlusOne[pageSize].Id : null;
 
             return new UserConversationsDTO
             {

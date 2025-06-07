@@ -44,12 +44,38 @@ namespace Application.Services
             };
         }
 
+        public async Task DeleteConversationAsync(string userId, string id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                throw new ArgumentNullException(nameof(id), "Conversation ID cannot be null or empty.");
+            }
+            var conversation =  await _unitOfWork.Conversations.GetConversationByIdAsync(id);
+            if (conversation == null)
+            {
+                throw new ArgumentNullException(nameof(conversation));
+            }
+            // Check if the conversation is a group conversation and the user is an admin
+            // Temporary check for group
+
+            if (!conversation.IsGroup )
+            {
+                throw new UnauthorizedAccessException("You are not authorized to delete this group conversation");
+            }
+            if ( userId != conversation.AdminId)
+            {
+                throw new UnauthorizedAccessException("You are not authorized to remove this message"); 
+            }
+
+            await _unitOfWork.Conversations.RemoveAsync(id);
+        }
+
         public async Task DeleteMessageAsync(string messageId)
         {
             await _unitOfWork.Messages.RemoveAsync(messageId);
         }
 
-        public async Task EditMessageAsync(MessageDTO message)
+        public async Task<MessageDTO> EditMessageAsync(MessageDTO message)
         {
             if (message == null || string.IsNullOrEmpty(message.Id))
             {
@@ -60,14 +86,30 @@ namespace Application.Services
                 throw new KeyNotFoundException($"Message with ID {message.Id} not found.");
             }
 
+            if(existingMessage.SenderId != message.SenderId)
+            {
+                throw new UnauthorizedAccessException("You are not authorized to edit this message.");
+            }
+
             existingMessage.Text = !string.IsNullOrEmpty(message.Content) ? message.Content : existingMessage.Text;
             existingMessage.EditedAt = DateTime.UtcNow;
             existingMessage.IsEdited = true;
 
-            await _unitOfWork.Messages.AddAsync(existingMessage);
+            var msg= await _unitOfWork.Messages.EditAsync(existingMessage);
+            if (!msg)
+            {
+                throw new Exception("Failed to edit message. Please try again.");
+            }
+            return new MessageDTO
+            {
+                Id = existingMessage.Id,
+                ConversationId = existingMessage.ConversationId,
+                SenderId = existingMessage.SenderId,
+                Content = existingMessage.Text,
+            };
         }
 
-        public Task SendMessageAsync(NewMessageDTO message)
+        public async Task<MessageDTO> SendMessageAsync(NewMessageDTO message)
         {
             if (message == null)
             {
@@ -75,7 +117,7 @@ namespace Application.Services
             }
             if (string.IsNullOrEmpty(message.ConversationId) || string.IsNullOrEmpty(message.SenderId) )
             {
-                throw new ArgumentException("Message must have a valid ConversationId and SenderId");
+                throw new ArgumentNullException("Message must have a valid ConversationId and SenderId");
             }
 
             var messageEntity = new Message
@@ -90,7 +132,17 @@ namespace Application.Services
                 // call a Service to handle file upload and set the attachment properties
             }
 
-            return _unitOfWork.Messages.AddAsync(messageEntity);
+            var msg = await _unitOfWork.Messages.AddAsync(messageEntity);
+
+            return new MessageDTO
+            {
+                Id = msg.Id,
+                ConversationId = msg.ConversationId,
+                SenderId = msg.SenderId,
+                Content = msg.Text,
+                
+            };
+
         }
     }
 }

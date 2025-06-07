@@ -19,6 +19,12 @@ namespace Infrastructure.Repositories
             return conversationEntity;
         }
 
+        public async Task<Conversation> GetConversationByIdAsync(string id)
+        {
+            return await _conversations.Find(c => c.Id == id)
+                                  .FirstOrDefaultAsync();
+        }
+
         public async Task<List<Conversation>> GetConversationsAsync(string userId, string? next, int pageSize)
         {
             var filter = Builders<Conversation>.Filter.AnyEq(c => c.Participants, userId);
@@ -31,6 +37,12 @@ namespace Infrastructure.Repositories
             var conversations = _conversations.Find(filter).SortByDescending(c => c.LastMessage.SentAt).Limit(pageSize);
 
             return await conversations.ToListAsync();
+        }
+
+        public async Task RemoveAsync(string conversationId)
+        {
+            
+            await _conversations.DeleteOneAsync(c => c.Id == conversationId);
         }
     }
 }
