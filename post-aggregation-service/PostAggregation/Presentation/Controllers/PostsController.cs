@@ -1,3 +1,4 @@
+using Application.DTOs.Aggregation;
 using Application.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -5,7 +6,7 @@ namespace Presentation.Controllers
 {
     [Route("api/public/[controller]")]
     [ApiController]
-    public class PostsController : ControllerBase
+    public class PostsController : BaseController
     {
         private readonly IPostAggregationService _postAggregationService;
         public PostsController(IPostAggregationService postAggregationService)
@@ -13,26 +14,56 @@ namespace Presentation.Controllers
             this._postAggregationService = postAggregationService;
         }
 
-        [HttpGet("user/posts/{targetUserId}")]
-        public async Task<IActionResult> GetProfilePosts(string targetUserId, [FromHeader(Name = "userId")] string userId, [FromQuery] string? next)
+        [HttpGet("user/{OtherId}")]
+        public async Task<IActionResult> GetProfilePosts(string OtherId, [FromHeader(Name = "UserId")] string userId, [FromQuery] string? next)
         {
-            var response = await _postAggregationService.GetProfilePosts(targetUserId, userId, next);
-            if (response.Success)
+            var response = await _postAggregationService.GetProfilePosts(new ProfilePostsRequest
             {
-                return Ok(new {data = response.ItemList, next = response.NextPostHashId});
+                UserId = userId,
+                OtherId = OtherId,
+                Next = next ?? string.Empty
+            });
+
+            if (!response.Success)
+            {
+                return HandlePaginationErrorResponse(response);
             }
-            return BadRequest();
+
+            return HandlePaginationResponse(response);
         }
 
-        [HttpGet("user/posts")]
-        public async Task<IActionResult> GetReactedPosts([FromHeader(Name = "userId")] string userId, [FromQuery] string? next)
+        [HttpGet("reacted   ")]
+        public async Task<IActionResult> GetReactedPosts([FromHeader(Name = "UserId")] string userId, [FromQuery] string? next)
         {
-            var response = await _postAggregationService.GetReactedPosts(userId, next);
-            if (response.Success)
+            var response = await _postAggregationService.GetReactedPosts(new ReactedPostsRequest
             {
-                return Ok(new { data = response.ItemList, next = response.NextPostHashId });
+                UserId = userId,
+                Next = next ?? string.Empty
+            });
+
+            if (!response.Success)
+            {
+                return HandlePaginationErrorResponse(response);
             }
-            return BadRequest();
+
+            return HandlePaginationResponse(response);
+        }
+
+        [HttpGet("{postId}")]
+        public async Task<IActionResult> GetSinglePost(string postId, [FromHeader(Name = "UserId")] string userId)
+        {
+            var response = await _postAggregationService.GetSinglePost(new GetSinglePostRequest
+            {
+                PostId = postId,
+                UserId = userId
+            });
+
+            if (!response.Success)
+            {
+                return HandleErrorResponse(response);
+            }
+
+            return HandleResponse(response);
         }
     }
 }

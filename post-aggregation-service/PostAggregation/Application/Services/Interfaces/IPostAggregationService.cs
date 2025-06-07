@@ -1,15 +1,13 @@
 using Application.DTOs;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Application.DTOs.Aggregation;
+using Application.DTOs.Post;
 
 namespace Application.Services.Interfaces
 {
     public interface IPostAggregationService
     {
-        public Task<ServiceResponseDTO<PostAggregationDTO>> GetProfilePosts(string userId, string targetUser, string nextPostHashId);
-        public Task<ServiceResponseDTO<PostAggregationDTO>> GetReactedPosts(string userId, string nextPostHashId);
+        Task<PaginationResponseWrapper<List<PostAggregationResponse>>> GetProfilePosts(ProfilePostsRequest request);
+        Task<PaginationResponseWrapper<List<PostAggregationResponse>>> GetReactedPosts(ReactedPostsRequest request);
+        Task<ResponseWrapper<PostAggregationResponse>> GetSinglePost(GetSinglePostRequest request);
     }
 }
