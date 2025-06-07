@@ -27,7 +27,13 @@ namespace Application.Services
 
             return new ConversationMessagesDTO
             {
-                Messages = messages,
+                Messages = messages?.Select(m => new MessageDTO
+                {
+                    Id = m.Id,
+                    Content = m.Text,
+                    SenderId = m.SenderId,
+                    ConversationId = m.ConversationId
+                }).ToList(),
                 Next = next
             };
         }
@@ -36,7 +42,7 @@ namespace Application.Services
         {
             const int PageSize = 20;
 
-            var conversationsPlusOne = (await _unitOfWork.Conversations.GetConversationsPageAsync(
+            var conversationsPlusOne = (await _unitOfWork.Conversations.GetConversationsAsync(
                 userId,
                 next,
                 PageSize + 1
@@ -47,7 +53,21 @@ namespace Application.Services
 
             return new UserConversationsDTO
             {
-                Conversations = conversations,
+                Conversations = conversations?.Select(c => new ConversationDTO
+                {
+                    Id = c.Id,
+                    CreatedAt = c.CreatedAt,
+                    GroupName = c.GroupName,
+                    IsGroup = c.IsGroup,
+                    LastMessage = c.LastMessage != null ? new MessageDTO()
+                    {
+                        Id = c.LastMessage.Id,
+                        Content = c.LastMessage.Text,
+                        ConversationId = c.Id,
+                        SenderId = c.LastMessage.SenderId
+                    } : null,
+                    Participants = c.Participants
+                }).ToList(),
                 Next = next
             };
         }

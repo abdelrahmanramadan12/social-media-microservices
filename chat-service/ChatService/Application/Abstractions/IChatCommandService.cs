@@ -7,6 +7,6 @@ namespace Application.Abstractions
         public Task SendMessageAsync(NewMessageDTO message);
         public Task EditMessageAsync(MessageDTO message);
         public Task DeleteMessageAsync(string messageId);
-        public Task CreateConversationAsync(NewConversationDTO conversation);
+        public Task<ConversationDTO> CreateConversationAsync(NewConversationDTO conversation);
     }
 }

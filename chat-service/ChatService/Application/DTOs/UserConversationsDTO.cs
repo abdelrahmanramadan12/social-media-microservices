@@ -2,7 +2,7 @@
 {
     public class UserConversationsDTO
     {
-        public object Conversations { get; internal set; }
-        public string Next { get; internal set; }
+        public List<ConversationDTO>? Conversations { get; set; }
+        public string? Next { get; set; }
     }
 }

@@ -1,0 +1,36 @@
+﻿using Application.Abstractions;
+using Domain.Entities;
+using MongoDB.Driver;
+
+namespace Infrastructure.Repositories
+{
+    public class ConversationsRepository : IConversationRepository
+    {
+        private readonly IMongoCollection<Conversation> _conversations;
+
+        public ConversationsRepository(IMongoDatabase db)
+        {
+            _conversations = db.GetCollection<Conversation>("conversations");
+        }
+
+        public async Task<Conversation> AddAsync(Conversation conversationEntity)
+        {
+            await _conversations.InsertOneAsync(conversationEntity);
+            return conversationEntity;
+        }
+
+        public async Task<List<Conversation>> GetConversationsAsync(string userId, string? next, int pageSize)
+        {
+            var filter = Builders<Conversation>.Filter.AnyEq(c => c.Participants, userId);
+
+            if (!string.IsNullOrEmpty(next) && DateTime.TryParse(next, out var nextDate))
+            {
+                filter &= Builders<Conversation>.Filter.Lte(c => c.LastMessage.SentAt, nextDate);
+            }
+
+            var conversations = _conversations.Find(filter).SortByDescending(c => c.LastMessage.SentAt).Limit(pageSize);
+
+            return await conversations.ToListAsync();
+        }
+    }
+}

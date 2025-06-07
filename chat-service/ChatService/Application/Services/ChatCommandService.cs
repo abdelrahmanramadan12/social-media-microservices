@@ -13,7 +13,7 @@ namespace Application.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task CreateConversationAsync(NewConversationDTO conversation)
+        public async Task<ConversationDTO> CreateConversationAsync(NewConversationDTO conversation)
         {
             var conversationEntity = new Conversation
             {
@@ -25,22 +25,28 @@ namespace Application.Services
                 AdminId = conversation.IsGroup ? conversation.UserId : null 
             };
 
-            await _unitOfWork.Conversations.AddAsync(conversationEntity);
+            var conv = await _unitOfWork.Conversations.AddAsync(conversationEntity);
+
+            return new ConversationDTO()
+            {
+                Id = conv.Id,
+                CreatedAt = conv.CreatedAt,
+                LastMessage = new MessageDTO()
+                {
+                    Id = conv.LastMessage.Id,
+                    Content = conv.LastMessage.Text,
+                    ConversationId = conv.Id,
+                    SenderId = conv.LastMessage.SenderId
+                },
+                IsGroup = conv.IsGroup,
+                Participants = conv.Participants,
+                GroupName = conv.GroupName
+            };
         }
 
         public async Task DeleteMessageAsync(string messageId)
         {
-            if (string.IsNullOrEmpty(messageId))
-            {
-                throw new ArgumentException("Message ID cannot be null or empty.", nameof(messageId));
-            }
-            var message = await _unitOfWork.Messages.GetByIdAsync(messageId);
-
-            if (message == null)
-            {
-                return; 
-            }
-            await _unitOfWork.Messages.RemoveAsync(message);
+            await _unitOfWork.Messages.RemoveAsync(messageId);
         }
 
         public async Task EditMessageAsync(MessageDTO message)
