@@ -1,5 +1,6 @@
 using MongoDB.Driver;
 using Scalar.AspNetCore;
+using StackExchange.Redis;
 
 namespace Web
 {
@@ -15,10 +16,17 @@ namespace Web
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
 
+            // mongodb injection
             builder.Services.AddSingleton<IMongoClient>(sp =>
                 new MongoClient(builder.Configuration.GetConnectionString("AtlasUri")));
             builder.Services.AddSingleton(sp =>
                 sp.GetRequiredService<IMongoClient>().GetDatabase(builder.Configuration.GetSection("DatabaseName").Value));
+
+            // redis injection
+            builder.Services.AddSingleton<IConnectionMultiplexer>(
+                ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("RedisAddress")!));
+            builder.Services.AddSingleton(sp =>
+                sp.GetRequiredService<IConnectionMultiplexer>().GetDatabase());
 
 
             var app = builder.Build();

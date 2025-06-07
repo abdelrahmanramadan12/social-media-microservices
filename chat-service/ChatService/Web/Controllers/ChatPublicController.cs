@@ -27,6 +27,7 @@ namespace Web.Controllers
             {
                 message.SenderId = userId;
                 var response = await _chatCommandService.SendMessageAsync( message);
+                // use hub to send real time message
                 return Ok(response);
             }
             catch (ArgumentNullException ex)
