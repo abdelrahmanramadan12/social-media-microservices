@@ -34,13 +34,27 @@ namespace Application.Services.Implementations
 
                 var response = await _httpClient.PostAsync(url, requestContent);
 
-                if (!response.IsSuccessStatusCode)
+                var json = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
                 {
+                    var result = System.Text.Json.JsonSerializer.Deserialize<PaginationResponseWrapper<List<string>>>(json);
+                    if (result != null)
+                        return result;
+                    else
+                        return new PaginationResponseWrapper<List<string>>
+                        {
+                            Data = new List<string>(),
+                            Errors = new List<string> { "Failed to parse data from the follow service." },
+                            ErrorType = ErrorType.InternalServerError
+                        };
+                }
+                else
+                {
+                    // Try to extract error details from the response
                     try
                     {
-                        var json = await response.Content.ReadAsStringAsync();
                         var result = System.Text.Json.JsonSerializer.Deserialize<PaginationResponseWrapper<List<string>>>(json);
-
                         return result ?? new PaginationResponseWrapper<List<string>>
                         {
                             Data = new List<string>(),
@@ -53,19 +67,11 @@ namespace Application.Services.Implementations
                         return new PaginationResponseWrapper<List<string>>
                         {
                             Data = new List<string>(),
-                            Errors = new List<string> { "Failed to load data from the follow service." },
+                            Errors = new List<string> { $"{failureMessage}: {response.ReasonPhrase}" },
                             ErrorType = ErrorType.InternalServerError
                         };
                     }
                 }
-
-
-                return new PaginationResponseWrapper<List<string>>
-                {
-                    Data = new List<string>(),
-                    Errors = new List<string> { $"{failureMessage}: {response.ReasonPhrase}" },
-                    ErrorType = ErrorType.InternalServerError
-                };
             }
             catch (Exception ex)
             {
