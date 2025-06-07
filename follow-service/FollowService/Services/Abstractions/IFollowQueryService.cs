@@ -10,5 +10,7 @@ namespace Application.Abstractions
         Task<FollowsDTO> ListFollowers(string userId);
         Task<FollowsPageDTO> ListFollowingPage(string userId, string? cursor);
         Task<FollowsPageDTO> ListFollowersPage(string userId, string? cursor);
+        Task<List<string>> FilterFollowers(string userId, List<string> otherIds);
+        Task<List<string>> FilterFollowings(string userId, List<string> otherIds);
     }
 }

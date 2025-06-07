@@ -59,5 +59,21 @@ namespace Infrastructure.Repositories
             await _follows.DeleteOneAsync(filter);
             return;
         }
+
+        public async Task<ICollection<string>> FilterFollowersAsync(string followingId, List<string> followerIds)
+        {
+            var filter = Builders<Follow>.Filter.Eq(f => f.FollowingId, followingId) &
+                         Builders<Follow>.Filter.In(f => f.FollowerId, followerIds);
+            var follows = await _follows.Find(filter).ToListAsync();
+            return follows.Select(f => f.FollowerId).ToList();
+        }
+
+        public async Task<ICollection<string>> FilterFollowingAsync(string followerId, List<string> followingIds)
+        {
+            var filter = Builders<Follow>.Filter.Eq(f => f.FollowerId, followerId) &
+                         Builders<Follow>.Filter.In(f => f.FollowingId, followingIds);
+            var follows = await _follows.Find(filter).ToListAsync();
+            return follows.Select(f => f.FollowingId).ToList();
+        }
     }
 }

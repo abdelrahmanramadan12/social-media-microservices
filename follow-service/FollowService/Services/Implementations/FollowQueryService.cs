@@ -83,5 +83,17 @@ namespace Application.Implementations
                 Next = cursor
             };
         }
+        public async Task<List<string>> FilterFollowers(string userId, List<string> otherIds)
+        {
+            var filtered = await _unitOfWork.Follows.FilterFollowersAsync(userId, otherIds);
+            return filtered.ToList();
+        }
+
+
+        public async Task<List<string>> FilterFollowings(string userId, List<string> otherIds)
+        {
+            var filtered = await _unitOfWork.Follows.FilterFollowingAsync(userId, otherIds);
+            return filtered.ToList();
+        }
     }
 }
