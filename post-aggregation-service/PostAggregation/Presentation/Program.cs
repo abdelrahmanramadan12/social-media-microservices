@@ -1,6 +1,7 @@
 using Application.Configuration;
 using Application.Services.Implementations;
 using Application.Services.Interfaces;
+using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,7 +11,12 @@ builder.Services.AddControllers();
 // Configure Post service
 var postServiceSettings = builder.Configuration.GetSection(PostServiceSettings.ConfigurationSection).Get<PostServiceSettings>();
 builder.Services.AddSingleton(postServiceSettings);
-builder.Services.AddHttpClient<IpostServiceClient, PostServiceClient>();
+builder.Services.AddHttpClient<IPostServiceClient, PostServiceClient>(client =>
+{
+    client.BaseAddress = new Uri(postServiceSettings.BaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
 
 // Configure Reaction service
 var reactionServiceSettings = builder.Configuration.GetSection(ReactionServiceSettings.ConfigurationSection).Get<ReactionServiceSettings>();

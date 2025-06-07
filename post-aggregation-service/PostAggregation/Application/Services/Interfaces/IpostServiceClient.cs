@@ -3,10 +3,10 @@ using Application.DTOs.Post;
 
 namespace Application.Services.Interfaces
 {
-    public interface IpostServiceClient
+    public interface IPostServiceClient
     {
-        Task<ServiceResponse<PostResponseDTO>> GetPostByIdAsync(string postId);
-        Task<ServiceResponse<PostResponseDTO>> GetProfilePostListAsync(string userId, string profileUserId, int pageSize, string nextCursor);
-        Task<ServiceResponse<PostResponseDTO>> GetPostListAsync(string userId, List<string> postIds);
+        Task<ResponseWrapper<PostResponseDTO>> GetPostByIdAsync(string postId);
+        Task<ResponseWrapper<List<PostResponseDTO>>> GetProfilePostListAsync(string userId, string profileUserId, int pageSize, string nextCursor);
+        Task<ResponseWrapper<List<PostResponseDTO>>> GetPostListAsync(string userId, List<string> postIds);
     }
 }

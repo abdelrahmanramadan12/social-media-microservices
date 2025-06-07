@@ -6,10 +6,14 @@ using System.Net.Http.Json;
 
 namespace Application.Services.Implementations
 {
-    public class PostServiceClient : IpostServiceClient
+    public class PostServiceClient : IPostServiceClient
     {
         private readonly HttpClient _httpClient;
         private readonly PostServiceSettings _settings;
+
+        private const string GET_POST_BY_ID_ENDPOINT = "api/internal/posts/{0}";
+        private const string GET_PROFILE_POSTS_ENDPOINT = "api/internal/posts/user/{0}";
+        private const string GET_POST_LIST_ENDPOINT = "api/internal/posts/list";
 
         public PostServiceClient(HttpClient httpClient, PostServiceSettings settings)
         {
@@ -18,134 +22,69 @@ namespace Application.Services.Implementations
             _httpClient.BaseAddress = new Uri(_settings.BaseUrl);
         }
 
-        public async Task<ServiceResponse<PostResponseDTO>> GetPostByIdAsync(string postId)
+        private async Task<ResponseWrapper<T>> SendRequestAsync<T>(string endpoint, object request = null)
         {
-            var result = new ServiceResponse<PostResponseDTO>();
-
             try
             {
-                var response = await _httpClient.GetAsync($"api/internal/posts/{postId}");
-
-                if (!response.IsSuccessStatusCode)
+                HttpResponseMessage response;
+                if (request != null)
                 {
-                    result.IsValid = false;
-                    result.Errors = new List<string> { $"HTTP Error: {response.StatusCode}" };
-                    return result;
-                }
-
-                var responseData = await response.Content.ReadFromJsonAsync<ApiResponse<PostResponseDTO>>();
-
-                if (responseData?.Data != null)
-                {
-                    result.IsValid = true;
-                    result.DataItem = responseData.Data;
+                    response = await _httpClient.PostAsJsonAsync(endpoint, request);
                 }
                 else
                 {
-                    result.IsValid = false;
-                    result.Errors = new List<string> { "Null response from post service." };
+                    response = await _httpClient.GetAsync(endpoint);
                 }
-            }
-            catch (Exception ex)
-            {
-                result.IsValid = false;
-                result.Errors = new List<string> { ex.Message };
-            }
 
-            return result;
-        }
-
-        public async Task<ServiceResponse<PostResponseDTO>> GetProfilePostListAsync(string userId, string profileUserId, int pageSize, string nextCursor)
-        {
-            var result = new ServiceResponse<PostResponseDTO>();
-
-            try
-            {
-                var request = new GetProfilePostListRequest
+                if (!response.IsSuccessStatusCode)
                 {
-                    UserId = userId,
-                    NextCursor = nextCursor
+                    return new ResponseWrapper<T>
+                    {
+                        Errors = new List<string>
+                        {
+                            $"Post service returned status code {(int)response.StatusCode} - {response.ReasonPhrase}"
+                        }
+                    };
+                }
+
+                var result = await response.Content.ReadFromJsonAsync<ResponseWrapper<T>>();
+                return result ?? new ResponseWrapper<T>
+                {
+                    Errors = new List<string> { "Response was null" }
                 };
-
-                var response = await _httpClient.PostAsJsonAsync($"api/internal/posts/user/{profileUserId}", request);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    result.IsValid = false;
-                    result.Errors = new List<string> { $"HTTP Error: {response.StatusCode}" };
-                    return result;
-                }
-
-                var responseData = await response.Content.ReadFromJsonAsync<ApiResponse<List<PostResponseDTO>>>();
-
-                if (responseData?.Data != null)
-                {
-                    result.IsValid = true;
-                    result.DataList = responseData.Data;
-                    result.NextCursor = responseData.Next;
-                }
-                else
-                {
-                    result.IsValid = false;
-                    result.Errors = new List<string> { "Null response from post service." };
-                }
             }
             catch (Exception ex)
             {
-                result.IsValid = false;
-                result.Errors = new List<string> { ex.Message };
-            }
-
-            return result;
-        }
-
-        public async Task<ServiceResponse<PostResponseDTO>> GetPostListAsync(string userId, List<string> postIds)
-        {
-            var result = new ServiceResponse<PostResponseDTO>();
-
-            try
-            {
-                var request = new GetPostListRequest
+                return new ResponseWrapper<T>
                 {
-                    UserId = userId,
-                    PostIds = postIds
+                    Errors = new List<string> { $"Unhandled exception: {ex.Message}" }
                 };
-
-                var response = await _httpClient.PostAsJsonAsync("api/internal/posts/list", request);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    result.IsValid = false;
-                    result.Errors = new List<string> { $"HTTP Error: {response.StatusCode}" };
-                    return result;
-                }
-
-                var responseData = await response.Content.ReadFromJsonAsync<ApiResponse<List<PostResponseDTO>>>();
-
-                if (responseData?.Data != null)
-                {
-                    result.IsValid = true;
-                    result.DataList = responseData.Data;
-                }
-                else
-                {
-                    result.IsValid = false;
-                    result.Errors = new List<string> { "Null response from post service." };
-                }
             }
-            catch (Exception ex)
-            {
-                result.IsValid = false;
-                result.Errors = new List<string> { ex.Message };
-            }
-
-            return result;
         }
-    }
 
-    internal class ApiResponse<T>
-    {
-        public T Data { get; set; }
-        public string Next { get; set; }
+        public async Task<ResponseWrapper<PostResponseDTO>> GetPostByIdAsync(string postId)
+        {
+            return await SendRequestAsync<PostResponseDTO>(string.Format(GET_POST_BY_ID_ENDPOINT, postId));
+        }
+
+        public async Task<ResponseWrapper<List<PostResponseDTO>>> GetProfilePostListAsync(string userId, string profileUserId, int pageSize, string nextCursor)
+        {
+            var request = new GetProfilePostListRequest
+            {
+                UserId = userId,
+                Next = nextCursor
+            };
+            return await SendRequestAsync<List<PostResponseDTO>>(string.Format(GET_PROFILE_POSTS_ENDPOINT, profileUserId), request);
+        }
+
+        public async Task<ResponseWrapper<List<PostResponseDTO>>> GetPostListAsync(string userId, List<string> postIds)
+        {
+            var request = new GetPostListRequest
+            {
+                UserId = userId,
+                PostIds = postIds
+            };
+            return await SendRequestAsync<List<PostResponseDTO>>(GET_POST_LIST_ENDPOINT, request);
+        }
     }
 }
