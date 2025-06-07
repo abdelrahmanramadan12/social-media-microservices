@@ -8,5 +8,6 @@ namespace Application.Services.Interfaces
         Task<ResponseWrapper<FilteredPostsReactedByUserResponse>> FilterPostsReactedByUserAsync(FilterPostsReactedByUserRequest request);
         Task<ResponseWrapper<GetPostsReactedByUserResponse>> GetPostsReactedByUserAsync(GetPostsReactedByUserRequest request);
         Task<ResponseWrapper<GetReactsOfPostResponse>> GetReactsOfPostAsync(GetReactsOfPostRequest request);
+        Task<ResponseWrapper<bool>> IsPostLikedByUser(IsPostLikedByUserRequest request);
     }
 }
