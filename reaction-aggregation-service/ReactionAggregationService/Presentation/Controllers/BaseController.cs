@@ -37,24 +37,21 @@ namespace Presentation.Controllers
 
         protected ActionResult HandlePaginationResponse<T>(PaginationResponseWrapper<T> response)
         {
-            var paginationHeader = new
+            return Ok(new
             {
-                next = response.Next,
-                hasMore = response.HasMore,
                 data = response.Data,
-                message = response.Message
-            };
-            return Ok(response.Data);
+                hasMore = response.HasMore,
+                next = response.Next
+            });
         }
 
         protected ActionResult HandleResponse<T>(ResponseWrapper<T> response)
         {
-            var reponse = new
+            return Ok(new
             {
                 data = response.Data,
                 message = response.Message
-            };
-            return Ok(response);
+            });
         }
     }
 }
