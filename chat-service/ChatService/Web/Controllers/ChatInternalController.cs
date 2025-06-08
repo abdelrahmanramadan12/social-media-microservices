@@ -14,7 +14,7 @@ namespace Web.Controllers
             _chatQueryService = chatQueryService;
         }
 
-        [HttpGet("messages")]
+        [HttpPost("messages")]
         public async Task<IActionResult> GetMessagesPage([FromBody] MessagesPageRequestDTO  messagesPageRequestDTO)
         {
             if (string.IsNullOrEmpty(messagesPageRequestDTO.ConversationId))
@@ -43,7 +43,7 @@ namespace Web.Controllers
             }
         }
 
-        [HttpGet("conversations")]
+        [HttpPost("conversations")]
         public async Task<IActionResult> GetUserConversations([FromBody] ConversationsPageRequestDTO conversationsPageRequestDTO)
         {
             if (string.IsNullOrEmpty(conversationsPageRequestDTO.UserId))

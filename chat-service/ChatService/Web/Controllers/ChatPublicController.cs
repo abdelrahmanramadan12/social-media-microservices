@@ -1,7 +1,5 @@
 ﻿using Application.Abstractions;
 using Application.DTOs;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Web.Controllers
@@ -17,16 +15,16 @@ namespace Web.Controllers
         }
 
         [HttpPost("message")]
-        public async Task<IActionResult> SendMessage([FromHeader] string userId ,[FromBody] NewMessageDTO message)
+        public async Task<IActionResult> SendMessage([FromHeader] string userId, [FromBody] NewMessageDTO message)
         {
-            if (message ==null)
+            if (message == null)
             {
                 return BadRequest("Message cannot be empty.");
             }
             try
             {
                 message.SenderId = userId;
-                var response = await _chatCommandService.SendMessageAsync( message);
+                var response = await _chatCommandService.SendMessageAsync(message);
                 return Ok(response);
             }
             catch (ArgumentNullException ex)
@@ -43,12 +41,12 @@ namespace Web.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest( $"Internal server error: {ex.Message}");
+                return BadRequest($"Internal server error: {ex.Message}");
             }
         }
 
         [HttpPatch("message")]
-        public async Task<IActionResult> EditMessage([FromHeader] string userId ,[FromBody] MessageDTO message)
+        public async Task<IActionResult> EditMessage([FromHeader] string userId, [FromBody] MessageDTO message)
         {
             if (message == null || string.IsNullOrEmpty(message.Id))
             {
@@ -68,7 +66,7 @@ namespace Web.Controllers
             {
                 return BadRequest(ex.Message);
             }
-            catch(UnauthorizedAccessException ex)
+            catch (UnauthorizedAccessException ex)
             {
                 return Forbid(ex.Message);
             }
@@ -79,7 +77,7 @@ namespace Web.Controllers
         }
 
         [HttpDelete("message/{Id}")]
-        public async Task<IActionResult> DeleteMessage([FromHeader] string userId , string Id)
+        public async Task<IActionResult> DeleteMessage([FromHeader] string userId, string Id)
         {
             if (string.IsNullOrEmpty(Id))
             {
@@ -87,7 +85,7 @@ namespace Web.Controllers
             }
             try
             {
-                await _chatCommandService.DeleteMessageAsync(userId,Id);
+                await _chatCommandService.DeleteMessageAsync(userId, Id);
                 return NoContent();
             }
             catch (KeyNotFoundException ex)
@@ -166,7 +164,7 @@ namespace Web.Controllers
 
 
         [HttpDelete("conversation/{Id}")]
-        public async Task<IActionResult> DeleteConversation([FromHeader] string userId , string Id)
+        public async Task<IActionResult> DeleteConversation([FromHeader] string userId, string Id)
         {
             if (string.IsNullOrEmpty(Id))
             {
@@ -174,7 +172,7 @@ namespace Web.Controllers
             }
             try
             {
-                await _chatCommandService.DeleteConversationAsync(userId,Id);
+                await _chatCommandService.DeleteConversationAsync(userId, Id);
                 return NoContent();
             }
             catch (KeyNotFoundException ex)
