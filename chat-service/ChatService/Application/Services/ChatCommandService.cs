@@ -1,6 +1,8 @@
 ﻿using Application.Abstractions;
 using Application.DTOs;
 using Domain.Entities;
+using Domain.Enums;
+using Microsoft.AspNetCore.Http;
 
 namespace Application.Services
 {
@@ -8,11 +10,13 @@ namespace Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IRealtimeMessenger _realtimeMessenger;
+        private readonly IMediaServiceClient _mediaServiceClient;
 
-        public ChatCommandService(IUnitOfWork unitOfWork, IRealtimeMessenger realtimeMessenger)
+        public ChatCommandService(IUnitOfWork unitOfWork, IRealtimeMessenger realtimeMessenger, IMediaServiceClient mediaServiceClient)
         {
             _unitOfWork = unitOfWork;
             _realtimeMessenger = realtimeMessenger;
+            _mediaServiceClient = mediaServiceClient;
         }
 
         public async Task<ConversationDTO> CreateConversationAsync(NewConversationDTO conversation)
@@ -26,6 +30,20 @@ namespace Application.Services
                 LastMessage = null,
                 AdminId = conversation.IsGroup ? conversation.UserId : null 
             };
+            
+            if (conversation.GroupImage!=null)
+            {
+                var mediaResponse = await _mediaServiceClient.UploadMediaAsync(new MediaUploadRequest
+                {
+                    Files = new List<IFormFile> { conversation.GroupImage },
+                    MediaType = Domain.Enums.MediaType.Image,
+                    usageCategory= UsageCategory.ProfilePicture
+                });
+                if (mediaResponse != null && mediaResponse.Urls != null && mediaResponse.Urls.Any())
+                {
+                    conversationEntity.GroupImageUrl = mediaResponse.Urls.FirstOrDefault();  
+                }
+            }
 
             var conv = await _unitOfWork.Conversations.AddAsync(conversationEntity);
 
@@ -45,7 +63,60 @@ namespace Application.Services
                 GroupName = conv.GroupName
             };
         }
+        public async Task<ConversationDTO> EditConversationAsync(EditConversationDTO conversation)
+        {
 
+            var ExistingConversation = await _unitOfWork.Conversations.GetConversationByIdAsync(conversation.Id);
+            if (!ExistingConversation.IsGroup)
+            {
+                throw new UnauthorizedAccessException("You Can not edit this conversation.");
+            }
+            if (ExistingConversation == null)
+            {
+                throw new KeyNotFoundException($"Conversation with ID {conversation.Id} not found.");
+            }
+            if (ExistingConversation.IsGroup && ExistingConversation.AdminId != conversation.UserId)
+            {
+                throw new UnauthorizedAccessException("You are not authorized to edit this group conversation.");
+            }
+            
+            ExistingConversation.Participants=conversation.Participants== null ? ExistingConversation.Participants : conversation.Participants.ToList();
+            ExistingConversation.GroupName = conversation.GroupName ?? ExistingConversation.GroupName;
+            
+            if (conversation.GroupImage != null)
+            {
+                var mediaResponse = await _mediaServiceClient.UploadMediaAsync(new MediaUploadRequest
+                {
+                    Files = new List<IFormFile> { conversation.GroupImage },
+                    MediaType = MediaType.Image,
+                    usageCategory= UsageCategory.ProfilePicture
+                });
+                if (mediaResponse != null && mediaResponse.Urls != null && mediaResponse.Urls.Any())
+                {
+                    ExistingConversation.GroupImageUrl = mediaResponse.Urls.FirstOrDefault();
+                }
+            }
+
+            var updatedConversation = await _unitOfWork.Conversations.EditAsync(ExistingConversation);
+
+            return new ConversationDTO {
+                CreatedAt = updatedConversation.CreatedAt,
+                GroupName = updatedConversation.GroupName,
+                GroupImageUrl = updatedConversation.GroupImageUrl,
+                Id = updatedConversation.Id,
+                IsGroup = updatedConversation.IsGroup,
+                AdminId = updatedConversation.AdminId,
+                LastMessage = updatedConversation.LastMessage != null ? new MessageDTO
+                {
+                    Id = updatedConversation.LastMessage.Id,
+                    Content = updatedConversation.LastMessage.Text,
+                    ConversationId = updatedConversation.Id,
+                    SenderId = updatedConversation.LastMessage.SenderId
+                } : null,
+                Participants = updatedConversation.Participants
+            };
+
+        }
         public async Task DeleteConversationAsync(string userId, string id)
         {
             if (string.IsNullOrEmpty(id))
@@ -68,15 +139,41 @@ namespace Application.Services
             {
                 throw new UnauthorizedAccessException("You are not authorized to remove this message"); 
             }
+            if(conversation.GroupImageUrl != null)
+            {
+                // delete the group image if it exists
+                await _mediaServiceClient.DeleteMediaAsync(new List<string> { conversation.GroupImageUrl });
+            }
 
             await _unitOfWork.Conversations.RemoveAsync(id);
         }
 
-        public async Task DeleteMessageAsync(string messageId)
+
+        public async Task DeleteMessageAsync(string userId ,string messageId)
         {
+            var message = await _unitOfWork.Messages.GetByIdAsync(messageId);
+            if (message == null)
+            {
+                return;
+            }
+            var conversation = await _unitOfWork.Conversations.GetConversationByIdAsync(message.ConversationId);
+            // Check if the message is sent by the user or if the user is an admin of the group conversation
+            if (message.SenderId != userId)
+            {
+                throw new UnauthorizedAccessException("You are not authorized to remove this message");
+            }
+            if (conversation.IsGroup && conversation.AdminId != userId)
+            {
+                throw new UnauthorizedAccessException("You are not authorized to remove this message in a group conversation");
+            }
+
+            if (message.Attachment != null)
+            {
+                // delete the attachment if it exists
+                await _mediaServiceClient.DeleteMediaAsync(new List<string> { message.Attachment.Url });
+            }
             await _unitOfWork.Messages.RemoveAsync(messageId);
         }
-
         public async Task<MessageDTO> EditMessageAsync(MessageDTO message)
         {
             if (message == null || string.IsNullOrEmpty(message.Id))
@@ -110,12 +207,10 @@ namespace Application.Services
                 Content = existingMessage.Text,
             };
         }
-
         public async Task MarkReadAsync(string userId, string conversationId)
         {
             await _unitOfWork.Messages.MarkReadAsync(userId, conversationId);
         }
-
         public async Task<MessageDTO> SendMessageAsync(NewMessageDTO message)
         {
             if (message == null)
@@ -136,7 +231,24 @@ namespace Application.Services
             };
             if (message.Media != null)
             {
-                // call a Service to handle file upload and set the attachment properties
+                var mediaResponse = await _mediaServiceClient.UploadMediaAsync(new MediaUploadRequest
+                {
+                    Files = new List<IFormFile> { message.Media },
+                    MediaType = (Domain.Enums.MediaType)message.MediaType!,
+                });
+
+                if (mediaResponse == null || mediaResponse.Urls == null || !mediaResponse.Urls.Any())
+                {
+                    throw new InvalidOperationException("Failed to upload media.");
+                }
+                
+                messageEntity.Attachment = new Attachment
+                {
+                    Url = mediaResponse.Urls.FirstOrDefault(),
+                    Type = (Domain.Enums.MediaType)message.MediaType!,
+                };
+
+
             }
 
             var msg = await _unitOfWork.Messages.AddAsync(messageEntity);

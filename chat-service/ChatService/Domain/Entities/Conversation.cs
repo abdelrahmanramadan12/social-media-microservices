@@ -11,6 +11,7 @@ namespace Domain.Entities
         public List<string> Participants { get; set; }
         public bool IsGroup { get; set; }
         public string? GroupName { get; set; }
+        public string? GroupImageUrl { get; set; } 
         public DateTime CreatedAt { get; set; }
         public Message? LastMessage { get; set; }
         public string? AdminId { get; set; } // For group conversations, the admin can be null for one-on-one conversations

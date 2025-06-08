@@ -17,7 +17,7 @@ namespace Domain.Entities
         [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
         public DateTime? EditedAt { get; set; }
         public bool IsEdited { get; set; }
-        public Dictionary<string, DateTime> ReadBy { get; set; }
-        public List<Attachment> Attachments { get; set; }
+        public Dictionary<string, DateTime>? ReadBy { get; set; }
+        public Attachment? Attachment { get; set; }
     }
 }

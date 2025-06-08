@@ -1,4 +1,4 @@
-﻿using Domain.Entities;
+﻿using Domain.Enums;
 using Microsoft.AspNetCore.Http;
 
 namespace Application.DTOs
@@ -9,6 +9,6 @@ namespace Application.DTOs
         public string SenderId { get; set; } = string.Empty;
         public string? Content { get; set; }
         public IFormFile? Media { get; set; }
-        public AttachmentType? MediaType { get; set; }
+        public MediaType? MediaType { get; set; }
     }
 }

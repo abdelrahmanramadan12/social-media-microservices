@@ -79,7 +79,7 @@ namespace Web.Controllers
         }
 
         [HttpDelete("message/{Id}")]
-        public async Task<IActionResult> DeleteMessage(string Id)
+        public async Task<IActionResult> DeleteMessage([FromHeader] string userId , string Id)
         {
             if (string.IsNullOrEmpty(Id))
             {
@@ -87,7 +87,7 @@ namespace Web.Controllers
             }
             try
             {
-                await _chatCommandService.DeleteMessageAsync(Id);
+                await _chatCommandService.DeleteMessageAsync(userId,Id);
                 return NoContent();
             }
             catch (KeyNotFoundException ex)
@@ -132,6 +132,38 @@ namespace Web.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, $"Internal server error: {ex.Message}");
             }
         }
+
+        [HttpPatch("conversation")]
+        public async Task<IActionResult> EditConversation([FromHeader] string userId, [FromBody] EditConversationDTO conversation)
+        {
+            if (conversation == null || string.IsNullOrEmpty(conversation.Id))
+            {
+                return BadRequest("Conversation cannot be null or empty.");
+            }
+            try
+            {
+                conversation.UserId = userId;
+                var response = await _chatCommandService.EditConversationAsync(conversation);
+                return Ok(response);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (ArgumentNullException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Forbid(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Internal server error: {ex.Message}");
+            }
+        }
+
 
         [HttpDelete("conversation/{Id}")]
         public async Task<IActionResult> DeleteConversation([FromHeader] string userId , string Id)

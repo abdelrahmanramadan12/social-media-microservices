@@ -1,4 +1,7 @@
-﻿namespace Application.DTOs
+﻿
+using Domain.Entities;
+
+namespace Application.DTOs
 {
     public class MessageDTO
     {
@@ -6,6 +9,8 @@
         public string ConversationId { get; set; } = string.Empty;
         public string SenderId { get; set; } = string.Empty;
         public string? Content { get; set; }
+        public bool HasAttachment { get; set; }
+        public Attachment? Attachment { get; set; }
         public bool Read {  get; set; }
     }
 }

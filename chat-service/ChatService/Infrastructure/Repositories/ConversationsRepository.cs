@@ -19,6 +19,26 @@ namespace Infrastructure.Repositories
             return conversationEntity;
         }
 
+        public async Task<Conversation> EditAsync(Conversation existingConversation)
+        {
+            var filter = Builders<Conversation>.Filter.Eq(c => c.Id, existingConversation.Id);
+
+            var update = Builders<Conversation>.Update
+                .Set(c => c.Participants, existingConversation.Participants)
+                .Set(c => c.IsGroup, existingConversation.IsGroup)
+                .Set(c => c.GroupName, existingConversation.GroupName)
+                .Set(c => c.GroupImageUrl, existingConversation.GroupImageUrl)
+                .Set(c => c.CreatedAt, existingConversation.CreatedAt)
+                .Set(c => c.LastMessage, existingConversation.LastMessage)
+                .Set(c => c.AdminId, existingConversation.AdminId);
+
+            await _conversations.UpdateOneAsync(filter, update);
+
+            // Optionally return the updated document (or re-fetch it)
+            return existingConversation;
+        }
+
+
         public async Task<Conversation> GetConversationByIdAsync(string id)
         {
             return await _conversations.Find(c => c.Id == id)

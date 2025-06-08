@@ -2,8 +2,9 @@
 
 namespace Application.DTOs
 {
-    public class NewConversationDTO
+    public class EditConversationDTO
     {
+        public string Id { get; set; } = string.Empty;
         public List<string> Participants { get; set; } = [];
         public bool IsGroup { get; set; }
         public string? UserId { get; set; }

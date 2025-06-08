@@ -1,5 +1,6 @@
 ﻿using Application.Abstractions;
 using Application.DTOs;
+using Domain.Entities;
 
 namespace Application.Services
 {
@@ -33,6 +34,12 @@ namespace Application.Services
                     Content = m.Text,
                     SenderId = m.SenderId,
                     ConversationId = m.ConversationId,
+                    HasAttachment = m.Attachment != null,
+                    Attachment = new Attachment
+                    {
+                        Url = m.Attachment?.Url ?? string.Empty,
+                        Type = m.Attachment?.Type ?? Domain.Enums.MediaType.Image
+                    },
                     Read = m.ReadBy.Keys.Contains(userId)
                 }).ToList(),
                 Next = next
@@ -59,12 +66,15 @@ namespace Application.Services
                     CreatedAt = c.CreatedAt,
                     GroupName = c.GroupName,
                     IsGroup = c.IsGroup,
+                    GroupImageUrl = c.GroupImageUrl,
+                    AdminId = c.AdminId,
                     LastMessage = c.LastMessage != null ? new MessageDTO()
                     {
                         Id = c.LastMessage.Id,
                         Content = c.LastMessage.Text,
                         ConversationId = c.Id,
                         SenderId = c.LastMessage.SenderId,
+                        HasAttachment = c.LastMessage.Attachment != null,
                         Read = c.LastMessage.ReadBy.Keys.Contains(userId)
                     } : null,
                     Participants = c.Participants
