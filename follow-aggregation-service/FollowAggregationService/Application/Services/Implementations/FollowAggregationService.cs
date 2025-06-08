@@ -11,12 +11,12 @@ using System.Text.Json;
 
 namespace Application.Services.Implementations
 {
-    public class AggregationService : IAggregationService
+    public class FollowAggregationService : IFollowAggregationService
     {
         private readonly IFollowServiceClient _followServiceClient;
         private readonly IProfileServiceClient _profileServiceClient;
 
-        public AggregationService(IFollowServiceClient followServiceClient, IProfileServiceClient profileServiceClient)
+        public FollowAggregationService(IFollowServiceClient followServiceClient, IProfileServiceClient profileServiceClient)
         {
             _followServiceClient = followServiceClient ?? throw new ArgumentNullException(nameof(followServiceClient));
             _profileServiceClient = profileServiceClient ?? throw new ArgumentNullException(nameof(profileServiceClient));

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Application.Services.Interfaces
 {
-    public interface IAggregationService
+    public interface IFollowAggregationService
     {
         Task<PaginationResponseWrapper<List<ProfileAggregation>>> GetFollowers(FollowListRequest request);
         Task<PaginationResponseWrapper<List<ProfileAggregation>>> GetFollowing(FollowListRequest request);
