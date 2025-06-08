@@ -11,4 +11,4 @@ namespace Application.DTOs
         public string UserId { get; set; }
         public List<string> PostIds { get; set; }
     }
-} 
+}

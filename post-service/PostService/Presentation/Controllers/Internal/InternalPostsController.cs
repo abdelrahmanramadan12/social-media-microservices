@@ -24,8 +24,8 @@ namespace Presentation.Controllers.Internal
             return HandleResponse(res);
         }
 
-        [HttpPost("user/{profileUserId}")]
-        public async Task<IActionResult> GetProfilePostList(string profileUserId, [FromBody] GetProfilePostListRequest request)
+        [HttpPost("user")]
+        public async Task<IActionResult> GetProfilePostList([FromBody] GetProfilePostListRequest request)
         {
             string decryptedCursor = null!;
             if (!string.IsNullOrWhiteSpace(request.Next))
@@ -41,7 +41,7 @@ namespace Presentation.Controllers.Internal
             }
 
             const int pageSize = 15;
-            var res = await _postService.GetProfilePostListAsync(request.UserId, profileUserId, pageSize, decryptedCursor);
+            var res = await _postService.GetProfilePostListAsync(request.UserId, request.ProfileUserId, pageSize, decryptedCursor);
 
             if (!res.Success)
                 return HandleErrorResponse(res);
