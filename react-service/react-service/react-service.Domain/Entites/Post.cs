@@ -6,9 +6,9 @@ namespace react_service.Domain.Entites
     public class Post
     {
         [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
         public string PostId { get; set; }
         public string AuthorId { get; set; }
+        [BsonElement("isDeleted")]
         public bool IsDeleted { get; set; }
     }
 }

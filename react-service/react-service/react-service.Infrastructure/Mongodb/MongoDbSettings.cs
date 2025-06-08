@@ -1,4 +1,4 @@
-﻿namespace react_service.Infrastructure.Mongodb
+namespace react_service.Infrastructure.Mongodb
 {
     public class MongoDbSettings
     {

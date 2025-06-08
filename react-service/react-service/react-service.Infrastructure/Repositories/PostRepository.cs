@@ -2,7 +2,9 @@ using MongoDB.Driver;
 using react_service.Domain.Entites;
 using react_service.Application.Interfaces.Repositories;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using System.Threading.Tasks;
+using react_service.Infrastructure.Mongodb;
 
 namespace react_service.Infrastructure.Repositories
 {
@@ -10,18 +12,18 @@ namespace react_service.Infrastructure.Repositories
     {
         private readonly IMongoCollection<Post> _posts;
 
-        public PostRepository(IConfiguration configuration)
+        public PostRepository(IOptions<MongoDbSettings> mongodbsettings, IMongoClient mongoClient)
         {
-            var connectionString = configuration.GetConnectionString("MongoDb");
-            var client = new MongoClient(connectionString);
-            var database = client.GetDatabase("PostsDB");
+            var database = mongoClient.GetDatabase("PostsDB");
             _posts = database.GetCollection<Post>("Posts");
         }
 
         public async Task<bool> IsPostDeleted(string postId)
         {
             var post = await _posts.Find(p => p.PostId == postId).FirstOrDefaultAsync();
-            return post != null && post.IsDeleted;
+            if (post == null)
+                return true;
+            return post.IsDeleted;
         }
 
         public async Task<bool> DeletePost(string postId)
