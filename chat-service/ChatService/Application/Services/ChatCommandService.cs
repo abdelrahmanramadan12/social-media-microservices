@@ -117,13 +117,13 @@ namespace Application.Services
             };
 
         }
-        public async Task DeleteConversationAsync(string userId, string id)
+        public async Task DeleteConversationAsync(string userId, string conversationId)
         {
-            if (string.IsNullOrEmpty(id))
+            if (string.IsNullOrEmpty(conversationId))
             {
-                throw new ArgumentNullException(nameof(id), "Conversation ID cannot be null or empty.");
+                throw new ArgumentNullException(nameof(conversationId), "Conversation ID cannot be null or empty.");
             }
-            var conversation =  await _unitOfWork.Conversations.GetConversationByIdAsync(id);
+            var conversation =  await _unitOfWork.Conversations.GetConversationByIdAsync(conversationId);
             if (conversation == null)
             {
                 throw new ArgumentNullException(nameof(conversation));
@@ -145,7 +145,12 @@ namespace Application.Services
                 await _mediaServiceClient.DeleteMediaAsync(new List<string> { conversation.GroupImageUrl });
             }
 
-            await _unitOfWork.Conversations.RemoveAsync(id);
+            await _unitOfWork.Conversations.RemoveAsync(conversationId);
+
+            _ = Task.Run(async () =>
+            {
+                await _unitOfWork.Messages.DeleteMessagesByConversationIdAsync(conversationId);
+            });
         }
 
 

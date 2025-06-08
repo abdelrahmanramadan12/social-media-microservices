@@ -76,5 +76,11 @@ namespace Infrastructure.Repositories
             var filter = Builders<Message>.Filter.Eq(m => m.Id, messageId);
             await _messages.DeleteOneAsync(filter);
         }
+
+        public async Task DeleteMessagesByConversationIdAsync(string conversationId)
+        {
+            var filter = Builders<Message>.Filter.Eq(m => m.ConversationId, conversationId);
+            await _messages.DeleteOneAsync(filter);
+        }
     }
 }
