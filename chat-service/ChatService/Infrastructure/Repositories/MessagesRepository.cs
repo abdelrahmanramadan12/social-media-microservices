@@ -11,6 +11,14 @@ namespace Infrastructure.Repositories
         public MessagesRepository(IMongoDatabase db)
         {
             _messages = db.GetCollection<Message>("messages");
+            EnsureIndexes();
+        }
+
+        private void EnsureIndexes()
+        {
+            var indexKeys = Builders<Message>.IndexKeys.Ascending(m => m.ConversationId);
+            var indexModel = new CreateIndexModel<Message>(indexKeys);
+            _messages.Indexes.CreateOne(indexModel);
         }
 
         public async Task<Message> AddAsync(Message messageEntity)
@@ -49,6 +57,18 @@ namespace Infrastructure.Repositories
             var messages = _messages.Find(filter).SortByDescending(m => m.SentAt).Limit(pageSize);
 
             return await messages.ToListAsync();
+        }
+
+        public async Task MarkReadAsync(string userId, string conversationId)
+        {
+            var filter = Builders<Message>.Filter.And(
+                Builders<Message>.Filter.Eq(m => m.ConversationId, conversationId),
+                Builders<Message>.Filter.Not(Builders<Message>.Filter.Exists($"ReadBy.{userId}"))
+            );
+
+            var update = Builders<Message>.Update.Set($"ReadBy.{userId}", DateTime.UtcNow);
+
+            await _messages.UpdateManyAsync(filter, update);
         }
 
         public async Task RemoveAsync(string messageId)

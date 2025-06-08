@@ -7,10 +7,12 @@ namespace Application.Services
     public class ChatCommandService : IChatCommandService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IRealtimeMessenger _realtimeMessenger;
 
-        public ChatCommandService(IUnitOfWork unitOfWork)
+        public ChatCommandService(IUnitOfWork unitOfWork, IRealtimeMessenger realtimeMessenger)
         {
             _unitOfWork = unitOfWork;
+            _realtimeMessenger = realtimeMessenger;
         }
 
         public async Task<ConversationDTO> CreateConversationAsync(NewConversationDTO conversation)
@@ -109,6 +111,11 @@ namespace Application.Services
             };
         }
 
+        public async Task MarkReadAsync(string userId, string conversationId)
+        {
+            await _unitOfWork.Messages.MarkReadAsync(userId, conversationId);
+        }
+
         public async Task<MessageDTO> SendMessageAsync(NewMessageDTO message)
         {
             if (message == null)
@@ -134,15 +141,25 @@ namespace Application.Services
 
             var msg = await _unitOfWork.Messages.AddAsync(messageEntity);
 
-            return new MessageDTO
+            var msgDto = new MessageDTO
             {
                 Id = msg.Id,
                 ConversationId = msg.ConversationId,
                 SenderId = msg.SenderId,
                 Content = msg.Text,
-                
             };
 
+            var conv = await _unitOfWork.Conversations.GetConversationByIdAsync(msg.ConversationId);
+
+            if ( conv != null && conv.Participants != null)
+            {
+                foreach (var participant in conv.Participants.Except([msgDto.SenderId]))
+                {
+                    await _realtimeMessenger.SendMessageAsync(participant, msgDto);
+                }
+            }
+
+            return msgDto;
         }
     }
 }

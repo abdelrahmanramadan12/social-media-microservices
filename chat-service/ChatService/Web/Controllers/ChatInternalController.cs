@@ -24,6 +24,7 @@ namespace Web.Controllers
             try
             {
                 var messages = await _chatQueryService.GetConversationMessagesAsync(
+                    messagesPageRequestDTO.UserId,
                     messagesPageRequestDTO.ConversationId, messagesPageRequestDTO.Next,
                     messagesPageRequestDTO.PageSize);
                 return Ok(messages);

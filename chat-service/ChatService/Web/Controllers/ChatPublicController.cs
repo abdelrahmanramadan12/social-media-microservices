@@ -27,7 +27,6 @@ namespace Web.Controllers
             {
                 message.SenderId = userId;
                 var response = await _chatCommandService.SendMessageAsync( message);
-                // use hub to send real time message
                 return Ok(response);
             }
             catch (ArgumentNullException ex)
@@ -99,6 +98,13 @@ namespace Web.Controllers
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, $"Internal server error: {ex.Message}");
             }
+        }
+
+        [HttpPost("mark-read")]
+        public async Task<IActionResult> MarkRead([FromBody] MarkReadRequestDTO request, [FromHeader] string userId)
+        {
+            await _chatCommandService.MarkReadAsync(userId, request.ConversationId);
+            return NoContent();
         }
 
         /*------------------------------------------------------------------*/

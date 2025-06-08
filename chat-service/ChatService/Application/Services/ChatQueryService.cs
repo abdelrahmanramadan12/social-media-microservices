@@ -12,7 +12,7 @@ namespace Application.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<ConversationMessagesDTO> GetConversationMessagesAsync(string conversationId, string? next , int pageSize)
+        public async Task<ConversationMessagesDTO> GetConversationMessagesAsync(string userId, string conversationId, string? next , int pageSize)
         {
       
 
@@ -32,7 +32,8 @@ namespace Application.Services
                     Id = m.Id,
                     Content = m.Text,
                     SenderId = m.SenderId,
-                    ConversationId = m.ConversationId
+                    ConversationId = m.ConversationId,
+                    Read = m.ReadBy.Keys.Contains(userId)
                 }).ToList(),
                 Next = next
             };
@@ -63,7 +64,8 @@ namespace Application.Services
                         Id = c.LastMessage.Id,
                         Content = c.LastMessage.Text,
                         ConversationId = c.Id,
-                        SenderId = c.LastMessage.SenderId
+                        SenderId = c.LastMessage.SenderId,
+                        Read = c.LastMessage.ReadBy.Keys.Contains(userId)
                     } : null,
                     Participants = c.Participants
                 }).ToList(),
