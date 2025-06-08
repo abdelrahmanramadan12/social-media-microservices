@@ -15,11 +15,11 @@ namespace react_service.Application.Mapper
     {
         public ReactionPostProfile()
         {
-            CreateMap<CreateReactionRequest ,ReactionPost>()
-            .ForMember(dest => dest.PostCreatedTime, opt => opt.MapFrom(_ => DateTime.UtcNow));
+            CreateMap<CreateReactionRequest ,PostReaction>()
+            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow));
 
-            CreateMap<ReactionPost,ReactionResponseDTO>();
-            CreateMap<List<ReactionPost>, PagedReactsResponse>()
+            CreateMap<PostReaction,ReactionResponseDTO>();
+            CreateMap<List<PostReaction>, PagedReactsResponse>()
                 .ForMember(dest => dest.Reactions, opt => opt.MapFrom(src => src));
 
 

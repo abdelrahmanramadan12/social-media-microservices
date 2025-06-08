@@ -21,7 +21,7 @@ namespace react_service.Infrastructure
             {
 
 
-               services.AddScoped<IReactionPostRepository, ReactionPostRepository>();
+               services.AddScoped<IPostReactionRepository, PostReactionRepositoy>();
 
                 return services;
             }

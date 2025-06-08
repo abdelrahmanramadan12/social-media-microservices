@@ -31,6 +31,7 @@ builder.Services.AddSingleton<IMongoClient>(sp =>
 });
 builder.Services.AddScoped<IPostDeletedListener,PostDeletedListener>();
 builder.Services.AddScoped<IReactionPublisher, ReactionPublisher>();
+builder.Services.AddScoped<react_service.Application.Interfaces.Repositories.IPostRepository, react_service.Infrastructure.Repositories.PostRepository>();
 
 
 

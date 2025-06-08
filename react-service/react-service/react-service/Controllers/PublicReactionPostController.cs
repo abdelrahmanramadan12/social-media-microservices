@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using react_service.Application.DTO;
 using react_service.Application.DTO.ReactionPost.Request;
 using react_service.Application.Interfaces.Services;
 using Web.Controllers;
@@ -12,7 +11,7 @@ namespace react_service.Controllers
     {
         private readonly IReactionPostService _reactionService;
 
-        public PublicReactionPostController(IReactionPostService reactionService) 
+        public PublicReactionPostController(IReactionPostService reactionService)
         {
             _reactionService = reactionService;
         }
@@ -21,14 +20,28 @@ namespace react_service.Controllers
         public async Task<IActionResult> DeleteReaction([FromBody] DeleteReactionRequest request, [FromHeader(Name = "userId")] string userId)
         {
             var res = await _reactionService.DeleteReactionAsync(request?.PostId, userId);
-            return HandleServiceResponse<object>(res);
+            if (res.Success)
+            {
+                return HandleResponse<bool>(res);
+            }
+            else
+            {
+                return HandleErrorResponse<bool>(res);
+            }
         }
 
         [HttpPost]
         public async Task<IActionResult> AddReaction([FromBody] CreateReactionRequest request, [FromHeader(Name = "userId")] string userId)
         {
             var res = await _reactionService.AddReactionAsync(request, userId);
-            return HandleServiceResponse<object>(res);
+            if (res.Success)
+            {
+                return HandleResponse<bool>(res);
+            }
+            else
+            {
+                return HandleErrorResponse<bool>(res);
+            }
         }
     }
 }
