@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace react_service.Application.Interfaces.Listeners
 {
-    public  interface IPostDeletedListener : IAsyncDisposable
+    public  interface IPostEventListner : IAsyncDisposable
     {
         Task InitializeAsync();
         Task ListenAsync(CancellationToken cancellationToken);

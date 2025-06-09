@@ -1,77 +1,115 @@
 
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
-using react_service.Domain.Events;
-using react_service.Domain.interfaces;
-using react_service.Domain.RabbitSetting;
-using System.Text;
-using System.Text.Json;
+using react_service.Application.Interfaces.Publishers;
+using react_service.Application.DTO.RabbitMQ;
 
-namespace Application.Implementations
+namespace react_service.Application.Services
 {
-    public class ReactionQueuePublisher : IQueuePublisher<ReactionEvent>
+    public class ReactionPublisher : IReactionPublisher, IAsyncDisposable
     {
+        private readonly IConfiguration _configuration;
+        private readonly string _hostname;
+        private readonly string _username;
+        private readonly string _password;
+        private readonly List<string> _queueNames;
         private IConnection? _connection;
         private IChannel? _channel;
 
-        public RabbitSetting RabbitMQ { get; }
-
-        public ReactionQueuePublisher(RabbitSetting rabbitMQ)
+        public ReactionPublisher(IConfiguration configuration)
         {
-            RabbitMQ = rabbitMQ;
+            _configuration = configuration;
+
+            // Get RabbitMQ configuration
+            _hostname = _configuration["RabbitMQ:Reaction:HostName"] ?? "localhost";
+            _username = _configuration["RabbitMQ:Reaction:UserName"] ?? "guest";
+            _password = _configuration["RabbitMQ:Reaction:Password"] ?? "guest";
+            var queueNamesStr = _configuration["RabbitMQ:Reaction:QueueName"] ?? "ReactionQueue";
+            _queueNames = queueNamesStr.Split(';').ToList();
+
+            InitializeRabbitMQ().GetAwaiter().GetResult();
         }
 
-        public async Task InitializeAsync()
+        private async Task InitializeRabbitMQ()
         {
-            var factory = new ConnectionFactory
+            try
             {
-               UserName = RabbitMQ.UserName,
-                Password = RabbitMQ.Password,
-                HostName = RabbitMQ.HostName,
-                Port = RabbitMQ.Port,
-            };
+                var factory = new ConnectionFactory
+                {
+                    HostName = _hostname,
+                    UserName = _username,
+                    Password = _password
+                };
 
-            _connection = await factory.CreateConnectionAsync();
-            _channel = await _connection.CreateChannelAsync();
+                _connection = await factory.CreateConnectionAsync();
+                _channel = await _connection.CreateChannelAsync();
+
+                foreach (var queueName in _queueNames)
+                {
+                    await _channel.QueueDeclareAsync(
+                        queue: queueName,
+                        durable: true,
+                        exclusive: false,
+                        autoDelete: false,
+                        arguments: null);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
         }
 
-        public async Task PublishAsync(ReactionEvent args)
+        public async Task PublishReactionAsync(PostReactionEventDTO reactionEvent)
         {
-            if (_channel == null)
-                throw new InvalidOperationException("Listener not initialized.");
-
-            await _channel.QueueDeclareAsync(
-                queue: RabbitMQ.QueueName,
-                durable: true,
-                exclusive: false,
-                autoDelete: false,
-                arguments: null
-            );
-
-            var message = JsonSerializer.Serialize(args);
-
-            var bin = Encoding.UTF8.GetBytes(message);
-
-            await _channel.BasicPublishAsync(
-                exchange: string.Empty,
-                routingKey: RabbitMQ.QueueName,
-                mandatory: true,
-                basicProperties: new BasicProperties
+            try
+            {
+                if (_channel == null)
                 {
-                    Persistent = true
-                },
-                body: bin);
+                    return;
+                }
+
+                var message = JsonSerializer.Serialize(reactionEvent);
+                var body = Encoding.UTF8.GetBytes(message);
+
+                foreach (var queueName in _queueNames)
+                {
+                    await _channel.BasicPublishAsync(
+                        exchange: "",
+                        routingKey: queueName,
+                        mandatory: true,
+                        basicProperties: new BasicProperties
+                        {
+                            Persistent = true
+                        },
+                        body: body);
+
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
         }
 
         public async ValueTask DisposeAsync()
         {
-            if (_channel != null)
-                await _channel.CloseAsync();
-
-            if (_connection != null)
-                await _connection.CloseAsync();
+            try
+            {
+                if (_channel != null)
+                {
+                    await _channel.CloseAsync();
+                }
+                if (_connection != null)
+                {
+                    await _connection.CloseAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+            }
         }
-
-       
     }
 }

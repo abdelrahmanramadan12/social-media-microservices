@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using react_service.Application.DTO;
 using react_service.Application.DTO.ReactionPost.Request;
 using react_service.Application.Interfaces.Services;
+using react_service.DTO.ReactionPost.Request;
 using Web.Controllers;
 
 namespace react_service.Controllers
@@ -12,7 +13,7 @@ namespace react_service.Controllers
     {
         private readonly IReactionPostService _reactionService;
 
-        public InternalReactionPostController(IReactionPostService reactionService) 
+        public InternalReactionPostController(IReactionPostService reactionService)
         {
             _reactionService = reactionService;
         }
@@ -20,8 +21,12 @@ namespace react_service.Controllers
         [HttpPost("filter")]
         public async Task<IActionResult> FilterPostsReactedByUser([FromBody] FilterPostsReactedByUserRequest request)
         {
-            var reactedPosts = await _reactionService.FilterPostsReactedByUserAsync(request.PostIds, request.UserId);
-            return HandleServiceResponse(reactedPosts);
+            var response = await _reactionService.FilterPostsReactedByUserAsync(request.PostIds, request.UserId);
+            if (!response.Success)
+            {
+                return HandleErrorResponse(response);
+            }
+            return HandleResponse(response);
         }
 
         [HttpPost("user")]
@@ -29,14 +34,19 @@ namespace react_service.Controllers
         {
             if (request == null || string.IsNullOrEmpty(request.UserId))
             {
-            var errorResponse = new ResponseWrapper<object> {
-                Errors = new List<string> { "User ID cannot be null or empty." },
-                ErrorType = ErrorType.BadRequest
-            };
-            return HandleServiceResponse(errorResponse);
+                var errorResponse = new ResponseWrapper<object>
+                {
+                    Errors = new List<string> { "User ID cannot be null or empty." },
+                    ErrorType = ErrorType.BadRequest
+                };
+                return HandleErrorResponse<object>(errorResponse);
             }
-            var result = await _reactionService.GetPostsReactedByUserAsync(request.UserId, request.Next);
-            return HandleServiceResponse(result);
+            var response = await _reactionService.GetPostsReactedByUserAsync(request.UserId, request.Next);
+            if (!response.Success)
+            {
+                return HandlePaginationErrorResponse(response);
+            }
+            return HandlePaginationResponse(response);
         }
 
         [HttpPost]
@@ -44,14 +54,39 @@ namespace react_service.Controllers
         {
             if (request == null || string.IsNullOrEmpty(request.PostId))
             {
-                var errorResponse = new ResponseWrapper<object> {
+                var errorResponse = new ResponseWrapper<List<string>>
+                {
                     Errors = new List<string> { "Post ID cannot be null or empty." },
                     ErrorType = ErrorType.BadRequest
                 };
-                return HandleServiceResponse(errorResponse);
+                return HandleErrorResponse(errorResponse);
             }
-            var result = await _reactionService.GetUserIdsReactedToPostAsync(request.PostId, request.Next, 10);
-            return HandleServiceResponse(result);
-        }       
-     }
+            var response = await _reactionService.GetUserIdsReactedToPostAsync(request.PostId, request.Next, 10);
+            if (!response.Success)
+            {
+                return HandlePaginationErrorResponse(response);
+            }
+            return HandlePaginationResponse(response);
+        }
+
+        [HttpPost("is-liked")]
+        public async Task<IActionResult> IsPostLikedByUser([FromBody] IsPostLikedByUserRequest request)
+        {
+            if (request == null || string.IsNullOrEmpty(request.PostId) || string.IsNullOrEmpty(request.UserId))
+            {
+                var errorResponse = new ResponseWrapper<object>
+                {
+                    Errors = new List<string> { "Post ID and User ID cannot be null or empty." },
+                    ErrorType = ErrorType.BadRequest
+                };
+                return HandleErrorResponse(errorResponse);
+            }
+            var response = await _reactionService.IsPostReactedByUserAsync(request.PostId, request.UserId);
+            if (!response.Success)
+            {
+                return HandleErrorResponse(response);
+            }
+            return HandleResponse(response);
+        }
+    }
 }

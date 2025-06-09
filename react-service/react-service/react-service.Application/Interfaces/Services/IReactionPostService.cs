@@ -11,12 +11,13 @@ namespace react_service.Application.Interfaces.Services
 {
     public interface IReactionPostService
     {
-        Task<ResponseWrapper<object>> DeleteReactionAsync(string postId, string userId);
-        Task<ResponseWrapper<object>> AddReactionAsync(CreateReactionRequest reaction, string userId);
-        Task<ResponseWrapper<object>> DeleteReactionsByPostId(string postId);
-        Task<ResponseWrapper<PostsReactedByUserDTO>> FilterPostsReactedByUserAsync(List<string> postIds, string userId);
-        Task<ResponseWrapper<PagedReactsResponse>> GetPostsReactedByUserAsync(string userId, string? nextReactIdHash);
-        Task<ResponseWrapper<ReactionsUsersResponse>> GetUserIdsReactedToPostAsync(string postId);
-        Task<ResponseWrapper<ReactionsUsersResponse>> GetUserIdsReactedToPostAsync(string postId, string next, int take);
+        Task<ResponseWrapper<bool>> DeleteReactionAsync(string postId, string userId);
+        Task<ResponseWrapper<bool>> AddReactionAsync(CreateReactionRequest reaction, string userId);
+        Task<ResponseWrapper<bool>> DeleteReactionsByPostId(string postId);
+        Task<ResponseWrapper<List<string>>> FilterPostsReactedByUserAsync(List<string> postIds, string userId);
+        Task<PaginationResponseWrapper<List<string>>> GetPostsReactedByUserAsync(string userId, string? nextReactIdHash);
+        Task<ResponseWrapper<List<string>>> GetUserIdsReactedToPostAsync(string postId);
+        Task<PaginationResponseWrapper<List<string>>> GetUserIdsReactedToPostAsync(string postId, string next, int take);
+        Task<ResponseWrapper<bool>> IsPostReactedByUserAsync(string postId, string userId);
     }
 }
