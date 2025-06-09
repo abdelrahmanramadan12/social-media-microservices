@@ -10,6 +10,7 @@ using react_service.Application.Interfaces.Services;
 using react_service.Application.Pagination;
 using react_service.Domain.Entites;
 using react_service.Domain.Enums;
+using react_service.Application.Events;
 
 namespace react_service.Application.Services
 {
@@ -20,7 +21,7 @@ namespace react_service.Application.Services
         private readonly IPostRepository postRepository;
         private readonly IMapper mapper;
         private readonly IOptions<PaginationSettings> paginationSetting;
-        private readonly IQueuePublisher<ReactionEvent> reactionPublisher;
+        private readonly IReactionPublisher reactionPublisher;
 
         public ReactionPostService(IPostReactionRepository reactionRepository, IPostRepository postRepository, IMapper mapper, IOptions<PaginationSettings> paginationSetting
             , IReactionPublisher reactionPublisher)
@@ -68,7 +69,7 @@ namespace react_service.Application.Services
             {
                 PostId = postId,
                 UserId = userId,
-                EventType = ReactionEventType.Deleted
+                EventType = Domain.Enums.ReactionEventType.Deleted
             });
             response.Message = "Reaction deleted successfully.";
             response.Data = true;
@@ -105,7 +106,7 @@ namespace react_service.Application.Services
             {
                 PostId = reaction.PostId,
                 UserId = userId,
-                EventType = ReactionEventType.Created
+                EventType = Domain.Enums.ReactionEventType.Created
             });
             response.Message = "Reaction added successfully.";
             response.Data = true;

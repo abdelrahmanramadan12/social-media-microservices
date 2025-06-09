@@ -4,6 +4,8 @@ using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using react_service.Application.Interfaces.Publishers;
 using react_service.Application.DTO.RabbitMQ;
+using System.Text.Json;
+using System.Text;
 
 namespace react_service.Application.Services
 {
