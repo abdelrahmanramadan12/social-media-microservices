@@ -52,7 +52,9 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
-/.vs
+
+#env
+appsettings.json
+
+#vs
 .vs/
-/media-service/Media/.env
-/media-service/Media/appsettings.json
