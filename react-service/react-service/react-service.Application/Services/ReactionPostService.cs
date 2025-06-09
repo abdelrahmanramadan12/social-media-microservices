@@ -116,24 +116,28 @@ namespace react_service.Application.Services
                 UserId = userId,
                 EventType = Domain.Enums.ReactionEventType.Created
             });
-
-            await reactionPublisher.PublishReactionNotifAsync(new Domain.Events.ReactionEvent
+            if (res == ReactionEventType.Created.ToString())
             {
-                AuthorEntityId = post.AuthorId,
-                ReactionEntityId = reactionObj.PostId,
-                Type = reactionObj.ReactionType, // Assuming None for deletion
-                ReactedOn = Domain.Events.ReactedEntity.Post,
-                User = new UserSkeleton
+                await reactionPublisher.PublishReactionNotifAsync(new Domain.Events.ReactionEvent
                 {
+                    AuthorEntityId = post.AuthorId,
+                    ReactionEntityId = reactionObj.PostId,
+                    Type = reactionObj.ReactionType, // Assuming None for deletion
+                    ReactedOn = Domain.Events.ReactedEntity.Post,
+                    User = new UserSkeleton
+                    {
+                        Id = reactionObj.Id,
+                        UserId = userId,
+                        Seen = false,
+                        CreatedAt = reactionObj.CreatedAt
+                    },
                     Id = reactionObj.Id,
-                    UserId = userId,
-                    Seen = false,
-                    CreatedAt = reactionObj.CreatedAt
-                },
-                Id = reactionObj.Id,    
 
-            });
-            if(res == ReactionEventType.Created.ToString())
+
+                });
+               
+            }
+            if (res == ReactionEventType.Created.ToString())
             {
                 response.Message = "Reaction added successfully.";
 
@@ -145,6 +149,8 @@ namespace react_service.Application.Services
             }
             response.Data = true;
             return response;
+
+
         }
 
         public async Task<ResponseWrapper<bool>> DeleteReactionsByPostId(string postId)
