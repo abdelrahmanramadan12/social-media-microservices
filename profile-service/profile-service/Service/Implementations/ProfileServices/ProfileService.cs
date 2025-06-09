@@ -91,9 +91,9 @@ namespace Service.Implementations.ProfileServices
             }
         }
 
-        public async Task<ResponseWrapper<SimpleUserProfile>> GetByUserIdMinAsync(string userId)
+        public async Task<ResponseWrapper<SimpleUserDto>> GetByUserIdMinAsync(string userId)
         {
-            var response = new ResponseWrapper<SimpleUserProfile>();
+            var response = new ResponseWrapper<SimpleUserDto>();
 
             if (string.IsNullOrWhiteSpace(userId))
             {
@@ -124,9 +124,9 @@ namespace Service.Implementations.ProfileServices
             }
         }
 
-        public async Task<ResponseWrapper<SimpleUserProfile>> GetByUserNameMinAsync(string userName)
+        public async Task<ResponseWrapper<SimpleUserDto>> GetByUserNameMinAsync(string userName)
         {
-            var response = new ResponseWrapper<SimpleUserProfile>();
+            var response = new ResponseWrapper<SimpleUserDto>();
 
             if (string.IsNullOrWhiteSpace(userName))
             {
@@ -157,9 +157,9 @@ namespace Service.Implementations.ProfileServices
             }
         }
 
-        public async Task<ResponseWrapper<List<SimpleUserProfile>>> GetUsersByIdsAsync(List<string> userIds)
+        public async Task<ResponseWrapper<List<SimpleUserDto>>> GetUsersByIdsAsync(List<string> userIds)
         {
-            var response = new ResponseWrapper<List<SimpleUserProfile>>();
+            var response = new ResponseWrapper<List<SimpleUserDto>>();
 
             if (userIds == null || !userIds.Any())
             {
@@ -267,7 +267,7 @@ namespace Service.Implementations.ProfileServices
                 await _profileRepository.AddAsync(profileEntity);
 
                 // Publish event
-                var profileEvent = CreateProfileEvent(profileEntity, ProfileEventType.ProfileAdded);
+                var profileEvent = CreateProfileEvent(profileEntity, ProfileEventType.Create);
                 await _profilePublisher.PublishAsync(profileEvent);
 
                 response.Data = profileEntity;
@@ -402,7 +402,7 @@ namespace Service.Implementations.ProfileServices
                 }
                 
                 // Publish event
-                ProfileEvent? profileEvent = CreateProfileEvent(existingProfile, ProfileEventType.ProfileUpdated);
+                ProfileEvent? profileEvent = CreateProfileEvent(existingProfile, ProfileEventType.Update);
                 await _profilePublisher.PublishAsync(profileEvent);
 
                 response.Data = existingProfile;
@@ -443,7 +443,7 @@ namespace Service.Implementations.ProfileServices
                 // Publish event
                 var profileEvent = new ProfileEvent
                 {
-                    EventType = ProfileEventType.ProfileDeleted,
+                    EventType = ProfileEventType.Delete,
                     UserId = userId 
                 };
                 await _profilePublisher.PublishAsync(profileEvent);

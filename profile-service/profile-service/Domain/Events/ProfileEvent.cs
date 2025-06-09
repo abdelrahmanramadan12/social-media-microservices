@@ -2,9 +2,9 @@ namespace Domain.Events
 {
     public enum ProfileEventType
     {
-        ProfileAdded,
-        ProfileUpdated,
-        ProfileDeleted
+        Create,
+        Update,
+        Delete
     }
 
     public class ProfileEvent
