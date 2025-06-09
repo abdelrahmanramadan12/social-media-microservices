@@ -18,5 +18,15 @@ namespace Domain.IRepository
         Task UpdateAsync(Comment comment);
         Task DeleteAsync(string id);
         Task DeleteByPostIdAsync(string postId);
+
+        /// <summary>
+        /// Increments the ReactCount for a comment by 1. Returns false if comment doesn't exist or is deleted.
+        /// </summary>
+        Task<bool> IncrementReactionCountAsync(string commentId);
+
+        /// <summary>
+        /// Decrements the ReactCount for a comment by 1. Will not go below zero. Returns false if comment doesn't exist or is deleted.
+        /// </summary>
+        Task<bool> DecrementReactionCountAsync(string commentId);
     }
 }

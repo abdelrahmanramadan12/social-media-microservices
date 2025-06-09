@@ -49,6 +49,7 @@ namespace Web
             
             // Register Hosted Services
             builder.Services.AddHostedService<PostListener>();
+            builder.Services.AddHostedService<CommentReactionListener>();
             // Configure Media Service Client
             // Read MediaService:HostUrl from configuration
             builder.Services.AddHttpClient<IMediaServiceClient, MediaServiceClient>((sp, client) =>

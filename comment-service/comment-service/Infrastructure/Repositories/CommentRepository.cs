@@ -1,4 +1,4 @@
-﻿using Domain.Entities;
+using Domain.Entities;
 using Domain.IRepository;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -71,6 +71,30 @@ namespace Infrastructure.Repositories
                                   .SortByDescending(c => c.Id)  // newest first
                                   .Limit(limit)
                                   .ToListAsync();
+        }
+
+        // ---------- reaction count ----------
+
+        public async Task<bool> IncrementReactionCountAsync(string commentId)
+        {
+            var objectId = ObjectId.Parse(commentId);
+            var filter = Builders<Comment>.Filter.Eq(c => c.Id, objectId);
+            var update = Builders<Comment>.Update.Inc(c => c.ReactCount, 1);
+            var result = await _comments.UpdateOneAsync(filter, update);
+            return result.ModifiedCount > 0;
+        }
+
+        public async Task<bool> DecrementReactionCountAsync(string commentId)
+        {
+            var objectId = ObjectId.Parse(commentId);
+            // Only decrement if ReactCount > 0
+            var filter = Builders<Comment>.Filter.And(
+                Builders<Comment>.Filter.Eq(c => c.Id, objectId),
+                Builders<Comment>.Filter.Gt(c => c.ReactCount, 0)
+            );
+            var update = Builders<Comment>.Update.Inc(c => c.ReactCount, -1);
+            var result = await _comments.UpdateOneAsync(filter, update);
+            return result.ModifiedCount > 0;
         }
 
         // ---------- bulk delete by post ----------
