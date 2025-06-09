@@ -1,8 +1,8 @@
-﻿namespace Service.Interfaces.RabbitMQServices
+namespace Service.Interfaces.RabbitMQServices
 {
     public interface IRabbitMqPublisher
     {
-        Task PublishAsync<T>(T message, string queueName, CancellationToken ct = default);
+        Task PublishAsync<T>(T message, List<string> queueNames, CancellationToken ct = default);
 
     }
 }

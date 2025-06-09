@@ -7,15 +7,15 @@ namespace Service.Implementations.RabbitMQServices
     public class CommentPublisher : ICommentPublisher
     {
         private readonly IRabbitMqPublisher _bus;
-        private readonly string _queueName;
+        private readonly List<string> _queueNames;
 
-        public CommentPublisher(IRabbitMqPublisher bus, IConfiguration config)
+        public CommentPublisher(IRabbitMqPublisher bus, IConfiguration _config)
         {
             _bus = bus;
-            _queueName = config["RabbitMQQueues:Comment"];
+            _queueNames = _config["RabbitMQQueues:Comment"].Split(";").ToList();
         }
         public Task PublishAsync(CommentEvent evt, CancellationToken ct = default)
-            => _bus.PublishAsync(evt, _queueName, ct);
+            => _bus.PublishAsync(evt, _queueNames, ct);
 
     }
 }

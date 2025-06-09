@@ -28,14 +28,14 @@ namespace Infrastructure.Repositories
 
         public async Task<bool> DeletePostAsync(string postId)
         {
-            var filter = Builders<Post>.Filter.Eq(p => p.Id, postId);
+            var filter = Builders<Post>.Filter.Eq(p => p.PostId, postId);
             var result = await _posts.DeleteOneAsync(filter);
             return result.DeletedCount > 0;
         }
 
         public async Task<Post?> GetPostByIdAsync(string postId)
         {
-            var filter = Builders<Post>.Filter.Eq(p => p.Id, postId);
+            var filter = Builders<Post>.Filter.Eq(p => p.PostId, postId);
             return await _posts.Find(filter).FirstOrDefaultAsync();
         }
     }

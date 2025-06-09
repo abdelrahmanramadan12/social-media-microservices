@@ -4,6 +4,6 @@ namespace Service.Interfaces.RabbitMQServices
 {
     public interface ICommentCreatedPublisher
     {
-        Task PublishAsync(CommentCreatedEvent evt);
+        Task PublishAsync(CommentEvent evt);
     }
 } 

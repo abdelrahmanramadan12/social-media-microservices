@@ -46,6 +46,9 @@ namespace Web
             // Register Application Services
             builder.Services.AddScoped<ICommentService, CommentService>();
             builder.Services.AddScoped<IPostService, PostService>();
+            
+            // Register Hosted Services
+            builder.Services.AddHostedService<PostListener>();
             // Configure Media Service Client
             // Read MediaService:HostUrl from configuration
             builder.Services.AddHttpClient<IMediaServiceClient, MediaServiceClient>((sp, client) =>

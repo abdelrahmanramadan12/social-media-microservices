@@ -1,4 +1,5 @@
 using Domain.IRepository;
+using Service.Enums;
 using Service.Events;
 using Service.Interfaces.PostServices;
 
@@ -20,11 +21,9 @@ namespace Service.Implementations.PostServices
             {
                 throw new ArgumentNullException(nameof(post), "Post event cannot be null.");
             }
-            if (post.EventType == postEventType.PostAdded)
+            if (post.EventType == EventType.Create)
             {
-
-
-                var existingPost = _postRepo.GetPostByIdAsync(post.Data.PostId);
+                var existingPost = await _postRepo.GetPostByIdAsync(post.PostId);
                 if (existingPost != null)
                 {
                     return;
@@ -32,22 +31,22 @@ namespace Service.Implementations.PostServices
                 // Add the new post
                 var newPost = new Domain.Entities.Post
                 {
-                    Id = post.Data.PostId,
-                    AuthorId = post.Data.PostAuthorId,
-                    Privacy = post.Data.Privacy,
+                    PostId = post.PostId,
+                    AuthorId = post.AuthorId,
+                    Privacy = post.Privacy,
                 };
                 var isAdded = await _postRepo.AddPostAsync(newPost);
                 if (!isAdded)
                 {
-                    throw new Exception($"Failed to add post with ID {post.Data.PostId}.");
+                    throw new Exception($"Failed to add post with ID {post.PostId}.");
                 }
             }
-            else if (post.EventType == postEventType.PostDeleted)
+            else if (post.EventType == EventType.Delete)
             {
                 // Delete the post
-                await _postRepo.DeletePostAsync(post.Data.PostId);
+                await _postRepo.DeletePostAsync(post.PostId);
                 // Delete all comments related to this post
-                await _commentRepo.DeleteByPostIdAsync(post.Data.PostId);
+                await _commentRepo.DeleteByPostIdAsync(post.PostId);
             }
             else
             {

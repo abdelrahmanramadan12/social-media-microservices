@@ -4,6 +4,7 @@ using Domain.IRepository;
 using MongoDB.Bson;
 using Service.DTOs.Requests;
 using Service.DTOs.Responses;
+using Service.Enums;
 using Service.Events;
 using Service.Interfaces.CommentServices;
 using Service.Interfaces.MediaServices;
@@ -110,9 +111,9 @@ namespace Service.Implementations.CommentServices
                 {
                     return new ResponseWrapper<CommentResponse>
                     {
-                        Message = "PostId is required",
+                        Message = "CommentId is required",
                         ErrorType = ErrorType.Validation,
-                        Errors = new List<string> { "PostId is required" }
+                        Errors = new List<string> { "CommentId is required" }
                     };
                 }
 
@@ -200,18 +201,15 @@ namespace Service.Implementations.CommentServices
 
                 await _commentPublisher.PublishAsync(new CommentEvent
                 {
-                    EventType = CommentEventType.Created,
-                    Data = new CommentData
-                    {
-                        CommentId = comment.Id.ToString(),
-                        PostId = comment.PostId,
-                        CommentAuthorId = comment.AuthorId,
-                        Content = comment.Content,
-                        MediaUrl = comment.MediaUrl,
-                        CreatedAt = comment.CreatedAt,
-                        PostAuthorId = post?.AuthorId ?? string.Empty,
-                        IsEdited = false
-                    }
+                    EventType = EventType.Create,
+                    CommentId = comment.Id.ToString(),
+                    PostId = comment.PostId,
+                    CommentAuthorId = comment.AuthorId,
+                    Content = comment.Content,
+                    MediaUrl = comment.MediaUrl,
+                    CreatedAt = comment.CreatedAt,
+                    PostAuthorId = post?.AuthorId ?? string.Empty,
+                    IsEdited = false
                 });
 
                 return new ResponseWrapper<CommentResponse>
@@ -409,18 +407,15 @@ namespace Service.Implementations.CommentServices
                 
                 await _commentPublisher.PublishAsync(new CommentEvent
                 {
-                    EventType = CommentEventType.Updated,
-                    Data = new CommentData
-                    {
-                        CommentId = comment.Id.ToString(),
-                        PostId = comment.PostId,
-                        CommentAuthorId = comment.AuthorId,
-                        Content = comment.Content,
-                        MediaUrl = comment.MediaUrl,
-                        CreatedAt = comment.CreatedAt,
-                        PostAuthorId = post?.AuthorId ?? string.Empty,
-                        IsEdited = true
-                    }
+                    EventType = EventType.Update,
+                    CommentId = comment.Id.ToString(),
+                    PostId = comment.PostId,
+                    CommentAuthorId = comment.AuthorId,
+                    Content = comment.Content,
+                    MediaUrl = comment.MediaUrl,
+                    CreatedAt = comment.CreatedAt,
+                    PostAuthorId = post?.AuthorId ?? string.Empty,
+                    IsEdited = true
                 });
 
                 return new ResponseWrapper<CommentResponse>
@@ -471,14 +466,11 @@ namespace Service.Implementations.CommentServices
 
                 await _commentPublisher.PublishAsync(new CommentEvent
                 {
-                    EventType = CommentEventType.Deleted,
-                    Data = new CommentData
-                    {
-                        CommentId = comment.Id.ToString(),
-                        PostId = comment.PostId,
-                        CommentAuthorId = comment.AuthorId,
-                        PostAuthorId = (await _postRepository.GetPostByIdAsync(comment.PostId))?.AuthorId ?? string.Empty
-                    }
+                    EventType = EventType.Delete,
+                    CommentId = comment.Id.ToString(),
+                    PostId = comment.PostId,
+                    CommentAuthorId = comment.AuthorId,
+                    PostAuthorId = (await _postRepository.GetPostByIdAsync(comment.PostId))?.AuthorId ?? string.Empty
                 });
 
                 return new ResponseWrapper<bool>

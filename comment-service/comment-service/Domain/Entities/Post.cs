@@ -11,9 +11,9 @@ namespace Domain.Entities
     public class Post
     {
         [BsonId]
-        public string Id { get; set; }
+        public string PostId { get; set; }
         public string AuthorId { get; set; }
         public Privacy Privacy { get; set; }
-
+        public bool IsDeleted { get; set; }
     }
 }

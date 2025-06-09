@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Hosting;
 using Service.Interfaces.RabbitMQServices;
 
 namespace Worker
@@ -26,7 +26,6 @@ namespace Worker
         {
             await _postListener.DisposeAsync();
             await base.StopAsync(cancellationToken);
-
         }
     }
 }

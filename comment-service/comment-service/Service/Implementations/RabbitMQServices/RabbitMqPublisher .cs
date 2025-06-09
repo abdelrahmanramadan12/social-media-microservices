@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using RabbitMQ.Client;
@@ -24,24 +24,30 @@ namespace Service.Implementations.RabbitMQServices
             _lazyConn = new(() => _factory.CreateConnectionAsync());
         }
 
-        public async Task PublishAsync<T>(T message, string queueName, CancellationToken ct = default)
+        public async Task PublishAsync<T>(T message, List<string> queueNames, CancellationToken ct = default)
         {
             var conn = await _lazyConn.Value;
             await using var channel = await conn.CreateChannelAsync(
                 new CreateChannelOptions(true, true), ct);
 
-            await channel.QueueDeclareAsync(queueName, durable: true,
-                                            exclusive: false, autoDelete: false,
-                                            arguments: null, cancellationToken: ct);
-
             var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
 
-            await channel.BasicPublishAsync(exchange: string.Empty,
-                                            routingKey: queueName,
-                                            body: body,
-                                            mandatory: true,
-                                            basicProperties: new BasicProperties { Persistent = true },
-                                            cancellationToken: ct);
+            queueNames.ForEach(async (queueName) =>
+            {
+                _ = await channel.QueueDeclareAsync(
+                    queueName, durable: true,
+                    exclusive: false, autoDelete: false,
+                    arguments: null, cancellationToken: ct
+                );
+
+                await channel.BasicPublishAsync(exchange: string.Empty,
+                    routingKey: queueName,
+                    body: body,
+                    mandatory: true,
+                    basicProperties: new BasicProperties { Persistent = true },
+                    cancellationToken: ct
+                );
+            });
         }
 
         public async ValueTask DisposeAsync()
