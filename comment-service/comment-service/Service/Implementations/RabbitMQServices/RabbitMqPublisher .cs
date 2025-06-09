@@ -32,7 +32,7 @@ namespace Service.Implementations.RabbitMQServices
 
             var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
 
-            queueNames.ForEach(async (queueName) =>
+            var publishTasks = queueNames.Select(async queueName =>
             {
                 _ = await channel.QueueDeclareAsync(
                     queueName, durable: true,
@@ -48,6 +48,7 @@ namespace Service.Implementations.RabbitMQServices
                     cancellationToken: ct
                 );
             });
+            await Task.WhenAll(publishTasks);
         }
 
         public async ValueTask DisposeAsync()
