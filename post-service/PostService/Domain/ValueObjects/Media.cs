@@ -4,7 +4,6 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace Domain.ValueObjects
 {
-
     public class Media
     {
         [BsonId]

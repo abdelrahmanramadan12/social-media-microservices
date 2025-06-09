@@ -1,5 +1,7 @@
 using Application.DTOs;
 using Application.DTOs.Responses;
+using Application.Events;
+using Application.Interfaces;
 using Application.IServices;
 using Domain.Entities;
 using Domain.Enums;
@@ -13,11 +15,13 @@ namespace Application.Services
         private readonly IPostRepository _postRepository;
         private readonly IValidationService _validationService;
         private readonly IHelperService _helperService;
-        public PostService(IPostRepository postRepository, IValidationService validationService, IHelperService helperService)
+        private readonly IQueuePublisher<PostEvent> _queuePublisher;
+        public PostService(IPostRepository postRepository, IValidationService validationService, IHelperService helperService, IQueuePublisher<PostEvent> queuePublisher)
         {
             this._postRepository = postRepository;
             this._validationService = validationService;
             _helperService = helperService;
+            _queuePublisher = queuePublisher;
         }
 
         public async Task<ResponseWrapper<PostResponseDTO>> AddPostAsync(string userId, PostInputDTO postInputDto)
@@ -76,6 +80,23 @@ namespace Application.Services
                 return res;
             }
             res.Data = mappingResult.Item;
+            res.Message = "Post created successfully";
+            var postCreatedEvent = new PostEvent();
+            postCreatedEvent.EventType = EventType.Create;
+
+            // Mapping 
+            postCreatedEvent.AuthorId = res.Data.AuthorId;
+            postCreatedEvent.AuthorId = res.Data.AuthorId;
+            postCreatedEvent.PostId = res.Data.PostId;
+            postCreatedEvent.PostContent = res.Data.PostContent;
+            postCreatedEvent.Privacy = res.Data.Privacy;
+            postCreatedEvent.Media = res.Data.Media;
+            postCreatedEvent.CreatedAt = res.Data.CreatedAt;
+            postCreatedEvent.IsEdited = res.Data.IsEdited;
+            postCreatedEvent.NumberOfLikes = res.Data.NumberOfLikes;
+            postCreatedEvent.NumberOfComments = res.Data.NumberOfComments;
+            
+            await _queuePublisher.PublishAsync(postCreatedEvent);
             return res;
         }
 
@@ -101,7 +122,17 @@ namespace Application.Services
                 response.Errors.Add("Invalid Rperation! post isn't found or you don't have permession");
                 return response;
             }
+
+            // Publish Delete Event
+            var postDeletedEvent = new PostEvent
+            {
+                EventType = EventType.Delete,
+                PostId = postId 
+            };
+            await _queuePublisher.PublishAsync(postDeletedEvent);
+
             response.Data = postId;
+            response.Message = "Post deleted successfully";
             return response;
         }
 
@@ -218,6 +249,24 @@ namespace Application.Services
                 return response;
             }
             response.Data = mappingResult.Item;
+            response.Message = "Post updated successfully";
+
+            // Publish Update Event
+            var postUpdatedEvent = new PostEvent
+            {
+                EventType = EventType.Update,
+                AuthorId = mappingResult.Item.AuthorId,
+                PostId = mappingResult.Item.PostId,
+                PostContent = mappingResult.Item.PostContent,
+                Privacy = mappingResult.Item.Privacy,
+                Media = mappingResult.Item.Media,
+                CreatedAt = mappingResult.Item.CreatedAt,
+                IsEdited = mappingResult.Item.IsEdited,
+                NumberOfLikes = mappingResult.Item.NumberOfLikes,
+                NumberOfComments = mappingResult.Item.NumberOfComments
+            };
+            await _queuePublisher.PublishAsync(postUpdatedEvent);
+
             return response;
         }
     }

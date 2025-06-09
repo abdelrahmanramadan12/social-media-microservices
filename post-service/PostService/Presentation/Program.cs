@@ -1,9 +1,15 @@
 using Application.Configuration;
+using Application.DTOs;
+using Application.Events;
+using Application.Implementations;
+using Application.Interfaces;
 using Application.IServices;
 using Application.Services;
+using Domain.Entities;
 using Domain.IRepository;
 using Infrastructure.Repository;
 using Microsoft.Extensions.Options;
+using Workers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,6 +48,14 @@ builder.Services.AddScoped<IEncryptionService>(sp =>
 builder.Services.AddScoped<IValidationService, ValidationService>();
 builder.Services.AddScoped<IHelperService, HelperService>();
 builder.Services.AddScoped<IPostService, PostService>();
+
+// Configure RabbitMQ Publisher
+builder.Services.AddSingleton<IQueuePublisher<PostEvent>, PostEntityQueuePublisher>();
+
+builder.Services.AddHostedService<QueueListenersWorker>();
+builder.Services.AddHostedService<QueuePublishersInitializer>();
+builder.Services.AddHostedService<CommentEventConsumer>();
+builder.Services.AddHostedService<ReactionEventConsumer>();
 
 var app = builder.Build();
 

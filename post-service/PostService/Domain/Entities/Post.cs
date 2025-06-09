@@ -20,8 +20,5 @@ namespace Domain.Entities
         public int NumberOfLikes { get; set; }
         public int NumberOfComments { get; set; }
         public List<Media> MediaList { get; set; }
-
-        // Media Property
-
     }
 }
