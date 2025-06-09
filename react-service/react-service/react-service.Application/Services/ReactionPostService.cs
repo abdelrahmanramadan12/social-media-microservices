@@ -12,6 +12,7 @@ using react_service.Domain.Entites;
 using react_service.Domain.Enums;
 using react_service.Application.Events;
 using react_service.Domain.Events;
+using ReactionEventType = react_service.Domain.Enums.ReactionEventType;
 
 namespace react_service.Application.Services
 {
@@ -107,7 +108,7 @@ namespace react_service.Application.Services
 
             var reactionObj = mapper.Map<PostReaction>(reaction);
             reactionObj.UserId = userId;
-            await reactionRepository.AddReactionAsync(reactionObj);
+         var res =   await reactionRepository.AddReactionAsync(reactionObj);
             // Publish ReactionEvent for add
             await reactionPublisher.PublishReactionAsync(new PostReactionEventDTO
             {
@@ -132,7 +133,16 @@ namespace react_service.Application.Services
                 Id = reactionObj.Id,    
 
             });
-            response.Message = "Reaction added successfully.";
+            if(res == ReactionEventType.Created.ToString())
+            {
+                response.Message = "Reaction added successfully.";
+
+            }
+            else
+            {
+                response.Message = "Reaction deleted successfully.";
+
+            }
             response.Data = true;
             return response;
         }

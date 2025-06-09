@@ -5,6 +5,7 @@ using react_service.Infrastructure.Mongodb;
 using react_service.Application.Interfaces.Repositories;
 using react_service.Application.Pagination;
 using System.Xml.XPath;
+using react_service.Domain.Enums;
 
 namespace react_service.Infrastructure.Repositories
 {
@@ -94,6 +95,17 @@ namespace react_service.Infrastructure.Repositories
                 .Limit(PaginationSetting.Value.DefaultPageSize)
                 .ToListAsync();
         }
+        public async Task<bool> HardDeleteReactionAsync(string postId, string userId)
+        {
+            var filter = Builders<PostReaction>.Filter.And(
+                Builders<PostReaction>.Filter.Eq(r => r.PostId, postId),
+                Builders<PostReaction>.Filter.Eq(r => r.UserId, userId)
+            );
+
+            var result = await _collection.DeleteOneAsync(filter);
+            return result.DeletedCount > 0;
+        }
+
 
         public async Task<string> AddReactionAsync(PostReaction reaction)
         {
@@ -103,21 +115,34 @@ namespace react_service.Infrastructure.Repositories
             try
             {
                 var reactionExist = await CheckUserAndPostIdExist(reaction.PostId, reaction.UserId);
-
-                if (reactionExist)
+                var reationType = reaction.ReactionType;
+                if (reactionExist )
                 {
-                    await DeleteReactionAsync(reaction.PostId, reaction.UserId);
-                }
+                    var reactionObj =  await GetReactionByIdAsync(reaction.PostId , reaction.UserId);
 
-                reaction.IsDeleted = false;
+                    if(reactionObj.ReactionType == reaction.ReactionType)
+                    {
+                        await HardDeleteReactionAsync(reaction.PostId, reaction.UserId); // Hard delete the existing reaction    
+                        return ReactionEventType.Deleted.ToString();
+
+                    }
+                    
+
+                    await HardDeleteReactionAsync(reaction.PostId, reaction.UserId); // Hard delete the existing reaction    
+                    reaction.IsDeleted = false;
+
+
+
+                }
                 await _collection.InsertOneAsync(reaction);
+
+                return ReactionEventType.Created.ToString();
 
                 //   await session.CommitTransactionAsync();
 
-                return reaction.PostId;
             }
             catch (Exception ex)
-            {
+             {
                 // await session.AbortTransactionAsync();
                 throw new Exception("Failed to create reaction within transaction", ex);
             }
@@ -166,6 +191,7 @@ namespace react_service.Infrastructure.Repositories
                 Builders<PostReaction>.Filter.Eq(r => r.PostId, postId),
                 Builders<PostReaction>.Filter.Eq(r => r.IsDeleted, false)
             );
+
             return await _collection.Find(filter)
                 .Project(r => r.UserId)
                 .ToListAsync();
@@ -190,6 +216,21 @@ namespace react_service.Infrastructure.Repositories
                 .Project(r => r.UserId)
                 .ToListAsync();
         }
+        public async Task<PostReaction?> GetReactionByIdAsync(string postId, string userId)
+        {
+            var filterBuilder = Builders<PostReaction>.Filter;
+
+                var filters = new List<FilterDefinition<PostReaction>>
+            {
+                filterBuilder.Eq(r => r.PostId, postId),
+                filterBuilder.Eq(r => r.UserId, userId)
+            };
+
+                    var filter = filterBuilder.And(filters);
+
+            return await _collection.Find(filter).FirstOrDefaultAsync();
+        }
+
 
         public async Task<bool> IsPostReactedByUserAsync(string postId, string userId)
         {
