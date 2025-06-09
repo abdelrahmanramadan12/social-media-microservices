@@ -5,7 +5,7 @@ using react_service.Domain.interfaces;
 
 namespace Workers
 {
-    public class ReactionPublisherWorker : BackgroundService
+    public class ReactionPublisherWorker : IHostedService
     {
         private readonly IQueuePublisher<ReactionEvent> _reactionPublisher;
 
@@ -23,6 +23,8 @@ namespace Workers
         {
             return _reactionPublisher.DisposeAsync().AsTask();
         }
+
+     
     }
 
   
