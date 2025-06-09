@@ -1,4 +1,3 @@
-using Application.DTOs;
 using Domain.Enums;
 
 namespace Application.Events
@@ -10,4 +9,4 @@ namespace Application.Events
         public string UserId { get; set; } = default!;
         public ReactionEventType ReactionType { get; set; }
     }
-} 
+}

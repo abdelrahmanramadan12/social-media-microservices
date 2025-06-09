@@ -2,7 +2,6 @@ using Application.DTOs;
 using Application.DTOs.Responses;
 using Application.IServices;
 using Domain.Entities;
-using Domain.Enums;
 using Domain.IRepository;
 using Domain.ValueObjects;
 
@@ -45,7 +44,7 @@ namespace Application.Services
             mappingResult.Item = postResponseDTO;
             return mappingResult;
         }
-        
+
         public async Task<MediaUploadResponse> AssignMediaToPostInput(PostInputDTO postInputDTO)
         {
             var mediaUploadResponse = new MediaUploadResponse();

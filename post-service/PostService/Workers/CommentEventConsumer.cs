@@ -1,6 +1,4 @@
-using Application.DTOs;
 using Application.Events;
-using Application.Interfaces;
 using Domain.Enums;
 using Domain.IRepository;
 using Microsoft.Extensions.Configuration;
@@ -82,4 +80,4 @@ namespace Workers
                 await _connection.CloseAsync();
         }
     }
-} 
+}

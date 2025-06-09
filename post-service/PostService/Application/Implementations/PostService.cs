@@ -95,7 +95,7 @@ namespace Application.Services
             postCreatedEvent.IsEdited = res.Data.IsEdited;
             postCreatedEvent.NumberOfLikes = res.Data.NumberOfLikes;
             postCreatedEvent.NumberOfComments = res.Data.NumberOfComments;
-            
+
             await _queuePublisher.PublishAsync(postCreatedEvent);
             return res;
         }
@@ -127,7 +127,7 @@ namespace Application.Services
             var postDeletedEvent = new PostEvent
             {
                 EventType = EventType.Delete,
-                PostId = postId 
+                PostId = postId
             };
             await _queuePublisher.PublishAsync(postDeletedEvent);
 

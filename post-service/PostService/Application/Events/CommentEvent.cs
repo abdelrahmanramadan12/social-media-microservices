@@ -1,6 +1,3 @@
-using Application.DTOs;
-using Domain.Enums;
-
 namespace Application.Events
 {
     public class CommentEvent : QueueEvent
@@ -12,4 +9,4 @@ namespace Application.Events
         public string? MediaUrl { get; set; }
         public DateTime CreatedAt { get; set; }
     }
-} 
+}

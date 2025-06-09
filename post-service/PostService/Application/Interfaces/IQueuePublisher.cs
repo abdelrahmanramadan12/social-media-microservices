@@ -1,5 +1,3 @@
-using Application.Events;
-
 namespace Application.Interfaces
 {
     public interface IQueuePublisher<T> : IAsyncDisposable

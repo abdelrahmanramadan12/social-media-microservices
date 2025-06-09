@@ -1,15 +1,9 @@
 using Application.Events;
 using Application.Interfaces;
-using Domain.Entities;
 using Microsoft.Extensions.Configuration;
 using RabbitMQ.Client;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System;
-using System.Linq;
-using Application.DTOs;
 
 namespace Application.Implementations
 {

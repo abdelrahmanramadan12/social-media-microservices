@@ -1,6 +1,4 @@
-using Application.DTOs;
 using Application.Events;
-using Application.Interfaces;
 using Domain.Enums;
 using Domain.IRepository;
 using Microsoft.Extensions.Configuration;
@@ -57,8 +55,8 @@ namespace Workers
 
                 if (reactionEvent != null)
                 {
-                    var counterEvent = reactionEvent.ReactionType == ReactionEventType.Like 
-                        ? PostCounterEvent.ReactionCreated 
+                    var counterEvent = reactionEvent.ReactionType == ReactionEventType.Like
+                        ? PostCounterEvent.ReactionCreated
                         : PostCounterEvent.ReactionDeleted;
 
                     await _postRepository.UpdatePostCountersAsync(reactionEvent.PostId, counterEvent);
@@ -83,4 +81,4 @@ namespace Workers
                 await _connection.CloseAsync();
         }
     }
-} 
+}

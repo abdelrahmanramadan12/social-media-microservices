@@ -1,13 +1,6 @@
-using Application.DTOs;
 using Application.Events;
 using Application.Interfaces;
-using Domain.Entities;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Workers
 {
