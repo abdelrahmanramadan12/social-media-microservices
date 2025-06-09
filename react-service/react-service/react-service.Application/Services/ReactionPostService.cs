@@ -2,12 +2,14 @@ using AutoMapper;
 using Microsoft.Extensions.Options;
 using react_service.Application.DTO;
 using react_service.Application.DTO.ReactionPost.Request;
+using react_service.Application.DTO.RabbitMQ;
 using react_service.Application.Helpers;
 using react_service.Application.Interfaces.Publishers;
 using react_service.Application.Interfaces.Repositories;
 using react_service.Application.Interfaces.Services;
 using react_service.Application.Pagination;
 using react_service.Domain.Entites;
+using react_service.Domain.Enums;
 
 namespace react_service.Application.Services
 {
@@ -61,6 +63,13 @@ namespace react_service.Application.Services
                 response.ErrorType = ErrorType.NotFound;
                 return response;
             }
+            // Publish ReactionEvent for delete
+            await reactionPublisher.PublishReactionAsync(new PostReactionEventDTO
+            {
+                PostId = postId,
+                UserId = userId,
+                EventType = ReactionEventType.Deleted
+            });
             response.Message = "Reaction deleted successfully.";
             response.Data = true;
             return response;
@@ -91,6 +100,13 @@ namespace react_service.Application.Services
             var reactionObj = mapper.Map<PostReaction>(reaction);
             reactionObj.UserId = userId;
             await reactionRepository.AddReactionAsync(reactionObj);
+            // Publish ReactionEvent for add
+            await reactionPublisher.PublishReactionAsync(new PostReactionEventDTO
+            {
+                PostId = reaction.PostId,
+                UserId = userId,
+                EventType = ReactionEventType.Created
+            });
             response.Message = "Reaction added successfully.";
             response.Data = true;
             return response;
