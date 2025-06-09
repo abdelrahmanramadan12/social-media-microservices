@@ -163,5 +163,49 @@ namespace Infrastructure.Repository
 
             return result.ModifiedCount > 0;
         }
+
+        public async Task<bool> UpdatePostCountersAsync(string postId, PostCounterEvent counterEvent)
+        {
+            var filter = Builders<Post>.Filter.Eq(p => p.Id, postId) & NotDeletedFilter;
+            var update = Builders<Post>.Update;
+            UpdateDefinition<Post> updateDef = update.Set(p => p.Id, postId); // dummy update, will be replaced
+            bool shouldUpdate = true;
+
+            switch (counterEvent)
+            {
+                case PostCounterEvent.CommentCreated:
+                    updateDef = update.Inc(p => p.NumberOfComments, 1);
+                    break;
+                case PostCounterEvent.CommentDeleted:
+                    shouldUpdate = false;
+                    var post = await _posts.Find(filter).FirstOrDefaultAsync();
+                    if (post != null && post.NumberOfComments > 0)
+                    {
+                        updateDef = update.Inc(p => p.NumberOfComments, -1);
+                        shouldUpdate = true;
+                    }
+                    break;
+                case PostCounterEvent.ReactionCreated:
+                    updateDef = update.Inc(p => p.NumberOfLikes, 1);
+                    break;
+                case PostCounterEvent.ReactionDeleted:
+                    shouldUpdate = false;
+                    var postR = await _posts.Find(filter).FirstOrDefaultAsync();
+                    if (postR != null && postR.NumberOfLikes > 0)
+                    {
+                        updateDef = update.Inc(p => p.NumberOfLikes, -1);
+                        shouldUpdate = true;
+                    }
+                    break;
+                default:
+                    return false;
+            }
+
+            if (!shouldUpdate)
+                return true;
+
+            var result = await _posts.UpdateOneAsync(filter, updateDef);
+            return result.ModifiedCount > 0;
+        }
     }
 }

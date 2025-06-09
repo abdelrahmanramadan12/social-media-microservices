@@ -17,6 +17,9 @@ namespace Domain.IRepository
         // Update
         Task<Post> UpdatePostAsync(string postId, Post newPost, bool HasMedia);
 
+        // Update Counters
+        Task<bool> UpdatePostCountersAsync(string postId, Domain.Enums.PostCounterEvent counterEvent);
+
         // Delete
         Task<bool> DeletePostAsync(string postId, string PostAuthorId);
     }
