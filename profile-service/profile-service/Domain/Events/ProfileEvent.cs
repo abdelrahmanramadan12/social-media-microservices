@@ -7,17 +7,13 @@ namespace Domain.Events
         ProfileDeleted
     }
 
-    public class ProfileEventData
+    public class ProfileEvent
     {
+        public ProfileEventType EventType { get; set; }
         public string UserId { get; set; }
         public string? UserName { get; set; }
         public string? DisplayName { get; set; }
         public string? ProfilePictureUrl { get; set; }
-    }
 
-    public class ProfileEvent
-    {
-        public ProfileEventType EventType { get; set; }
-        public ProfileEventData? User { get; set; }
     }
 }

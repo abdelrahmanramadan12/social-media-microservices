@@ -268,7 +268,7 @@ namespace Service.Implementations.ProfileServices
 
                 // Publish event
                 var profileEvent = CreateProfileEvent(profileEntity, ProfileEventType.ProfileAdded);
-                _profilePublisher.PublishAsync(profileEvent);
+                await _profilePublisher.PublishAsync(profileEvent);
 
                 response.Data = profileEntity;
                 response.Message = "Profile created successfully";
@@ -402,8 +402,8 @@ namespace Service.Implementations.ProfileServices
                 }
                 
                 // Publish event
-                var profileEvent = CreateProfileEvent(existingProfile, ProfileEventType.ProfileUpdated);
-                _profilePublisher.PublishAsync(profileEvent);
+                ProfileEvent? profileEvent = CreateProfileEvent(existingProfile, ProfileEventType.ProfileUpdated);
+                await _profilePublisher.PublishAsync(profileEvent);
 
                 response.Data = existingProfile;
                 response.Message = "Profile updated successfully";
@@ -444,7 +444,7 @@ namespace Service.Implementations.ProfileServices
                 var profileEvent = new ProfileEvent
                 {
                     EventType = ProfileEventType.ProfileDeleted,
-                    User = new ProfileEventData { UserId = userId }
+                    UserId = userId 
                 };
                 await _profilePublisher.PublishAsync(profileEvent);
 
@@ -470,7 +470,11 @@ namespace Service.Implementations.ProfileServices
             return new ProfileEvent
             {
                 EventType = eventType,
-                User = ProfileMapper.ToProfileEventData(profile)
+                UserId= profile.UserId,
+                DisplayName = $"{profile.FirstName} {profile.LastName}".Trim(),
+                UserName = profile.UserName,
+                ProfilePictureUrl = profile.ProfileUrl ?? " "
+                
             };
         }
     }
