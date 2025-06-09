@@ -19,7 +19,7 @@ namespace Service.Implementations.PostServices
 
             if (post == null)
             {
-                throw new ArgumentNullException(nameof(post), "Post event cannot be null.");
+                Console.WriteLine("Post event cannot be null.");
             }
             if (post.EventType == EventType.Create)
             {
@@ -47,6 +47,21 @@ namespace Service.Implementations.PostServices
                 await _postRepo.DeletePostAsync(post.PostId);
                 // Delete all comments related to this post
                 await _commentRepo.DeleteByPostIdAsync(post.PostId);
+            } else if (post.EventType == EventType.Update)
+            {
+                // Update the post
+                var existingPost = await _postRepo.GetPostByIdAsync(post.PostId);
+                if (existingPost == null)
+                {
+                    throw new Exception($"Post with ID {post.PostId} does not exist.");
+                }
+                existingPost.Privacy = post.Privacy;
+                existingPost.AuthorId = post.AuthorId;
+                var isUpdated = await _postRepo.UpdatePostAsync(existingPost);
+                if (!isUpdated)
+                {
+                    throw new Exception($"Failed to update post with ID {post.PostId}.");
+                }
             }
             else
             {

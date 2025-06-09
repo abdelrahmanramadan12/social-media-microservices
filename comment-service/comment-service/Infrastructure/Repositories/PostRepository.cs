@@ -38,5 +38,12 @@ namespace Infrastructure.Repositories
             var filter = Builders<Post>.Filter.Eq(p => p.PostId, postId);
             return await _posts.Find(filter).FirstOrDefaultAsync();
         }
+
+        public async Task<bool> UpdatePostAsync(Post post)
+        {
+            var filter = Builders<Post>.Filter.Eq(p => p.PostId, post.PostId);
+            var result = await _posts.ReplaceOneAsync(filter, post);
+            return result.ModifiedCount > 0;
+        }
     }
 }

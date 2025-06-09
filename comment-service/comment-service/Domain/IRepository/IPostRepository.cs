@@ -7,5 +7,6 @@ namespace Domain.IRepository
         Task<bool> AddPostAsync(Post post);
         Task<bool> DeletePostAsync(string postId);
         Task<Post?> GetPostByIdAsync(string postId);
+        Task<bool> UpdatePostAsync(Post post);
     }
 }

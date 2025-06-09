@@ -131,6 +131,38 @@ namespace Service.Implementations.CommentServices
                     }
                 }
 
+                // Check if post exists and is not deleted
+                var post = await _postRepository.GetPostByIdAsync(dto.PostId);
+                if (post == null || post.IsDeleted)
+                {
+                    return new ResponseWrapper<CommentResponse>
+                    {
+                        Message = "Post has been deleted or doesn't exist",
+                        ErrorType = ErrorType.NotFound,
+                        Errors = new List<string> { "Post has been deleted or doesn't exist" }
+                    };
+                }
+                // Privacy filtration for update
+                if (post.Privacy == Privacy.OnlyMe && post.AuthorId != dto.UserId)
+                {
+                    return new ResponseWrapper<CommentResponse>
+                    {
+                        Message = "You are not allowed to update a comment on this post",
+                        ErrorType = ErrorType.UnAuthorized,
+                        Errors = new List<string> { "You are not allowed to update a comment on this post" }
+                    };
+                }
+                // If privacy is OnlyMe, ensure commentAuthor == postAuthor
+                if (post.Privacy == Privacy.OnlyMe && post.AuthorId != dto.UserId)
+                {
+                    return new ResponseWrapper<CommentResponse>
+                    {
+                        Message = "You are not allowed to comment on this post",
+                        ErrorType = ErrorType.UnAuthorized,
+                        Errors = new List<string> { "You are not allowed to comment on this post" }
+                    };
+                }
+
                 var comment = new Comment
                 {
                     Id = ObjectId.GenerateNewId(),
@@ -196,8 +228,6 @@ namespace Service.Implementations.CommentServices
                 }
 
                 await _commentRepository.CreateAsync(comment);
-
-                var post = await _postRepository.GetPostByIdAsync(comment.PostId);
 
                 await _commentPublisher.PublishAsync(new CommentEvent
                 {
@@ -404,7 +434,15 @@ namespace Service.Implementations.CommentServices
                 await _commentRepository.UpdateAsync(comment);
 
                 var post = await _postRepository.GetPostByIdAsync(comment.PostId);
-                
+                if (post == null || post.IsDeleted)
+                {
+                    return new ResponseWrapper<CommentResponse>
+                    {
+                        Message = "Post has been deleted or doesn't exist",
+                        ErrorType = ErrorType.NotFound,
+                        Errors = new List<string> { "Post has been deleted or doesn't exist" }
+                    };
+                }
                 await _commentPublisher.PublishAsync(new CommentEvent
                 {
                     EventType = EventType.Update,
@@ -462,6 +500,28 @@ namespace Service.Implementations.CommentServices
                     };
                 }
 
+                var post = await _postRepository.GetPostByIdAsync(comment.PostId);
+                if (post == null || post.IsDeleted)
+                {
+                    return new ResponseWrapper<bool>
+                    {
+                        Data = false,
+                        Message = "Post has been deleted or doesn't exist",
+                        ErrorType = ErrorType.NotFound,
+                        Errors = new List<string> { "Post has been deleted or doesn't exist" }
+                    };
+                }
+                // Privacy filtration for delete
+                if (post.Privacy == Privacy.OnlyMe && post.AuthorId != userId)
+                {
+                    return new ResponseWrapper<bool>
+                    {
+                        Data = false,
+                        Message = "You are not allowed to delete a comment on this post",
+                        ErrorType = ErrorType.UnAuthorized,
+                        Errors = new List<string> { "You are not allowed to delete a comment on this post" }
+                    };
+                }
                 await _commentRepository.DeleteAsync(commentId);
 
                 await _commentPublisher.PublishAsync(new CommentEvent
@@ -470,7 +530,7 @@ namespace Service.Implementations.CommentServices
                     CommentId = comment.Id.ToString(),
                     PostId = comment.PostId,
                     CommentAuthorId = comment.AuthorId,
-                    PostAuthorId = (await _postRepository.GetPostByIdAsync(comment.PostId))?.AuthorId ?? string.Empty
+                    PostAuthorId = post.AuthorId
                 });
 
                 return new ResponseWrapper<bool>

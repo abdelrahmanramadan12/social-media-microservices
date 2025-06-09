@@ -55,7 +55,6 @@ namespace Service.Implementations.RabbitMQServices
 
         public async Task ListenAsync(CancellationToken cancellationToken)
         {
-            Console.WriteLine("[PostListener] ListenAsync started.");
             if (_channel == null)
             {
                 throw new InvalidOperationException("Channel is not initialized.");
