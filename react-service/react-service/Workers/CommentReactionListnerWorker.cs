@@ -1,35 +1,37 @@
-using Microsoft.Extensions.Hosting;
 using react_service.Application.Interfaces.Listeners;
 using System;
-using System.Threading;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+
 
 namespace Workers
 {
-    public class RabbitMqWorker : BackgroundService
+    public class CommentReactionListnerWorker : BackgroundService
     {
-        private readonly IPostEventListner _postEventListner;
-        private readonly PostEventListner _postEventConsumer;
+        private readonly ICommentEventListner _commentEventListner;
+        private readonly CommentEventListner _commentEventConsumer;
 
-        public RabbitMqWorker(
-            IPostEventListner postEventListener,
-            PostEventListner postEventConsumer)
+        public CommentReactionListnerWorker(
+            ICommentEventListner commentEventListener,
+            CommentEventListner commentEventConsumer)
         {
-            _postEventListner = postEventListener;
-            _postEventConsumer = postEventConsumer;
+            _commentEventListner = commentEventListener;
+            _commentEventConsumer = commentEventConsumer;
         }
 
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
             try
             {
-                await _postEventListner.InitializeAsync();
-                await _postEventConsumer.InitializeAsync();
+                await _commentEventListner.InitializeAsync();
+                await _commentEventConsumer.InitializeAsync();
                 await base.StartAsync(cancellationToken);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error starting RabbitMqWorker: {ex.Message}");
+                Console.WriteLine($"Error starting CommentReactionListnerWorker: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 throw;
             }
@@ -39,19 +41,19 @@ namespace Workers
         {
             try
             {
-                var deletedTask = _postEventListner.ListenAsync(stoppingToken);
-                var postEventTask = _postEventConsumer.ListenAsync(stoppingToken);
+                var deletedTask = _commentEventListner.ListenAsync(stoppingToken);
+                var commentEventTask = _commentEventConsumer.ListenAsync(stoppingToken);
 
                 // Create a task that will complete when the stoppingToken is cancelled
                 var cancellationTask = Task.Delay(Timeout.Infinite, stoppingToken);
 
                 // Wait for any of the tasks to complete
-                await Task.WhenAny(deletedTask, postEventTask, cancellationTask);
-                
+                await Task.WhenAny(deletedTask, commentEventTask, cancellationTask);
+
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in RabbitMqWorker ExecuteAsync: {ex.Message}");
+                Console.WriteLine($"Error in CommentReactionListnerWorker ExecuteAsync: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 throw;
             }
@@ -61,13 +63,13 @@ namespace Workers
         {
             try
             {
-                await _postEventListner.DisposeAsync();
-                await _postEventConsumer.DisposeAsync();
+                await _commentEventListner.DisposeAsync();
+                await _commentEventConsumer.DisposeAsync();
                 await base.StopAsync(cancellationToken);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error stopping RabbitMqWorker: {ex.Message}");
+                Console.WriteLine($"Error stopping CommentReactionListnerWorker: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 throw;
             }

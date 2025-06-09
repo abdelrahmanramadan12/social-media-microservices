@@ -1,4 +1,4 @@
-namespace react_service.Application.DTO.ReactionPost.Request
+namespace react_service.Application.DTO.Reaction.Request.Post
 {
     public class FilterPostsReactedByUserRequest
     {

@@ -10,8 +10,9 @@ namespace react_service.Application.Interfaces.Publishers
 {
     public interface IReactionPublisher
     {
-        Task PublishReactionAsync(PostReactionEventDTO reactionEvent);
+        Task PublishPostReactionAsync(PostReactionEventDTO reactionEvent);
         Task PublishReactionNotifAsync(ReactionEvent reactionEvent);
+        Task PublishCommentReactionAsync(CommentReactionEventDTO reactionEvent);
 
     }
 }

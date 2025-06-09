@@ -30,9 +30,11 @@ namespace Workers
                     {
                         // Register repositories
                         services.AddSingleton<IPostRepository, PostRepository>();
+                        services.AddSingleton<ICommentReactionRepository, CommentReactionRepository>();
                         
                         // Register listeners
                         services.AddSingleton<IPostEventListner, PostEventListner>();
+                        services.AddSingleton<ICommentEventListner, CommentEventListner>();
                         
                         // Register consumers
                         services.AddSingleton<PostEventListner>();
@@ -40,9 +42,11 @@ namespace Workers
                         // Register publishers
                         services.AddSingleton<PostEventPublisher>();
                         services.AddSingleton<ReactionEventPublisher>();
+                        services.AddSingleton<CommentEventPublisher>();
                         
                         // Register background service
-                        services.AddHostedService<RabbitMqWorker>();
+                        services.AddHostedService<PostReactionListnerWorker>();
+                        services.AddHostedService<CommentReactionListnerWorker>();
                     }
                     catch (Exception ex)
                     {
@@ -52,4 +56,4 @@ namespace Workers
                     }
                 });
     }
-} 
+}

@@ -91,7 +91,7 @@ namespace react_service.Application.Services
             }
         }
 
-        public async Task PublishReactionAsync(PostReactionEventDTO reactionEvent)
+        public async Task PublishPostReactionAsync(PostReactionEventDTO reactionEvent)
         {
             try
             {
@@ -172,6 +172,38 @@ namespace react_service.Application.Services
                 if (_connectionNotif != null)
                 {
                     await _connectionNotif.CloseAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task PublishCommentReactionAsync(CommentReactionEventDTO reactionEvent)
+        {
+            try
+            {
+                if (_channel == null)
+                {
+                    return;
+                }
+
+                var message = JsonSerializer.Serialize(reactionEvent);
+                var body = Encoding.UTF8.GetBytes(message);
+
+                foreach (var queueName in _queueNames)
+                {
+                    await _channel.BasicPublishAsync(
+                        exchange: "",
+                        routingKey: queueName,
+                        mandatory: true,
+                        basicProperties: new BasicProperties
+                        {
+                            Persistent = true
+                        },
+                        body: body);
+
                 }
             }
             catch (Exception ex)

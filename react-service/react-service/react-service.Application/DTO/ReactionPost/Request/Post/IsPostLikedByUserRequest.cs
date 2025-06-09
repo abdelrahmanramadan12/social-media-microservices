@@ -1,4 +1,4 @@
-namespace react_service.DTO.ReactionPost.Request
+namespace react_service.Application.DTO.ReactionPost.Request.Post
 {
     public class IsPostLikedByUserRequest
     {

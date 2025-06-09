@@ -28,6 +28,19 @@ namespace react_service.Infrastructure
                 var paginationSettings = sp.GetRequiredService<IOptions<PaginationSettings>>();
                 return new PostReactionRepositoy(mongoDbSettings, mongoClient, paginationSettings);
             });
+            services.AddScoped<ICommentReactionRepository>(sp =>
+            {
+                var mongoDbSettings = sp.GetRequiredService<IOptions<MongoDbSettings>>();
+                var mongoClient = sp.GetRequiredService<IMongoClient>();
+                var paginationSettings = sp.GetRequiredService<IOptions<PaginationSettings>>();
+                return new CommentReactionRepository(mongoDbSettings, mongoClient, paginationSettings);
+            });
+            services.AddScoped<ICommentRepository>(sp =>
+            {
+                var mongoDbSettings = sp.GetRequiredService<IOptions<MongoDbSettings>>();
+                var mongoClient = sp.GetRequiredService<IMongoClient>();
+                return new CommentRepository(mongoDbSettings, mongoClient);
+            });
             return services;
         }
     }
