@@ -18,9 +18,12 @@ namespace Web.Hubs
         public async Task SendMessageAsync(string userId, MessageDTO message)
         {
             var connections = await _connectionManager.GetConnectionsAsync(userId);
-            foreach (var connId in connections)
+            if (connections != null)
             {
-                await _hubContext.Clients.Client(connId).SendAsync("ReceivePrivateMessage", message);
+                foreach (var connId in connections)
+                {
+                    await _hubContext.Clients.Client(connId).SendAsync("ReceivePrivateMessage", message);
+                }
             }
         }
     }

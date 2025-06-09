@@ -104,11 +104,13 @@ namespace Application.Services
             if (notFound.Any())
             {
                 var noncached = await _profileServiceClient.GetProfilesAsync(notFound);
-                var dict = noncached.Data.ToDictionary(p => p.UserId, p => p);
-                await _profileCache.AddProfilesAsync(dict);
-
-                foreach (var msg in dto.Messages.Where(m => m.SenderProfile == null))
-                    msg.SenderProfile = noncached.Data.FirstOrDefault(p => p.UserId == msg.SenderId);
+                if (noncached.Success && noncached.Value != null && noncached.Value.Any())
+                {
+                    var dict = noncached.Value.ToDictionary(p => p.UserId, p => p);
+                    await _profileCache.AddProfilesAsync(dict);
+                    foreach (var msg in dto.Messages.Where(m => m.SenderProfile == null))
+                        msg.SenderProfile = noncached.Value.FirstOrDefault(p => p.UserId == msg.SenderId);
+                }
             }
         }
     }
