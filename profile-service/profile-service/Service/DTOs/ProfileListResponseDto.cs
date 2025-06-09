@@ -2,7 +2,7 @@ using Service.DTOs.Responses;
 
 namespace Service.DTOs
 {
-    public class ProfileListResponseDto : ResponseWrapper<List<SimpleUserDto>>
+    public class ProfileListResponseDto : ResponseWrapper<List<SimpleUserProfile>>
     {
     }
 }

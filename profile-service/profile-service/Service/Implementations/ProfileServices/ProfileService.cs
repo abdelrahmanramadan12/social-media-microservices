@@ -91,9 +91,9 @@ namespace Service.Implementations.ProfileServices
             }
         }
 
-        public async Task<ResponseWrapper<SimpleUserDto>> GetByUserIdMinAsync(string userId)
+        public async Task<ResponseWrapper<SimpleUserProfile>> GetByUserIdMinAsync(string userId)
         {
-            var response = new ResponseWrapper<SimpleUserDto>();
+            var response = new ResponseWrapper<SimpleUserProfile>();
 
             if (string.IsNullOrWhiteSpace(userId))
             {
@@ -124,9 +124,9 @@ namespace Service.Implementations.ProfileServices
             }
         }
 
-        public async Task<ResponseWrapper<SimpleUserDto>> GetByUserNameMinAsync(string userName)
+        public async Task<ResponseWrapper<SimpleUserProfile>> GetByUserNameMinAsync(string userName)
         {
-            var response = new ResponseWrapper<SimpleUserDto>();
+            var response = new ResponseWrapper<SimpleUserProfile>();
 
             if (string.IsNullOrWhiteSpace(userName))
             {
@@ -157,9 +157,9 @@ namespace Service.Implementations.ProfileServices
             }
         }
 
-        public async Task<ResponseWrapper<List<SimpleUserDto>>> GetUsersByIdsAsync(List<string> userIds)
+        public async Task<ResponseWrapper<List<SimpleUserProfile>>> GetUsersByIdsAsync(List<string> userIds)
         {
-            var response = new ResponseWrapper<List<SimpleUserDto>>();
+            var response = new ResponseWrapper<List<SimpleUserProfile>>();
 
             if (userIds == null || !userIds.Any())
             {

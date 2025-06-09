@@ -30,7 +30,7 @@ namespace Web.Controllers.Internal
         }
 
         [HttpPost("list")]
-        public async Task<IActionResult> GetUsersByIdsAsync([FromBody] GetUsersByIdsRequest request)
+        public async Task<IActionResult> GetUsersByIdsAsync([FromBody] GetUsersProfileByIdsRequest request)
         {
             var response = await _profileService.GetUsersByIdsAsync(request.UserIds);
             return HandleServiceResponse(response);

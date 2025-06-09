@@ -7,11 +7,11 @@ namespace Service.Mappers
 {
     public static class ProfileMapper
     {
-        public static SimpleUserDto ToSimpleUserDto(Profile profile)
+        public static SimpleUserProfile ToSimpleUserDto(Profile profile)
         {
             if (profile == null) return null;
             
-            return new SimpleUserDto
+            return new SimpleUserProfile
             {
                 UserId = profile.UserId,
                 DisplayName = $"{profile.FirstName} {profile.LastName}".Trim(),
@@ -53,11 +53,11 @@ namespace Service.Mappers
             };
         }
 
-        public static SimpleUserDto ToSimpleUserDto(ProfileEventData eventData)
+        public static SimpleUserProfile ToSimpleUserDto(ProfileEventData eventData)
         {
             if (eventData == null) return null;
 
-            return new SimpleUserDto
+            return new SimpleUserProfile
             {
                 UserId = eventData.UserId,
                 UserName = eventData.UserName,
