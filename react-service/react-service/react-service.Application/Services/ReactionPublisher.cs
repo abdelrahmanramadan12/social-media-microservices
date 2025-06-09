@@ -14,7 +14,6 @@ namespace react_service.Application.Services
 {
     public class ReactionPublisher : IReactionPublisher, IAsyncDisposable
     {
-        private readonly ILogger<ReactionPublisher> _logger;
         private readonly IConfiguration _configuration;
         private readonly string _hostname;
         private readonly string _username;
@@ -23,11 +22,8 @@ namespace react_service.Application.Services
         private IConnection? _connection;
         private IChannel? _channel;
 
-        public ReactionPublisher(
-            ILogger<ReactionPublisher> logger,
-            IConfiguration configuration)
+        public ReactionPublisher(IConfiguration configuration)
         {
-            _logger = logger;
             _configuration = configuration;
 
             // Get RabbitMQ configuration
@@ -64,11 +60,9 @@ namespace react_service.Application.Services
                         arguments: null);
                 }
 
-                _logger.LogInformation("RabbitMQ connection established successfully for queues: {QueueNames}", string.Join(", ", _queueNames));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error initializing RabbitMQ connection");
                 throw;
             }
         }
@@ -79,7 +73,6 @@ namespace react_service.Application.Services
             {
                 if (_channel == null)
                 {
-                    _logger.LogError("RabbitMQ channel is not initialized");
                     return;
                 }
 
@@ -98,12 +91,10 @@ namespace react_service.Application.Services
                         },
                         body: body);
 
-                    _logger.LogInformation("Published reaction event to queue {QueueName}: {Message}", queueName, message);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error publishing reaction event");
                 throw;
             }
         }
@@ -123,7 +114,6 @@ namespace react_service.Application.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error disposing RabbitMQ resources");
             }
         }
     }

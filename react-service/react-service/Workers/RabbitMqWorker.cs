@@ -23,18 +23,9 @@ namespace Workers
         {
             try
             {
-                Console.WriteLine("Starting RabbitMqWorker...");
-                
-                Console.WriteLine("Initializing PostDeletedListener...");
                 await _postEventListner.InitializeAsync();
-                Console.WriteLine("PostDeletedListener initialized successfully.");
-                
-                Console.WriteLine("Initializing PostEventListner...");
                 await _postEventConsumer.InitializeAsync();
-                Console.WriteLine("PostEventListner initialized successfully.");
-                
                 await base.StartAsync(cancellationToken);
-                Console.WriteLine("RabbitMqWorker started successfully.");
             }
             catch (Exception ex)
             {
@@ -48,19 +39,15 @@ namespace Workers
         {
             try
             {
-                Console.WriteLine("Starting RabbitMQ consumers...");
-                
                 var deletedTask = _postEventListner.ListenAsync(stoppingToken);
                 var postEventTask = _postEventConsumer.ListenAsync(stoppingToken);
 
                 // Create a task that will complete when the stoppingToken is cancelled
                 var cancellationTask = Task.Delay(Timeout.Infinite, stoppingToken);
 
-                Console.WriteLine("Waiting for tasks to complete...");
                 // Wait for any of the tasks to complete
                 await Task.WhenAny(deletedTask, postEventTask, cancellationTask);
                 
-                Console.WriteLine("One of the tasks completed.");
             }
             catch (Exception ex)
             {
@@ -74,16 +61,9 @@ namespace Workers
         {
             try
             {
-                Console.WriteLine("Stopping RabbitMqWorker...");
-                
-                Console.WriteLine("Disposing PostDeletedListener...");
                 await _postEventListner.DisposeAsync();
-                
-                Console.WriteLine("Disposing PostEventListner...");
                 await _postEventConsumer.DisposeAsync();
-                
                 await base.StopAsync(cancellationToken);
-                Console.WriteLine("RabbitMqWorker stopped successfully.");
             }
             catch (Exception ex)
             {

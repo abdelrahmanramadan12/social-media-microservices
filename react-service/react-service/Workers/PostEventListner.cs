@@ -19,7 +19,6 @@ namespace Workers
 {
     public class PostEventListner : IPostEventListner
     {
-        private readonly ILogger<PostEventListner> _logger;
         private readonly IConfiguration _configuration;
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly string _hostname;
@@ -29,12 +28,8 @@ namespace Workers
         private IConnection? _connection;
         private IChannel? _channel;
 
-        public PostEventListner(
-            ILogger<PostEventListner> logger,
-            IConfiguration configuration,
-            IServiceScopeFactory scopeFactory)
+        public PostEventListner(IConfiguration configuration, IServiceScopeFactory scopeFactory)
         {
-            _logger = logger;
             _configuration = configuration;
             _scopeFactory = scopeFactory;
 
@@ -55,7 +50,6 @@ namespace Workers
         {
             try
             {
-                _logger.LogInformation("Initializing PostEventListner for queues: {QueueNames}", string.Join(", ", _queueNames));
                 
                 var factory = new ConnectionFactory
                 {
@@ -77,11 +71,9 @@ namespace Workers
                         arguments: null);
                 }
 
-                _logger.LogInformation("Successfully initialized PostEventListner for queues: {QueueNames}", string.Join(", ", _queueNames));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error initializing PostEventListner");
                 throw;
             }
         }
@@ -90,11 +82,9 @@ namespace Workers
         {
             if (_channel == null)
             {
-                _logger.LogError("Consumer not initialized");
                 throw new InvalidOperationException("Consumer not initialized.");
             }
 
-            _logger.LogInformation("Starting to listen on queues: {QueueNames}", string.Join(", ", _queueNames));
             
             var consumer = new AsyncEventingBasicConsumer(_channel);
 
@@ -104,7 +94,6 @@ namespace Workers
                 {
                     var body = ea.Body.ToArray();
                     var messageJson = Encoding.UTF8.GetString(body);
-                    _logger.LogInformation("Received message from queue {QueueName}: {Message}", ea.RoutingKey, messageJson);
                     
                     using var scope = _scopeFactory.CreateScope();
                     var postRepository = scope.ServiceProvider.GetRequiredService<IPostRepository>();
@@ -112,7 +101,6 @@ namespace Workers
                     var postEvent = JsonSerializer.Deserialize<PostEvent>(messageJson);
                     if (postEvent != null)
                     {
-                        _logger.LogInformation("Processing PostEvent of type: {EventType}", postEvent.EventType);
                         
                         switch (postEvent.EventType)
                         {
@@ -124,16 +112,13 @@ namespace Workers
                                     IsDeleted = false
                                 };
                                 var result = await postRepository.AddPost(post);
-                                _logger.LogInformation("Post creation result: {Result}", result);
                                 break;
 
                             case EventType.Delete:
                                 var deleteResult = await postRepository.DeletePost(postEvent.PostId);
-                                _logger.LogInformation("Post deletion result: {Result}", deleteResult);
                                 break;
 
                             default:
-                                _logger.LogWarning("Unhandled event type: {EventType}", postEvent.EventType);
                                 break;
                         }
 
@@ -141,13 +126,11 @@ namespace Workers
                     }
                     else
                     {
-                        _logger.LogError("Failed to deserialize PostEvent");
                         await _channel.BasicNackAsync(ea.DeliveryTag, false, true);
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error processing message");
                     await _channel.BasicNackAsync(ea.DeliveryTag, false, true);
                 }
             };
@@ -160,13 +143,11 @@ namespace Workers
                     consumer: consumer);
             }
 
-            _logger.LogInformation("Successfully started consuming from queues: {QueueNames}", string.Join(", ", _queueNames));
             return Task.CompletedTask;
         }
 
         public async ValueTask DisposeAsync()
         {
-            _logger.LogInformation("Disposing PostEventListner for queues: {QueueNames}", string.Join(", ", _queueNames));
             
             try
             {
@@ -181,7 +162,6 @@ namespace Workers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error disposing RabbitMQ resources");
             }
         }
     }

@@ -11,7 +11,6 @@ namespace Workers
 {
     public class ReactionEventPublisher : IAsyncDisposable
     {
-        private readonly ILogger<ReactionEventPublisher> _logger;
         private readonly IConfiguration _configuration;
         private readonly string _hostname;
         private readonly string _username;
@@ -20,11 +19,8 @@ namespace Workers
         private IConnection? _connection;
         private IChannel? _channel;
 
-        public ReactionEventPublisher(
-            ILogger<ReactionEventPublisher> logger,
-            IConfiguration configuration)
+        public ReactionEventPublisher(IConfiguration configuration)
         {
-            _logger = logger;
             _configuration = configuration;
 
             _hostname = _configuration["RabbitMQ:Reaction:HostName"] ?? "localhost";
@@ -43,7 +39,6 @@ namespace Workers
         {
             try
             {
-                _logger.LogInformation("Initializing ReactionEventPublisher for queue: {QueueName}", _queueName);
                 
                 var factory = new ConnectionFactory
                 {
@@ -62,11 +57,9 @@ namespace Workers
                     autoDelete: false,
                     arguments: null);
 
-                _logger.LogInformation("Successfully initialized ReactionEventPublisher for queue: {QueueName}", _queueName);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error initializing ReactionEventPublisher");
                 throw;
             }
         }
@@ -75,7 +68,6 @@ namespace Workers
         {
             if (_channel == null)
             {
-                _logger.LogError("Publisher not initialized");
                 throw new InvalidOperationException("Publisher not initialized.");
             }
 
@@ -94,18 +86,15 @@ namespace Workers
                     },
                     body: body);
 
-                _logger.LogInformation("Published reaction event to queue {QueueName}: {Message}", _queueName, messageJson);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error publishing reaction event");
                 throw;
             }
         }
 
         public async ValueTask DisposeAsync()
         {
-            _logger.LogInformation("Disposing ReactionEventPublisher for queue: {QueueName}", _queueName);
             
             try
             {
@@ -120,7 +109,6 @@ namespace Workers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error disposing RabbitMQ resources");
             }
         }
     }

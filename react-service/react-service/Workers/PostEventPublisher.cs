@@ -11,7 +11,6 @@ namespace Workers
 {
     public class PostEventPublisher : IAsyncDisposable
     {
-        private readonly ILogger<PostEventPublisher> _logger;
         private readonly IConfiguration _configuration;
         private readonly string _hostname;
         private readonly string _username;
@@ -21,10 +20,8 @@ namespace Workers
         private IChannel? _channel;
 
         public PostEventPublisher(
-            ILogger<PostEventPublisher> logger,
             IConfiguration configuration)
         {
-            _logger = logger;
             _configuration = configuration;
 
             _hostname = _configuration["RabbitMQ:PostEvent:HostName"] ?? "localhost";
@@ -43,7 +40,6 @@ namespace Workers
         {
             try
             {
-                _logger.LogInformation("Initializing PostEventPublisher for queue: {QueueName}", _queueName);
                 
                 var factory = new ConnectionFactory
                 {
@@ -62,11 +58,9 @@ namespace Workers
                     autoDelete: false,
                     arguments: null);
 
-                _logger.LogInformation("Successfully initialized PostEventPublisher for queue: {QueueName}", _queueName);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error initializing PostEventPublisher");
                 throw;
             }
         }
@@ -75,7 +69,6 @@ namespace Workers
         {
             if (_channel == null)
             {
-                _logger.LogError("Publisher not initialized");
                 throw new InvalidOperationException("Publisher not initialized.");
             }
 
@@ -94,18 +87,15 @@ namespace Workers
                     },
                     body: body);
 
-                _logger.LogInformation("Published post event to queue {QueueName}: {Message}", _queueName, messageJson);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error publishing post event");
                 throw;
             }
         }
 
         public async ValueTask DisposeAsync()
         {
-            _logger.LogInformation("Disposing PostEventPublisher for queue: {QueueName}", _queueName);
             
             try
             {
@@ -120,7 +110,6 @@ namespace Workers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error disposing RabbitMQ resources");
             }
         }
     }

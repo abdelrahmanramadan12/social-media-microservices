@@ -13,7 +13,6 @@ namespace Workers
         {
             try
             {
-                Console.WriteLine("Starting Workers application...");
                 CreateHostBuilder(args).Build().Run();
             }
             catch (Exception ex)
@@ -29,8 +28,6 @@ namespace Workers
                 {
                     try
                     {
-                        Console.WriteLine("Configuring services...");
-                        
                         // Register repositories
                         services.AddSingleton<IPostRepository, PostRepository>();
                         
@@ -46,8 +43,6 @@ namespace Workers
                         
                         // Register background service
                         services.AddHostedService<RabbitMqWorker>();
-                        
-                        Console.WriteLine("Services configured successfully.");
                     }
                     catch (Exception ex)
                     {
