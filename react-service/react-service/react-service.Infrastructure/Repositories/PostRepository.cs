@@ -52,5 +52,12 @@ namespace react_service.Infrastructure.Repositories
             }
             return false;
         }
+        // get post  by id 
+
+        public async Task<Post> GetPostAsync(string postId)
+        {
+            var post = await _posts.Find(p => p.PostId == postId && !p.IsDeleted).FirstOrDefaultAsync();
+            return post ?? throw new KeyNotFoundException("Post not found or is deleted.");
+        }
     }
 }

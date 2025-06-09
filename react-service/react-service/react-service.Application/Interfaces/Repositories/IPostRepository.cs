@@ -8,5 +8,7 @@ namespace react_service.Application.Interfaces.Repositories
         Task<bool> IsPostDeleted(string postId);
         Task<bool> DeletePost(string postId);
         Task<bool> AddPost(Post post);
+        Task<Post> GetPostAsync(string postId);
+
     }
 }

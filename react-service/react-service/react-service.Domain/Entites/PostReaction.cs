@@ -31,5 +31,7 @@ namespace react_service.Domain.Entites
         [BsonElement("createdAt")]
         [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
         public DateTime CreatedAt { get; set; }
+
+        
     }
 }

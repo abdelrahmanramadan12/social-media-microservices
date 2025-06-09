@@ -11,6 +11,7 @@ using react_service.Application.Pagination;
 using react_service.Domain.Entites;
 using react_service.Domain.Enums;
 using react_service.Application.Events;
+using react_service.Domain.Events;
 
 namespace react_service.Application.Services
 {
@@ -51,6 +52,7 @@ namespace react_service.Application.Services
                 return response;
             }
             var postDeleted = await postRepository.IsPostDeleted(postId);
+           
             if (postDeleted)
             {
                 response.Errors.Add("Post deleted or doesn't exist");
@@ -71,6 +73,9 @@ namespace react_service.Application.Services
                 UserId = userId,
                 EventType = Domain.Enums.ReactionEventType.Deleted
             });
+
+
+           
             response.Message = "Reaction deleted successfully.";
             response.Data = true;
             return response;
@@ -98,6 +103,8 @@ namespace react_service.Application.Services
                 response.ErrorType = ErrorType.BadRequest;
                 return response;
             }
+            var post = await postRepository.GetPostAsync(reaction.PostId);
+
             var reactionObj = mapper.Map<PostReaction>(reaction);
             reactionObj.UserId = userId;
             await reactionRepository.AddReactionAsync(reactionObj);
@@ -107,6 +114,23 @@ namespace react_service.Application.Services
                 PostId = reaction.PostId,
                 UserId = userId,
                 EventType = Domain.Enums.ReactionEventType.Created
+            });
+
+            await reactionPublisher.PublishReactionNotifAsync(new Domain.Events.ReactionEvent
+            {
+                AuthorEntityId = post.AuthorId,
+                ReactionEntityId = reactionObj.PostId,
+                Type = reactionObj.ReactionType, // Assuming None for deletion
+                ReactedOn = Domain.Events.ReactedEntity.Post,
+                User = new UserSkeleton
+                {
+                    Id = reactionObj.Id,
+                    UserId = userId,
+                    Seen = false,
+                    CreatedAt = reactionObj.CreatedAt
+                },
+                Id = reactionObj.Id,    
+
             });
             response.Message = "Reaction added successfully.";
             response.Data = true;

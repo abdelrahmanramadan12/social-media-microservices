@@ -9,6 +9,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="appsettings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="appsettings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\react-service.Application\react-service.Application.csproj" />
     <ProjectReference Include="..\react-service.Infrastructure\react-service.Infrastructure.csproj" />
     <ProjectReference Include="..\Workers\Workers.csproj" />
