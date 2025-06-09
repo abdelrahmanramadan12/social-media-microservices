@@ -14,7 +14,13 @@ using Workers;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.Configure<MongoDbSettings>(builder.Configuration.GetSection("MongoDbSettings"));
+builder.Services.Configure<MongoDbSettings>(options =>
+{
+    builder.Configuration.GetSection("MongoDbSettings").Bind(options);
+    var dbSection = builder.Configuration.GetSection("Databases");
+    options.PostsDatabaseName = dbSection["PostsDatabaseName"];
+    options.ReactionsDatabaseName = dbSection["ReactionsDatabaseName"];
+});
 builder.Services.Configure<PaginationSettings>(
     builder.Configuration.GetSection("Pagination"));
 
@@ -22,10 +28,27 @@ builder.Services.AddSingleton(sp =>
     sp.GetRequiredService<IOptions<PaginationSettings>>().Value);
 builder.Services.AddAutoMapper(typeof(ReactionPostProfile));
 
+// Register MongoDB clients for different databases
 builder.Services.AddSingleton<IMongoClient>(sp =>
 {
     var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
     return new MongoClient(settings.ConnectionString);
+});
+
+// Register database access for Posts
+builder.Services.AddScoped(sp =>
+{
+    var client = sp.GetRequiredService<IMongoClient>();
+    var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
+    return client.GetDatabase(settings.PostsDatabaseName ?? throw new InvalidOperationException("Posts database name is not configured"));
+});
+
+// Register database access for Reactions
+builder.Services.AddScoped<IMongoDatabase>(sp =>
+{
+    var client = sp.GetRequiredService<IMongoClient>();
+    var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
+    return client.GetDatabase(settings.ReactionsDatabaseName ?? throw new InvalidOperationException("Reactions database name is not configured"));
 });
 
 // Register RabbitMQ services
@@ -43,7 +66,6 @@ builder.Services.AddApplicationServiceRegistration(builder.Configuration);
 // Add controllers and other services
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 // Add CORS services
 builder.Services.AddCors(options =>
@@ -60,9 +82,6 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-app.UseSwagger();
-app.UseSwaggerUI();
-
 app.UseCors("AllowAll");
 
 app.UseAuthorization();

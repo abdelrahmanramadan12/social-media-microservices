@@ -17,7 +17,7 @@ namespace react_service.Infrastructure.Repositories
 
         public PostReactionRepositoy(IOptions<MongoDbSettings> mongodbsettings, IMongoClient mongoClient, IOptions<PaginationSettings> paginationSetting)
         {
-            var database = mongoClient.GetDatabase(mongodbsettings.Value.DatabaseName);
+            var database = mongoClient.GetDatabase(mongodbsettings.Value.ReactionsDatabaseName);
             _collection = database.GetCollection<PostReaction>("PostReaction");
             this.mongoClient = mongoClient;
             PaginationSetting = paginationSetting;
