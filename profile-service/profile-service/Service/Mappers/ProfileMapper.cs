@@ -40,12 +40,13 @@ namespace Service.Mappers
             };
         }
 
-        public static ProfileEventData ToProfileEventData(Profile profile)
+        public static ProfileEvent ToProfileEventData(Profile profile)
         {
             if (profile == null) return null;
 
-            return new ProfileEventData
+            return new ProfileEvent
             {
+               
                 UserId = profile.UserId,
                 UserName = profile.UserName,
                 DisplayName = $"{profile.FirstName} {profile.LastName}".Trim(),
@@ -53,7 +54,7 @@ namespace Service.Mappers
             };
         }
 
-        public static SimpleUserDto ToSimpleUserDto(ProfileEventData eventData)
+        public static SimpleUserDto ToSimpleUserDto(ProfileEvent eventData)
         {
             if (eventData == null) return null;
 
