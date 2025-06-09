@@ -59,3 +59,5 @@ appsettings.json
 #vs
 .vs/
 /react-service/react-service/debug.log
+/react-service/react-service/react-service/Properties/launchSettings.json
+/react-service/react-service/react-service/appsettings.Development.json

@@ -11,6 +11,8 @@ using react_service.Application.Mapper;
 using react_service.Application.Pagination;
 using react_service.Application.Services;
 using Workers;
+using Microsoft.OpenApi.Models;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -67,6 +69,24 @@ builder.Services.AddApplicationServiceRegistration(builder.Configuration);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
+
+// Add Swagger services
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Your API Name",
+        Version = "v1",
+        Description = "API documentation for Your API",
+        Contact = new OpenApiContact
+        {
+            Name = "Your Name",
+            Email = "your@email.com",
+            Url = new Uri("https://yourwebsite.com")
+        }
+    });
+});
+
 // Add CORS services
 builder.Services.AddCors(options =>
 {
@@ -83,6 +103,16 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 app.UseCors("AllowAll");
+
+// Enable middleware to serve generated Swagger as a JSON endpoint
+app.UseSwagger();
+
+// Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.)
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Your API V1");
+    c.RoutePrefix = string.Empty; // Set Swagger UI at app root (localhost:5000/)
+});
 
 app.UseAuthorization();
 

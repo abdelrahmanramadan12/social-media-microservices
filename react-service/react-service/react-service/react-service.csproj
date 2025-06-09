@@ -9,9 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\react-service.Application\react-service.Application.csproj" />
     <ProjectReference Include="..\react-service.Infrastructure\react-service.Infrastructure.csproj" />
     <ProjectReference Include="..\Workers\Workers.csproj" />
@@ -19,6 +16,12 @@
 
   <ItemGroup>
     <Folder Include="Controllers\Public\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.4" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="8.1.4" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="8.1.4" />
   </ItemGroup>
 
 </Project>

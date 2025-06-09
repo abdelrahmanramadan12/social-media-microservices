@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace react_service.Application.Services
 {
-    public class PostDeletedListener : IPostDeletedListener, IAsyncDisposable
+    public class PostDeletedListener : IAsyncDisposable
     {
         private IConnection? _connection;
         private IChannel? _channel;
