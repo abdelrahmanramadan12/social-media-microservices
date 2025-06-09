@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Application.Services.Listeners
 {
-    public class MessageListenerService : IMessageListenerService, IAsyncDisposable
+    public class MessageListenerService : IMessageListener, IAsyncDisposable
     {
         private readonly RabbitMqListenerSettings _settings;
         private readonly IServiceScopeFactory _scopeFactory;
