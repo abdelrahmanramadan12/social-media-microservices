@@ -1,6 +1,11 @@
+using Application.Abstractions;
+using Application.Services;
+using Infrastructure.Caches;
+using Infrastructure.Repositories;
 using MongoDB.Driver;
 using Scalar.AspNetCore;
 using StackExchange.Redis;
+using Web.Hubs;
 
 namespace Web
 {
@@ -16,6 +21,8 @@ namespace Web
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
 
+            builder.Services.AddSignalR();
+
             // mongodb injection
             builder.Services.AddSingleton<IMongoClient>(sp =>
                 new MongoClient(builder.Configuration.GetConnectionString("AtlasUri")));
@@ -28,6 +35,18 @@ namespace Web
             builder.Services.AddSingleton(sp =>
                 sp.GetRequiredService<IConnectionMultiplexer>().GetDatabase());
 
+            // services injection
+            builder.Services.AddSingleton<IMessageRepository, MessagesRepository>();
+            builder.Services.AddSingleton<IConversationRepository, ConversationsRepository>();
+            builder.Services.AddSingleton<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddSingleton<IConnectionManager, ConnectionManager>();
+            builder.Services.AddSingleton<IProfileCache, ProfileCache>();
+            builder.Services.AddHttpClient<IAuthServiceClient, AuthServiceClient>();
+            builder.Services.AddHttpClient<IProfileServiceClient, ProfileServiceClient>();
+            builder.Services.AddHttpClient<IMediaServiceClient, MediaServiceClient>();
+            builder.Services.AddScoped<IRealtimeMessenger, RealtimeMessenger>();
+            builder.Services.AddScoped<IChatCommandService,  ChatCommandService>();
+            builder.Services.AddScoped<IChatQueryService,  ChatQueryService>();
 
             var app = builder.Build();
 

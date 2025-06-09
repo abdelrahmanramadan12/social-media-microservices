@@ -6,15 +6,16 @@ namespace Web.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ChatPublicController : ControllerBase
+    public class ChatCommandController : ControllerBase
     {
         private readonly IChatCommandService _chatCommandService;
-        public ChatPublicController(IChatCommandService chatCommandService)
+        public ChatCommandController(IChatCommandService chatCommandService)
         {
             _chatCommandService = chatCommandService;
         }
 
         [HttpPost("message")]
+        [ProducesResponseType(typeof(MessageDTO), StatusCodes.Status200OK)]
         public async Task<IActionResult> SendMessage([FromHeader] string userId, [FromBody] NewMessageDTO message)
         {
             if (message == null)
@@ -37,7 +38,8 @@ namespace Web.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Forbid(ex.Message);
+                return StatusCode(StatusCodes.Status403Forbidden, $"Forbidden: {ex.Message}");
+                //return Forbid(ex.Message);
             }
             catch (Exception ex)
             {
@@ -46,6 +48,7 @@ namespace Web.Controllers
         }
 
         [HttpPatch("message")]
+        [ProducesResponseType(typeof(MessageDTO), StatusCodes.Status200OK)]
         public async Task<IActionResult> EditMessage([FromHeader] string userId, [FromBody] MessageDTO message)
         {
             if (message == null || string.IsNullOrEmpty(message.Id))
@@ -68,7 +71,8 @@ namespace Web.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Forbid(ex.Message);
+                return StatusCode(StatusCodes.Status403Forbidden, $"Forbidden: {ex.Message}");
+                //return Forbid(ex.Message);
             }
             catch (Exception ex)
             {
@@ -77,6 +81,7 @@ namespace Web.Controllers
         }
 
         [HttpDelete("message/{Id}")]
+        [ProducesResponseType(typeof(void), StatusCodes.Status204NoContent)]
         public async Task<IActionResult> DeleteMessage([FromHeader] string userId, string Id)
         {
             if (string.IsNullOrEmpty(Id))
@@ -99,6 +104,7 @@ namespace Web.Controllers
         }
 
         [HttpPost("mark-read")]
+        [ProducesResponseType(typeof(void), StatusCodes.Status204NoContent)]
         public async Task<IActionResult> MarkRead([FromBody] MarkReadRequestDTO request, [FromHeader] string userId)
         {
             await _chatCommandService.MarkReadAsync(userId, request.ConversationId);
@@ -109,6 +115,7 @@ namespace Web.Controllers
         /*---------------------Endpoints for conversations------------------*/
         /*------------------------------------------------------------------*/
         [HttpPost("conversation")]
+        [ProducesResponseType(typeof(ConversationDTO), StatusCodes.Status200OK)]
         public async Task<IActionResult> CreateConversation([FromHeader] string userId, [FromBody] NewConversationDTO conversation)
         {
             if (conversation == null)
@@ -132,6 +139,7 @@ namespace Web.Controllers
         }
 
         [HttpPatch("conversation")]
+        [ProducesResponseType(typeof(ConversationDTO), StatusCodes.Status200OK)]
         public async Task<IActionResult> EditConversation([FromHeader] string userId, [FromBody] EditConversationDTO conversation)
         {
             if (conversation == null || string.IsNullOrEmpty(conversation.Id))
@@ -154,7 +162,8 @@ namespace Web.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Forbid(ex.Message);
+                return StatusCode(StatusCodes.Status403Forbidden, $"Forbidden: {ex.Message}");
+                //return Forbid(ex.Message);
             }
             catch (Exception ex)
             {
@@ -164,6 +173,7 @@ namespace Web.Controllers
 
 
         [HttpDelete("conversation/{Id}")]
+        [ProducesResponseType(typeof(void), StatusCodes.Status204NoContent)]
         public async Task<IActionResult> DeleteConversation([FromHeader] string userId, string Id)
         {
             if (string.IsNullOrEmpty(Id))

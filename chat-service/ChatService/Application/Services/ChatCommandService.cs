@@ -51,13 +51,13 @@ namespace Application.Services
             {
                 Id = conv.Id,
                 CreatedAt = conv.CreatedAt,
-                LastMessage = new MessageDTO()
+                LastMessage = conv.LastMessage != null ? new MessageDTO()
                 {
                     Id = conv.LastMessage.Id,
                     Content = conv.LastMessage.Text,
                     ConversationId = conv.Id,
                     SenderId = conv.LastMessage.SenderId
-                },
+                } : null,
                 IsGroup = conv.IsGroup,
                 Participants = conv.Participants,
                 GroupName = conv.GroupName
@@ -228,10 +228,14 @@ namespace Application.Services
             }
 
             var messageEntity = new Message
-            { 
+            {
                 ConversationId = message.ConversationId,
                 SenderId = message.SenderId,
-                Text = !string.IsNullOrEmpty(message.Content)?message.Content:"",
+                Text = !string.IsNullOrEmpty(message.Content) ? message.Content : "",
+                ReadBy = new Dictionary<string, DateTime>
+                {
+                    { message.SenderId, DateTime.UtcNow }
+                },
                 SentAt = DateTime.UtcNow,
             };
             if (message.Media != null)
@@ -264,6 +268,7 @@ namespace Application.Services
                 ConversationId = msg.ConversationId,
                 SenderId = msg.SenderId,
                 Content = msg.Text,
+                Read = true
             };
 
             var conv = await _unitOfWork.Conversations.GetConversationByIdAsync(msg.ConversationId);

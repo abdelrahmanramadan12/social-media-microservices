@@ -6,16 +6,17 @@ namespace Web.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ChatInternalController : ControllerBase
+    public class ChatQueryController : ControllerBase
     {
         private readonly IChatQueryService _chatQueryService;
-        public ChatInternalController(IChatQueryService chatQueryService)
+        public ChatQueryController(IChatQueryService chatQueryService)
         {
             _chatQueryService = chatQueryService;
         }
 
         [HttpPost("messages")]
-        public async Task<IActionResult> GetMessagesPage([FromBody] MessagesPageRequestDTO  messagesPageRequestDTO)
+        [ProducesResponseType(typeof(ConversationMessagesDTO), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetMessagesPage([FromHeader] string userId, [FromBody] MessagesPageRequestDTO  messagesPageRequestDTO)
         {
             if (string.IsNullOrEmpty(messagesPageRequestDTO.ConversationId))
             {
@@ -24,7 +25,7 @@ namespace Web.Controllers
             try
             {
                 var messages = await _chatQueryService.GetConversationMessagesAsync(
-                    messagesPageRequestDTO.UserId,
+                    userId,
                     messagesPageRequestDTO.ConversationId, messagesPageRequestDTO.Next,
                     messagesPageRequestDTO.PageSize);
                 return Ok(messages);
@@ -44,16 +45,13 @@ namespace Web.Controllers
         }
 
         [HttpPost("conversations")]
-        public async Task<IActionResult> GetUserConversations([FromBody] ConversationsPageRequestDTO conversationsPageRequestDTO)
+        [ProducesResponseType(typeof(UserConversationsDTO), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetUserConversations([FromHeader] string userId, [FromBody] ConversationsPageRequestDTO conversationsPageRequestDTO)
         {
-            if (string.IsNullOrEmpty(conversationsPageRequestDTO.UserId))
-            {
-                return BadRequest("User ID cannot be null or empty.");
-            }
             try
             {
                 var conversations = await _chatQueryService.GetUserConversationsAsync(
-                    conversationsPageRequestDTO.UserId,conversationsPageRequestDTO.Next,
+                    userId, conversationsPageRequestDTO.Next,
                     conversationsPageRequestDTO.PageSize);
                 return Ok(conversations);
             }
