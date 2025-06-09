@@ -60,3 +60,6 @@ appsettings.json
 .vs/
 /notification-service/notification-service/notification-service/appsettings.json
 /notification-service/notification-service/notification-service/appsettings.Development.json
+/react-service/react-service/react-service/Properties/launchSettings.json
+/react-service/react-service/react-service/appsettings.Development.json
+/react-service/react-service/react-service.sln
