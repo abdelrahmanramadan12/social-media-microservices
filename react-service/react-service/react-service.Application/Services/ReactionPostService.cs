@@ -12,6 +12,7 @@ using react_service.Domain.Enums;
 using react_service.Application.Events;
 using react_service.Domain.Events;
 using ReactionEventType = react_service.Domain.Enums.ReactionEventType;
+using react_service.Application.DTO.Reaction.Request.Post;
 
 namespace react_service.Application.Services
 {
