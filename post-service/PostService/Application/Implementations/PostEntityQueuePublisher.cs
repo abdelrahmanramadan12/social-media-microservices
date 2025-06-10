@@ -19,11 +19,11 @@ namespace Application.Implementations
 
         public PostEntityQueuePublisher(IConfiguration config)
         {
-            _userName = config.GetSection("PostMQ:UserName").Value!;
-            _password = config.GetSection("PostMQ:Password").Value!;
-            _hostName = config.GetSection("PostMQ:HostName").Value!;
-            _queueNames = config.GetSection("PostMQ:QueueName").Value!.Split(";").ToList();
-            _port = Convert.ToInt32(config.GetSection("PostMQ:Port").Value);
+            _userName = config.GetSection("RabbitQueues:Username").Value!;
+            _password = config.GetSection("RabbitQueues:Password").Value!;
+            _hostName = config.GetSection("RabbitQueues:HostName").Value!;
+            _queueNames = config.GetSection("RabbitQueues:PostQueue").GetChildren().Select(q => q.Value!).ToList();
+            _port = Convert.ToInt32(config.GetSection("RabbitQueues:Port").Value);
         }
 
         public async Task InitializeAsync()
@@ -48,10 +48,10 @@ namespace Application.Implementations
             var message = JsonSerializer.Serialize(args);
             var bin = Encoding.UTF8.GetBytes(message);
 
-            var publishTasks = _queueNames.Select(async (_queueName) =>
+            foreach (var queueName in _queueNames)
             {
                 await _channel.QueueDeclareAsync(
-                    queue: _queueName,
+                    queue: queueName,
                     durable: true,
                     exclusive: false,
                     autoDelete: false,
@@ -60,7 +60,7 @@ namespace Application.Implementations
 
                 await _channel.BasicPublishAsync(
                     exchange: string.Empty,
-                    routingKey: _queueName,
+                    routingKey: queueName,
                     mandatory: true,
                     basicProperties: new BasicProperties
                     {
@@ -68,8 +68,7 @@ namespace Application.Implementations
                     },
                     body: bin
                 );
-            });
-            await Task.WhenAll(publishTasks);
+            }   
         }
 
         public async ValueTask DisposeAsync()

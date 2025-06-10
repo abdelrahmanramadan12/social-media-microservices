@@ -1,8 +1,8 @@
 using Application.Events;
+using Application.Interfaces;
 using Domain.Enums;
 using Domain.IRepository;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
@@ -10,34 +10,43 @@ using System.Text.Json;
 
 namespace Workers
 {
-    public class ReactionEventConsumer : IHostedService
+    public class ReactionEventConsumer : IQueueListener<ReactionEvent>
     {
         private IConnection _connection;
         private IChannel _channel;
-        private readonly IConfiguration _configuration;
+        private string _userName;
+        private string _password;
+        private string _hostName;
+        private int _port;
         private readonly IPostRepository _postRepository;
         private readonly string _queueName;
 
-        public ReactionEventConsumer(IConfiguration configuration, IPostRepository postRepository)
+        public ReactionEventConsumer(IConfiguration _configuration, IPostRepository postRepository)
         {
-            _configuration = configuration;
+            _userName = _configuration.GetSection("RabbitQueues:Username").Value!;
+            _password = _configuration.GetSection("RabbitQueues:Password").Value!;
+            _hostName = _configuration.GetSection("RabbitQueues:HostName").Value!;
+            _port = Convert.ToInt32(_configuration.GetSection("RabbitQueues:Port").Value);
+            _queueName = _configuration.GetSection("RabbitQueues:ReactionQueue").Value!;
             _postRepository = postRepository;
-            _queueName = _configuration.GetSection("ReactionMQ:QueueName").Value!;
         }
 
-        public async Task StartAsync(CancellationToken cancellationToken)
+        public async Task InitializeAsync()
         {
             var factory = new ConnectionFactory
             {
-                HostName = _configuration.GetSection("ReactionMQ:HostName").Value!,
-                UserName = _configuration.GetSection("ReactionMQ:UserName").Value!,
-                Password = _configuration.GetSection("ReactionMQ:Password").Value!,
-                Port = Convert.ToInt32(_configuration.GetSection("ReactionMQ:Port").Value)
+                HostName = _hostName,
+                UserName = _userName,
+                Password = _password,
+                Port = _port
             };
 
             _connection = await factory.CreateConnectionAsync();
             _channel = await _connection.CreateChannelAsync();
+        }
 
+        public async Task ListenAsync(CancellationToken _cancellationToken)
+        {
             await _channel.QueueDeclareAsync(
                 queue: _queueName,
                 durable: true,
@@ -72,7 +81,7 @@ namespace Workers
             );
         }
 
-        public async Task StopAsync(CancellationToken cancellationToken)
+        public async ValueTask DisposeAsync()
         {
             if (_channel != null)
                 await _channel.CloseAsync();

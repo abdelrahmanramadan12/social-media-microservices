@@ -8,8 +8,8 @@
 
     public class MediaItem
     {
-        public MediaType MediaType { get; set; }
-        public string MediaURL { get; set; }
+        public MediaType Type { get; set; }
+        public string Url { get; set; }
         public string ThumbnailURL { get; set; }
     }
 }

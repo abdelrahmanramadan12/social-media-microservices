@@ -44,9 +44,9 @@ namespace Application.Services
                     Post post = new Post
                     {
                         AuthorProfile = authorProfile,
-                        PostId = postEvent.Id,
-                        Content = postEvent.Content,
-                        MediaList = postEvent.MediaList,
+                        PostId = postEvent.PostId,
+                        Content = postEvent.PostContent,
+                        MediaList = postEvent.Media,
                         CreatedAt = postEvent.Timestamp,
                         IsEdited = postEvent.IsEdited,
                         Privacy = postEvent.Privacy,
@@ -68,9 +68,9 @@ namespace Application.Services
             // initialize post
             Post post = new Post
             {
-                PostId = postEvent.Id,
-                Content = postEvent.Content,
-                MediaList = postEvent.MediaList,
+                PostId = postEvent.PostId,
+                Content = postEvent.PostContent,
+                MediaList = postEvent.Media,
                 IsEdited = postEvent.IsEdited,
                 Privacy = postEvent.Privacy,
             };
@@ -80,7 +80,7 @@ namespace Application.Services
 
         public async Task RemoveFromFeedsAsync(PostEvent postEvent)
         {
-            await _feedRepository.RemovePostAsync(postEvent.Id);
+            await _feedRepository.RemovePostAsync(postEvent.PostId);
         }
 
         public async Task UpdateAuthorAsync(ProfileEvent profileEvent)

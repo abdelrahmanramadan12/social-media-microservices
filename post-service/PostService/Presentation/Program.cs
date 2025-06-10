@@ -52,10 +52,10 @@ builder.Services.AddScoped<IPostService, PostService>();
 // Configure RabbitMQ Publisher
 builder.Services.AddSingleton<IQueuePublisher<PostEvent>, PostEntityQueuePublisher>();
 
+builder.Services.AddSingleton<IQueueListener<CommentEvent>, CommentEventConsumer>();
+builder.Services.AddSingleton<IQueueListener<ReactionEvent>, ReactionEventConsumer>();
 builder.Services.AddHostedService<QueueListenersWorker>();
 builder.Services.AddHostedService<QueuePublishersInitializer>();
-builder.Services.AddHostedService<CommentEventConsumer>();
-builder.Services.AddHostedService<ReactionEventConsumer>();
 
 var app = builder.Build();
 

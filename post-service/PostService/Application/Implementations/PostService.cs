@@ -91,7 +91,7 @@ namespace Application.Services
             postCreatedEvent.PostContent = res.Data.PostContent;
             postCreatedEvent.Privacy = res.Data.Privacy;
             postCreatedEvent.Media = res.Data.Media;
-            postCreatedEvent.CreatedAt = res.Data.CreatedAt;
+            postCreatedEvent.Timestamp = res.Data.CreatedAt;
             postCreatedEvent.IsEdited = res.Data.IsEdited;
             postCreatedEvent.NumberOfLikes = res.Data.NumberOfLikes;
             postCreatedEvent.NumberOfComments = res.Data.NumberOfComments;
@@ -260,7 +260,7 @@ namespace Application.Services
                 PostContent = mappingResult.Item.PostContent,
                 Privacy = mappingResult.Item.Privacy,
                 Media = mappingResult.Item.Media,
-                CreatedAt = mappingResult.Item.CreatedAt,
+                Timestamp = mappingResult.Item.CreatedAt,
                 IsEdited = mappingResult.Item.IsEdited,
                 NumberOfLikes = mappingResult.Item.NumberOfLikes,
                 NumberOfComments = mappingResult.Item.NumberOfComments
