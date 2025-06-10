@@ -58,7 +58,7 @@ namespace Infrastructure.Repositories
 
         public async Task<T?> GetAsync(string id, string? id2 = "", long number = 0)
         {
-            var filter = Builders<T>.Filter.Eq("MyId", id);
+            var filter = Builders<T>.Filter.Eq("PostAuthorId", id);
             var res = await _collection.Find(filter).FirstOrDefaultAsync();
                 return res;
         }

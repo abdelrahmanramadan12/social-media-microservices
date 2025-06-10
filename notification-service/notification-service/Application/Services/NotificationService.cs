@@ -383,14 +383,14 @@ namespace Application.Services
             }
 
 
-            var userCore = await _unitOfWork.CoreRepository<CommentNotification>()
+            var userCore = await _unitOfWork.CoreRepository<Comments>()
                 .GetSingleIncludingAsync(
                     f => f.PostAuthorId == userId) ?? throw new ArgumentException("UserId not Found in Core");
 
             if (!userCore.CommentNotifReadByAuthor.Any(r => r == CommentId))
             {
                 userCore.CommentNotifReadByAuthor.Add(CommentId);
-                await _unitOfWork.CoreRepository<CommentNotification>().UpdateAsync(userCore);
+                await _unitOfWork.CoreRepository<Comments>().UpdateAsync(userCore);
                 await _unitOfWork.SaveChangesAsync();
             }
             return true;
@@ -720,13 +720,13 @@ namespace Application.Services
             }
 
             // Core DB update
-            var includes = new List<Expression<Func<CommentNotification, object>>>
+            var includes = new List<Expression<Func<Comments, object>>>
             {
                 c => c.CommentNotifReadByAuthor,
                 c => c.UserID_CommentIds // or whatever property contains all comment IDs
             };
 
-            var userCore = await _unitOfWork.CoreRepository<CommentNotification>()
+            var userCore = await _unitOfWork.CoreRepository<Comments>()
                 .GetSingleIncludingAsync(c => c.Id == userId)
                                         ?? throw new ArgumentException($"User {userId} not found in core database");
 
@@ -753,7 +753,7 @@ namespace Application.Services
                     userCore.CommentNotifReadByAuthor?.AddRange(newReadComments);
 
                     // Update the entity
-                    await _unitOfWork.CoreRepository<CommentNotification>().UpdateAsync(userCore);
+                    await _unitOfWork.CoreRepository<Comments>().UpdateAsync(userCore);
                     await _unitOfWork.SaveChangesAsync();
                 }
             }

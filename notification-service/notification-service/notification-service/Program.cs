@@ -60,47 +60,38 @@ builder.Services.Configure<RabbitMqListenerSettings>("ReactionListener", builder
 builder.Services.Configure<RabbitMqListenerSettings>("MessageListener", builder.Configuration.GetSection("RabbitMQ:MessageListener"));
 
 
-//Register listeners
-builder.Services.AddSingleton<CommentListenerService>(sp =>
+// Register RabbitMQ Listener Services
+builder.Services.AddSingleton<CommentListener>(sp =>
 {
-    var optionsMonitor = sp.GetRequiredService<IOptionsMonitor<RabbitMqListenerSettings>>();
-    var options = optionsMonitor.Get("CommentListener");
+    var options = sp.GetRequiredService<IOptionsMonitor<RabbitMqListenerSettings>>().Get("CommentListener");
     var scopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
-
-    return new CommentListenerService(Options.Create(options), scopeFactory);
+    return new CommentListener(Options.Create(options), scopeFactory);
 });
-
+builder.Services.AddSingleton<ICommentListener>(sp => sp.GetRequiredService<CommentListener>());
 
 builder.Services.AddSingleton<ReactionListenerService>(sp =>
 {
-    var optionsMonitor = sp.GetRequiredService<IOptionsMonitor<RabbitMqListenerSettings>>();
-    var options = optionsMonitor.Get("ReactionListener");
+    var options = sp.GetRequiredService<IOptionsMonitor<RabbitMqListenerSettings>>().Get("ReactionListener");
     var scopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
-
     return new ReactionListenerService(Options.Create(options), scopeFactory);
 });
+builder.Services.AddSingleton<IReactionListener>(sp => sp.GetRequiredService<ReactionListenerService>());
 
 builder.Services.AddSingleton<MessageListenerService>(sp =>
 {
-    var optionsMonitor = sp.GetRequiredService<IOptionsMonitor<RabbitMqListenerSettings>>();
-    var options = optionsMonitor.Get("MessageListener");
+    var options = sp.GetRequiredService<IOptionsMonitor<RabbitMqListenerSettings>>().Get("MessageListener");
     var scopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
-
     return new MessageListenerService(Options.Create(options), scopeFactory);
 });
+builder.Services.AddSingleton<IMessageListener>(sp => sp.GetRequiredService<MessageListenerService>());
 
 builder.Services.AddSingleton<FollowListenerService>(sp =>
 {
-    var optionsMonitor = sp.GetRequiredService<IOptionsMonitor<RabbitMqListenerSettings>>();
-    var options = optionsMonitor.Get("FollowListener");
+    var options = sp.GetRequiredService<IOptionsMonitor<RabbitMqListenerSettings>>().Get("FollowListener");
     var scopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
-
     return new FollowListenerService(Options.Create(options), scopeFactory);
 });
-
-
-
-builder.Services.AddSingleton<IFollowListener, FollowListenerService>();
+builder.Services.AddSingleton<IFollowListener>(sp => sp.GetRequiredService<FollowListenerService>());
 builder.Services.AddHostedService<RabbitMqWorker>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
