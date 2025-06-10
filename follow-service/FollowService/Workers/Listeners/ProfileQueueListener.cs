@@ -21,11 +21,11 @@ namespace Workers.Listeners
 
         public ProfileQueueListener(IConfiguration config, IUserService userService)
         {
-            _userName = config.GetSection("ProfileMQ:UserName").Value!;
-            _password = config.GetSection("ProfileMQ:Password").Value!;
-            _hostName = config.GetSection("ProfileMQ:HostName").Value!;
-            _queueName = config.GetSection("ProfileMQ:QueueName").Value!;
-            _port = Convert.ToInt32(config.GetSection("ProfileMQ:Port").Value);
+            _userName = config.GetSection("RabbitQueues:Username").Value!;
+            _password = config.GetSection("RabbitQueues:Password").Value!;
+            _hostName = config.GetSection("RabbitQueues:HostName").Value!;
+            _queueName = config.GetSection("RabbitQueues:ProfileQueue").Value!;
+            _port = Convert.ToInt32(config.GetSection("RabbitQueues:Port").Value);
             _userService = userService;
         }
 

@@ -15,15 +15,15 @@ namespace Application.Implementations
         private string _password;
         private string _hostName;
         private int _port;
-        private string _queueName;
+        private List<string> _queueName;
 
         public FollowQueuePublisher(IConfiguration config)
         {
-            _userName = config.GetSection("FollowMQ:UserName").Value!;
-            _password = config.GetSection("FollowMQ:Password").Value!;
-            _hostName = config.GetSection("FollowMQ:HostName").Value!;
-            _queueName = config.GetSection("FollowMQ:QueueName").Value!;
-            _port = Convert.ToInt32(config.GetSection("FollowMQ:Port").Value);
+            _userName = config.GetSection("RabbitQueues:Username").Value!;
+            _password = config.GetSection("RabbitQueues:Password").Value!;
+            _hostName = config.GetSection("RabbitQueues:HostName").Value!;
+            _queueName = config.GetSection("RabbitQueues:FollowQueue").GetChildren().Select(c => c.Value).ToList()!;
+            _port = Convert.ToInt32(config.GetSection("RabbitQueues:Port").Value);
         }
 
         public async Task InitializeAsync()
@@ -45,27 +45,31 @@ namespace Application.Implementations
             if (_channel == null)
                 throw new InvalidOperationException("Listener not initialized.");
 
-            await _channel.QueueDeclareAsync(
-                queue: _queueName,
-                durable: true,
-                exclusive: false,
-                autoDelete: false,
-                arguments: null
-            );
-
             var message = JsonSerializer.Serialize(args);
 
             var bin = Encoding.UTF8.GetBytes(message);
 
-            await _channel.BasicPublishAsync(
-                exchange: string.Empty,
-                routingKey: _queueName,
-                mandatory: true,
-                basicProperties: new BasicProperties
-                {
-                    Persistent = true
-                },
-                body: bin);
+            foreach (var queue in _queueName)
+            {
+                await _channel.QueueDeclareAsync(
+                    queue: queue,
+                    durable: true,
+                    exclusive: false,
+                    autoDelete: false,
+                    arguments: null
+                );
+
+                await _channel.BasicPublishAsync(
+                    exchange: string.Empty,
+                    routingKey: queue,
+                    mandatory: true,
+                    basicProperties: new BasicProperties
+                    {
+                        Persistent = true
+                    },
+                    body: bin
+                );
+            }
         }
 
         public async ValueTask DisposeAsync()

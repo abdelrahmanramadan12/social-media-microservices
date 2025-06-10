@@ -37,8 +37,8 @@ namespace Web
             builder.Services.AddSingleton<IQueueListener<ProfileEvent>, ProfileQueueListener>();
             builder.Services.AddSingleton<IQueuePublisher<FollowEvent>, FollowQueuePublisher>();
 
-            //builder.Services.AddHostedService<QueueListenersWorker>();
-            //builder.Services.AddHostedService<QueuePublishersInitializer>();
+            builder.Services.AddHostedService<QueueListenersWorker>();
+            builder.Services.AddHostedService<QueuePublishersInitializer>();
 
             var app = builder.Build();
 
