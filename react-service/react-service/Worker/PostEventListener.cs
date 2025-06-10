@@ -1,44 +1,43 @@
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using react_service.Application.Events;
 using react_service.Application.Interfaces.Listeners;
 using react_service.Application.Interfaces.Repositories;
 using react_service.Domain.Entites;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace Workers
 {
-    public class CommentEventListner : ICommentEventListner
+    public class PostEventListener : IPostEventListner
     {
         private readonly IConfiguration _configuration;
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly string _hostname;
         private readonly string _username;
         private readonly string _password;
-        private readonly List<string> _queueNames;
+        private readonly int _port;
+        private readonly string _queueName;
         private IConnection? _connection;
         private IChannel? _channel;
 
-        public CommentEventListner(IConfiguration configuration, IServiceScopeFactory scopeFactory)
+        public PostEventListener(IConfiguration configuration, IServiceScopeFactory scopeFactory)
         {
             _configuration = configuration;
             _scopeFactory = scopeFactory;
 
-            _hostname = _configuration["RabbitMQ:CommentEvent:HostName"] ?? "localhost";
-            _username = _configuration["RabbitMQ:CommentEvent:UserName"] ?? "guest";
-            _password = _configuration["RabbitMQ:CommentEvent:Password"] ?? "guest";
-            var queueNamesStr = _configuration["RabbitMQ:CommentEvent:QueueName"] ?? "CommentEventTest";
-            _queueNames = queueNamesStr.Split(';').ToList();
+            _username = _configuration.GetSection("RabbitQueues:Username").Value!;
+            _password = _configuration.GetSection("RabbitQueues:Password").Value!;
+            _hostname = _configuration.GetSection("RabbitQueues:HostName").Value!;
+            _port = Convert.ToInt32(_configuration.GetSection("RabbitQueues:Port").Value);
+            _queueName = _configuration.GetSection("RabbitQueues:PostQueue").Value!;
 
             if (string.IsNullOrEmpty(_hostname) || string.IsNullOrEmpty(_username) ||
-                string.IsNullOrEmpty(_password) || !_queueNames.Any())
+                string.IsNullOrEmpty(_password) || string.IsNullOrEmpty(_queueName))
             {
-                throw new InvalidOperationException("RabbitMQ:CommentEvent configuration is incomplete. Please check appsettings.json");
+                throw new InvalidOperationException("RabbitMQ:PostEvent configuration is incomplete. Please check appsettings.json");
             }
         }
 
@@ -57,18 +56,15 @@ namespace Workers
                 _connection = await factory.CreateConnectionAsync();
                 _channel = await _connection.CreateChannelAsync();
 
-                foreach (var queueName in _queueNames)
-                {
-                    await _channel.QueueDeclareAsync(
-                        queue: queueName,
+                await _channel.QueueDeclareAsync(
+                        queue: _queueName,
                         durable: true,
                         exclusive: false,
                         autoDelete: false,
                         arguments: null);
-                }
 
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 throw;
             }
@@ -90,28 +86,28 @@ namespace Workers
                 {
                     var body = ea.Body.ToArray();
                     var messageJson = Encoding.UTF8.GetString(body);
-                    // Log event receipt
-                    using var scope = _scopeFactory.CreateScope();
-                    var commentRepository = scope.ServiceProvider.GetRequiredService<ICommentRepository>();
 
-                    var commentEvent = JsonSerializer.Deserialize<CommentEvent>(messageJson);
-                    if (commentEvent != null)
+                    using var scope = _scopeFactory.CreateScope();
+                    var postRepository = scope.ServiceProvider.GetRequiredService<IPostRepository>();
+
+                    var postEvent = JsonSerializer.Deserialize<PostEvent>(messageJson);
+                    if (postEvent != null)
                     {
 
-                        switch (commentEvent.EventType)
+                        switch (postEvent.EventType)
                         {
                             case EventType.Create:
-                                var comment = new Comment
+                                var post = new Post
                                 {
-                                    CommentId = commentEvent.CommentId,
-                                    AuthorId = commentEvent.CommentAuthorId,
+                                    PostId = postEvent.PostId,
+                                    AuthorId = postEvent.AuthorId,
                                     IsDeleted = false
                                 };
-                                var result = await commentRepository.AddComment(comment);
+                                var result = await postRepository.AddPost(post);
                                 break;
 
                             case EventType.Delete:
-                                var deleteResult = await commentRepository.DeleteComment(commentEvent.CommentId);
+                                var deleteResult = await postRepository.DeletePost(postEvent.PostId);
                                 break;
 
                             default:
@@ -125,19 +121,16 @@ namespace Workers
                         await _channel.BasicNackAsync(ea.DeliveryTag, false, true);
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     await _channel.BasicNackAsync(ea.DeliveryTag, false, true);
                 }
             };
 
-            foreach (var queueName in _queueNames)
-            {
-                _channel.BasicConsumeAsync(
-                    queue: queueName,
+            _channel.BasicConsumeAsync(
+                    queue: _queueName,
                     autoAck: false,
                     consumer: consumer);
-            }
 
             return Task.CompletedTask;
         }
@@ -156,7 +149,7 @@ namespace Workers
                     await _connection.CloseAsync();
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
             }
         }

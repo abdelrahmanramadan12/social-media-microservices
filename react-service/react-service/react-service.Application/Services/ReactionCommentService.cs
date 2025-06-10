@@ -1,34 +1,27 @@
 using AutoMapper;
 using Microsoft.Extensions.Options;
 using react_service.Application.DTO;
-using react_service.Application.DTO.RabbitMQ;
 using react_service.Application.DTO.Reaction.Request.Comment;
+using react_service.Application.Events;
 using react_service.Application.Helpers;
 using react_service.Application.Interfaces.Publishers;
 using react_service.Application.Interfaces.Repositories;
 using react_service.Application.Interfaces.Services;
 using react_service.Application.Pagination;
 using react_service.Domain.Entites;
-using react_service.Domain.Events;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace react_service.Application.Services
 {
     public class ReactionCommentService : IReactionCommentService
     {
-        // private readonly HttpClient _httpClient; // Remove or comment out this unused field
         private readonly ICommentReactionRepository reactionRepository;
         private readonly ICommentRepository commentRepository;
         private readonly IMapper mapper;
         private readonly IOptions<PaginationSettings> paginationSetting;
-        private readonly IReactionPublisher reactionPublisher;
+        private readonly IQueuePublisher<CommentReactionEvent> reactionPublisher;
 
         public ReactionCommentService(ICommentReactionRepository reactionRepository, ICommentRepository commentRepository, IMapper mapper, IOptions<PaginationSettings> paginationSetting
-            , IReactionPublisher reactionPublisher)
+            , IQueuePublisher<CommentReactionEvent> reactionPublisher)
         {
             this.reactionRepository = reactionRepository;
             this.commentRepository = commentRepository;
@@ -70,14 +63,12 @@ namespace react_service.Application.Services
                 return response;
             }
             // Publish ReactionEvent for delete
-            await reactionPublisher.PublishCommentReactionAsync(new CommentReactionEventDTO
+            await reactionPublisher.PublishAsync(new CommentReactionEvent
             {
                 CommentId = commentId,
                 UserId = userId,
-                EventType = Domain.Enums.ReactionEventType.Deleted
+                EventType = ReactionEventType.Unlike
             });
-
-
 
             response.Message = "Reaction deleted successfully.";
             response.Data = true;
@@ -112,29 +103,13 @@ namespace react_service.Application.Services
             reactionObj.UserId = userId;
             await reactionRepository.AddReactionAsync(reactionObj);
             // Publish ReactionEvent for add
-            await reactionPublisher.PublishCommentReactionAsync(new CommentReactionEventDTO
+            await reactionPublisher.PublishAsync(new CommentReactionEvent
             {
                 CommentId = reaction.CommentId,
                 UserId = userId,
-                EventType = Domain.Enums.ReactionEventType.Created
+                EventType = ReactionEventType.Like
             });
 
-            await reactionPublisher.PublishReactionNotifAsync(new Domain.Events.ReactionEvent
-            {
-                AuthorEntityId = comment.AuthorId,
-                ReactionEntityId = reactionObj.CommentId,
-                Type = reactionObj.ReactionType, // Assuming None for deletion
-                ReactedOn = Domain.Events.ReactedEntity.Comment,
-                User = new UserSkeleton
-                {
-                    Id = reactionObj.Id,
-                    UserId = userId,
-                    Seen = false,
-                    CreatedAt = reactionObj.CreatedAt
-                },
-                Id = reactionObj.Id,
-
-            });
             response.Message = "Reaction added successfully.";
             response.Data = true;
             return response;
@@ -295,6 +270,5 @@ namespace react_service.Application.Services
             }
             return response;
         }
-
     }
 }

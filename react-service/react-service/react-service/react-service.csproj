@@ -11,7 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\react-service.Application\react-service.Application.csproj" />
     <ProjectReference Include="..\react-service.Infrastructure\react-service.Infrastructure.csproj" />
-    <ProjectReference Include="..\Workers\Workers.csproj" />
+    <ProjectReference Include="..\Worker\Worker.csproj" />
   </ItemGroup>
 
   <ItemGroup>

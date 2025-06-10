@@ -1,12 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using react_service.Application.Events;
 
 namespace react_service.Application.Interfaces.Publishers
 {
-    public interface IQueuePublisher<T> : IAsyncDisposable
+    public interface IQueuePublisher<T> : IAsyncDisposable where T : QueueEvent
     {
         Task InitializeAsync();
         Task PublishAsync(T args);

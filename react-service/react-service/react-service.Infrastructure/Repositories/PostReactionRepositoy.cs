@@ -123,7 +123,7 @@ namespace react_service.Infrastructure.Repositories
                     if(reactionObj.ReactionType == reaction.ReactionType)
                     {
                         await HardDeleteReactionAsync(reaction.PostId, reaction.UserId); // Hard delete the existing reaction    
-                        return ReactionEventType.Deleted.ToString();
+                        return "Deleted";
 
                     }
                     
@@ -136,7 +136,7 @@ namespace react_service.Infrastructure.Repositories
                 }
                 await _collection.InsertOneAsync(reaction);
 
-                return ReactionEventType.Created.ToString();
+                return "Created";
 
                 //   await session.CommitTransactionAsync();
 
