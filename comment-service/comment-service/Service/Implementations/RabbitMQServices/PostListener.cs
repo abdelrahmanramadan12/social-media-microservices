@@ -11,7 +11,7 @@ using System.Text.Json;
 
 namespace Service.Implementations.RabbitMQServices
 {
-    public class PostListener : IAsyncDisposable, IPostListener, IHostedService
+    public class PostListener : IQueueListener<PostEvent>
     {
         private IConnection? _connection;
         private IChannel? _channel;
@@ -26,11 +26,11 @@ namespace Service.Implementations.RabbitMQServices
         public PostListener(IConfiguration configuration, IServiceScopeFactory scopeFactory)
         {
             _scopeFactory = scopeFactory;
-            _userName = configuration.GetSection("PostMQ:Username").Value;
-            _password = configuration.GetSection("PostMQ:Password").Value;
-            _hostName = configuration.GetSection("PostMQ:Hostname").Value;
-            _queueName = configuration.GetSection("PostMQ:QueueName").Value;
-            _port = configuration.GetSection("PostMQ:Port").Value;
+            _userName = configuration.GetSection("RabbitQueues:Username").Value!;
+            _password = configuration.GetSection("RabbitQueues:Password").Value!;
+            _hostName = configuration.GetSection("RabbitQueues:HostName").Value!;
+            _queueName = configuration.GetSection("RabbitQueues:PostQueue").Value!;
+            _port = configuration.GetSection("RabbitQueues:Port").Value!;
         }
 
         public async Task InitializeAsync()

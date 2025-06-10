@@ -9,6 +9,6 @@ namespace Service.Events
 {
     public class QueueEvent
     {
-        public EventType EventType { get; set; }
+        
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using Scalar.AspNetCore;
 using Service.Configuration;
+using Service.Events;
 using Service.Implementations.CommentServices;
 using Service.Implementations.MediaServices;
 using Service.Implementations.PostServices;
@@ -12,6 +13,7 @@ using Service.Interfaces.CommentServices;
 using Service.Interfaces.MediaServices;
 using Service.Interfaces.PostServices;
 using Service.Interfaces.RabbitMQServices;
+using Worker;
 
 namespace Web
 {
@@ -46,10 +48,12 @@ namespace Web
             // Register Application Services
             builder.Services.AddScoped<ICommentService, CommentService>();
             builder.Services.AddScoped<IPostService, PostService>();
-            
+
             // Register Hosted Services
-            builder.Services.AddHostedService<PostListener>();
-            builder.Services.AddHostedService<CommentReactionListener>();
+            builder.Services.AddSingleton<IQueueListener<PostEvent>, PostListener>();
+            builder.Services.AddSingleton<IQueueListener<CommentReactionEvent>, CommentReactionListener>();
+            builder.Services.AddHostedService<RabbitMqWorker>();
+
             // Configure Media Service Client
             // Read MediaService:HostUrl from configuration
             builder.Services.AddHttpClient<IMediaServiceClient, MediaServiceClient>((sp, client) =>

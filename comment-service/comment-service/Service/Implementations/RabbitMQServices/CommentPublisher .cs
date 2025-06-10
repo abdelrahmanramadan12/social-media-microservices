@@ -12,7 +12,9 @@ namespace Service.Implementations.RabbitMQServices
         public CommentPublisher(IRabbitMqPublisher bus, IConfiguration _config)
         {
             _bus = bus;
-            _queueNames = _config["RabbitMQQueues:Comment"].Split(";").ToList();
+            _queueNames = _config.GetSection("RabbitQueues:CommentQueue").GetChildren()
+                                                                          .Select(c => c.Value)
+                                                                          .ToList()!;
         }
         public Task PublishAsync(CommentEvent evt, CancellationToken ct = default)
             => _bus.PublishAsync(evt, _queueNames, ct);

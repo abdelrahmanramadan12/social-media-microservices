@@ -1,6 +1,6 @@
 ﻿namespace Service.Interfaces.RabbitMQServices
 {
-    public interface IPostListener:IAsyncDisposable
+    public interface IQueueListener<T> :IAsyncDisposable
     {
         Task InitializeAsync();
         Task ListenAsync(CancellationToken cancellationToken);

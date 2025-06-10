@@ -11,10 +11,10 @@ namespace Service.Events
         Like,
         Unlike
     }
-    public class CommentReactionEvent
+    public class CommentReactionEvent : QueueEvent
     {
         public string CommentId { get; set; } = default!;
-        public ReactionEventType ReactionType { get; set; }
+        public ReactionEventType EventType { get; set; }
         public string ReactionAuthorId { get; set; } = default!;
         public DateTime CreatedAt { get; set; }
         public string PostAuthorId { get; set; } = default!;

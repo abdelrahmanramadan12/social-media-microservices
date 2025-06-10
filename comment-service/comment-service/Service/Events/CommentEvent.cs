@@ -1,7 +1,10 @@
+using Service.Enums;
+
 namespace Service.Events
 {
     public class CommentEvent : QueueEvent
     {
+        public EventType EventType { get; set; }
         public string CommentId { get; set; } = default!;
         public string PostId { get; set; } = default!;
         public string Content { get; set; } = default!;
