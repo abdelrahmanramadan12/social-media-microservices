@@ -34,7 +34,8 @@ namespace Application.Services.Listeners
             {
                 HostName = _settings.HostName,
                 UserName = _settings.UserName,
-                Password = _settings.Password
+                Password = _settings.Password,
+                Port = _settings.Port
             };
 
             _connection = await factory.CreateConnectionAsync();

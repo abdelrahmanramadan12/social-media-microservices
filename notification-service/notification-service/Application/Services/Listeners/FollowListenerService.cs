@@ -30,11 +30,10 @@ namespace Application.Services.Listeners
         {
             var factory = new ConnectionFactory
             {
-                HostName = "localhost",
-                Port= 5672,
-                //_settings.HostName,
-                //UserName = _settings.UserName,
-                //Password = _settings.Password
+                HostName = _settings.HostName,
+                Port = _settings.Port,
+                UserName = _settings.UserName,
+                Password = _settings.Password,
             };
 
             _connection = await factory.CreateConnectionAsync();

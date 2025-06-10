@@ -1,6 +1,8 @@
 ﻿using Application;
 using Application.Hubs;
 using Application.Interfaces.Listeners;
+using Application.Interfaces.Services.Application.Services;
+using Application.Interfaces.Services;
 using Application.Services.Listeners;
 using Domain.RabbitMQ;
 using Infrastructure;
@@ -33,6 +35,14 @@ builder.Services.AddScoped(sp =>
     return client.GetDatabase(settings.DatabaseName);
 });
 
+var profileServiceUrl = builder.Configuration["ProfileService:BaseUrl"];
+
+builder.Services.AddHttpClient<IProfileServiceClient, ProfileServiceClient>(client =>
+{
+    client.BaseAddress = new Uri(profileServiceUrl);
+});
+
+
 // Redis Configuration
 builder.Services.AddScoped<IConnectionMultiplexer>(sp =>
 {
@@ -50,52 +60,15 @@ builder.Services.AddScoped<IConnectionMultiplexer>(sp =>
     });
 });
 
-// SignalR
+// add SignalR 
+
 builder.Services.AddSignalR();
 
-// RabbitMQ Settings Configuration
-builder.Services.Configure<RabbitMqListenerSettings>("FollowListener", builder.Configuration.GetSection("RabbitMQ:FollowListener"));
-builder.Services.Configure<RabbitMqListenerSettings>("CommentListener", builder.Configuration.GetSection("RabbitMQ:CommentListener"));
-builder.Services.Configure<RabbitMqListenerSettings>("ReactionListener", builder.Configuration.GetSection("RabbitMQ:ReactionListener"));
-builder.Services.Configure<RabbitMqListenerSettings>("MessageListener", builder.Configuration.GetSection("RabbitMQ:MessageListener"));
-
-// Register RabbitMQ Listener Services
-builder.Services.AddSingleton<CommentListener>(sp =>
-{
-    var options = sp.GetRequiredService<IOptionsMonitor<RabbitMqListenerSettings>>().Get("CommentListener");
-    var scopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
-    return new CommentListener(Options.Create(options), scopeFactory);
-});
-builder.Services.AddSingleton<ICommentListener>(sp => sp.GetRequiredService<CommentListener>());
-builder.Services.AddSingleton<ReactionListenerService>(sp =>
-{
-    var options = sp.GetRequiredService<IOptionsMonitor<RabbitMqListenerSettings>>().Get("ReactionListener");
-    var scopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
-    return new ReactionListenerService(Options.Create(options), scopeFactory);
-});
-builder.Services.AddSingleton<IReactionListener>(sp => sp.GetRequiredService<ReactionListenerService>());
-
-builder.Services.AddSingleton<MessageListenerService>(sp =>
-{
-    var options = sp.GetRequiredService<IOptionsMonitor<RabbitMqListenerSettings>>().Get("MessageListener");
-    var scopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
-    return new MessageListenerService(Options.Create(options), scopeFactory);
-});
-builder.Services.AddSingleton<IMessageListener>(sp => sp.GetRequiredService<MessageListenerService>());
-
-builder.Services.AddSingleton<FollowListenerService>(sp =>
-{
-    var options = sp.GetRequiredService<IOptionsMonitor<RabbitMqListenerSettings>>().Get("FollowListener");
-    var scopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
-    return new FollowListenerService(Options.Create(options), scopeFactory);
-});
-builder.Services.AddSingleton<IFollowListener>(sp => sp.GetRequiredService<FollowListenerService>());
-
-// Hosted RabbitMQ Worker
 builder.Services.AddHostedService<RabbitMqWorker>();
 
 // Register Application & Infrastructure Services
 builder.Services.AddInfrastructureServices(builder.Configuration);
+builder.Services.AddRabbitMqListeners(builder.Configuration);
 builder.Services.AddApplicationServiceRegistration(builder.Configuration);
 
 var app = builder.Build();
