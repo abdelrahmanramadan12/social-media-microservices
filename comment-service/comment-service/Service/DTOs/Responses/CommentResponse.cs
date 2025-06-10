@@ -9,5 +9,6 @@ namespace Service.DTOs.Responses
         public string? MediaUrl { get; set; }
         public DateTime CreatedAt { get; set; }
         public bool IsEdited { get; set; }
+        public int ReactionsCount { get; set; }
     }
 }

@@ -591,7 +591,8 @@ namespace Service.Implementations.CommentServices
             CommentContent = c.Content ?? "",
             MediaUrl = c.MediaUrl,
             CreatedAt = c.CreatedAt,
-            IsEdited = c.IsEdited
+            IsEdited = c.IsEdited,
+            ReactionsCount = c.ReactCount
         };
     }
 }
