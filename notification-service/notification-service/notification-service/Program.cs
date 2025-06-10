@@ -60,14 +60,13 @@ builder.Services.Configure<RabbitMqListenerSettings>("ReactionListener", builder
 builder.Services.Configure<RabbitMqListenerSettings>("MessageListener", builder.Configuration.GetSection("RabbitMQ:MessageListener"));
 
 // Register RabbitMQ Listener Services
-builder.Services.AddSingleton<CommentListenerService>(sp =>
+builder.Services.AddSingleton<CommentListener>(sp =>
 {
     var options = sp.GetRequiredService<IOptionsMonitor<RabbitMqListenerSettings>>().Get("CommentListener");
     var scopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
-    return new CommentListenerService(Options.Create(options), scopeFactory);
+    return new CommentListener(Options.Create(options), scopeFactory);
 });
-builder.Services.AddSingleton<ICommentListener>(sp => sp.GetRequiredService<CommentListenerService>());
-
+builder.Services.AddSingleton<ICommentListener>(sp => sp.GetRequiredService<CommentListener>());
 builder.Services.AddSingleton<ReactionListenerService>(sp =>
 {
     var options = sp.GetRequiredService<IOptionsMonitor<RabbitMqListenerSettings>>().Get("ReactionListener");

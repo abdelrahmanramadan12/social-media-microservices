@@ -4,30 +4,21 @@ using Domain.Events;
 using Domain.RabbitMQ;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using MongoDB.Driver.Core.Bindings;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Application.Services.Listeners
 {
-    public class CommentListenerService : ICommentListener,IAsyncDisposable
+    public class CommentListener(
+        IOptions<RabbitMqListenerSettings> options,
+        IServiceScopeFactory scopeFactory) : ICommentListener
     {
-        private readonly RabbitMqListenerSettings _settings;
-        private readonly IServiceScopeFactory _scopeFactory;
+        private readonly RabbitMqListenerSettings _settings = options.Value;
+        private readonly IServiceScopeFactory _scopeFactory = scopeFactory;
         private IConnection? _connection;
-        private RabbitMQ.Client.IChannel? _channel;
-
-        public CommentListenerService(
-            IOptions<RabbitMqListenerSettings> options,
-            IServiceScopeFactory scopeFactory)
-        {
-            _settings = options.Value;
-            _scopeFactory = scopeFactory;
-        }
+        private IChannel? _channel;
 
         public async Task InitializeAsync()
         {

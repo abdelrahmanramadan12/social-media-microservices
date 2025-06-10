@@ -6,17 +6,17 @@ namespace Infrastructure.SeedingData.mongdbSeeding
 {
     public class MongoCommentsSeeder
     {
-        private readonly IMongoCollection<CommentNotification> _commentsCollection;
+        private readonly IMongoCollection<Comments> _commentsCollection;
 
         public MongoCommentsSeeder(IMongoDatabase database)
         {
-            _commentsCollection = database.GetCollection<CommentNotification>("Comments");
+            _commentsCollection = database.GetCollection<Comments>("Comments");
         }
 
         public async Task SeedInitialCommentsDataAsync()
         {
             // Check if data already exists
-            var count = await _commentsCollection.CountDocumentsAsync(FilterDefinition<CommentNotification>.Empty);
+            var count = await _commentsCollection.CountDocumentsAsync(FilterDefinition<Comments>.Empty);
             if (count > 0)
             {
                 return; // Data already seeded
@@ -26,12 +26,12 @@ namespace Infrastructure.SeedingData.mongdbSeeding
             await _commentsCollection.InsertManyAsync(commentsData);
         }
 
-        private List<CommentNotification> GenerateSampleCommentsData()
+        private List<Comments> GenerateSampleCommentsData()
         {
-            return new List<CommentNotification>
+            return new List<Comments>
     {
         // User 1
-        new CommentNotification
+        new Comments
         {
             PostAuthorId = "user1",
             PostId = "post1",
@@ -41,7 +41,7 @@ namespace Infrastructure.SeedingData.mongdbSeeding
             },
             CommentNotifReadByAuthor = new List<string> { "comment1" }
         },
-        new CommentNotification
+        new Comments
         {
             PostAuthorId = "user1",
             PostId = "post2",
@@ -53,7 +53,7 @@ namespace Infrastructure.SeedingData.mongdbSeeding
         },
 
         // User 2
-        new CommentNotification
+        new Comments
         {
             PostAuthorId = "user2",
             PostId = "post3",
@@ -65,7 +65,7 @@ namespace Infrastructure.SeedingData.mongdbSeeding
         },
 
         // User 4
-        new CommentNotification
+        new Comments
         {
             PostAuthorId = "user4",
             PostId = "post1",
@@ -75,7 +75,7 @@ namespace Infrastructure.SeedingData.mongdbSeeding
             },
             CommentNotifReadByAuthor = new List<string>()
         },
-        new CommentNotification
+        new Comments
         {
             PostAuthorId = "user4",
             PostId = "post4",
@@ -87,7 +87,7 @@ namespace Infrastructure.SeedingData.mongdbSeeding
         },
 
         // User 5
-        new CommentNotification
+        new Comments
         {
             PostAuthorId = "user5",
             PostId = "post2",
@@ -99,7 +99,7 @@ namespace Infrastructure.SeedingData.mongdbSeeding
         },
 
         // User 6
-        new CommentNotification
+        new Comments
         {
             PostAuthorId = "user6",
             PostId = "post5",
@@ -111,7 +111,7 @@ namespace Infrastructure.SeedingData.mongdbSeeding
         },
 
         // User 8
-        new CommentNotification
+        new Comments
         {
             PostAuthorId = "user8",
             PostId = "post3",
@@ -121,7 +121,7 @@ namespace Infrastructure.SeedingData.mongdbSeeding
             },
             CommentNotifReadByAuthor = new List<string>()
         },
-        new CommentNotification
+        new Comments
         {
             PostAuthorId = "user8",
             PostId = "post6",
@@ -133,7 +133,7 @@ namespace Infrastructure.SeedingData.mongdbSeeding
         },
 
         // User 9
-        new CommentNotification
+        new Comments
         {
             PostAuthorId = "user9",
             PostId = "post7",

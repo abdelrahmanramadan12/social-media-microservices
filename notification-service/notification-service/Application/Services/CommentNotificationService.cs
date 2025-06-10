@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Application.Services
 {
-    
+
     public class CommentNotificationService(IUnitOfWork unitOfWork, IHubContext<CommentNotificationHub> hubContext)
         : ICommentNotificationService
     {
@@ -19,8 +19,8 @@ namespace Application.Services
 
         public async Task UpdatCommentListNotification(CommentEvent commentEvent)
         {
-            var authorNotification = await unitOfWork.CoreRepository<CommentNotification>()
-                .GetSingleIncludingAsync(n => n.PostAuthorId == commentEvent.PostAuthorId);
+            var authorNotification = await unitOfWork.CoreRepository<Comments>()
+                .GetSingleAsync(x => x.PostAuthorId == commentEvent.PostAuthorId);
 
             if (authorNotification == null)
                 return;
@@ -42,7 +42,9 @@ namespace Application.Services
                     .GetSingleByIdAsync(userId);
 
                 if (cacheUser == null)
-                    continue;
+                {
+                    cacheUser = new() { UserId = userId, CommnetDetails = [] };
+                }
 
                 cacheUser.CommnetDetails ??= new List<CommnetNotificationDetails>();
                 cacheUser.CommnetDetails.Add(new CommnetNotificationDetails
@@ -68,7 +70,7 @@ namespace Application.Services
                 });
             }
 
-            await unitOfWork.CoreRepository<CommentNotification>()
+            await unitOfWork.CoreRepository<Comments>()
                 .UpdateAsync(authorNotification);
 
             await unitOfWork.SaveChangesAsync();
@@ -78,7 +80,7 @@ namespace Application.Services
         public async Task RemoveCommentListNotification(CommentEvent commentEvent)
         {
             // Get the core notification for the post author
-            var authorNotification = await unitOfWork.CoreRepository<CommentNotification>()
+            var authorNotification = await unitOfWork.CoreRepository<Comments>()
                 .GetSingleIncludingAsync(n => n.PostAuthorId == commentEvent.PostAuthorId);
 
             if (authorNotification == null)
@@ -110,12 +112,12 @@ namespace Application.Services
             }
 
             // Save updated core data
-            await unitOfWork.CoreRepository<CommentNotification>()
+            await unitOfWork.CoreRepository<Comments>()
                 .UpdateAsync(authorNotification);
 
             await unitOfWork.SaveChangesAsync();
 
-        
+
 
         }
 

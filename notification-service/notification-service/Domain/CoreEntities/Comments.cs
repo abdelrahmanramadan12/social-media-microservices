@@ -3,7 +3,7 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace Domain.CoreEntities
 {
-    public class CommentNotification
+    public class Comments
     {
         [BsonId]
         //[BsonRepresentation(BsonType.ObjectId)]
