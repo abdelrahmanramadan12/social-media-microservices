@@ -1,6 +1,4 @@
-﻿using MongoDB.Bson;
-
-namespace Domain.Entities
+﻿namespace Domain.Entities
 {
     public enum Privacy
     {
@@ -11,7 +9,7 @@ namespace Domain.Entities
 
     public class Post
     {
-        public ObjectId PostId { get; set; }
+        public string PostId { get; set; }
         public string Content { get; set; }
         public List<MediaItem> MediaList { get; set; }
         public int ReactsCount { get; set; }

@@ -51,7 +51,7 @@ namespace Infrastructure.Repositories
             }
         }
 
-        public async Task IncrementCommentsCountAsync(ObjectId postId, int number)
+        public async Task IncrementCommentsCountAsync(string postId, int number)
         {
             var filter = Builders<Feed>.Filter.ElemMatch(
                 f => f.Timeline,
@@ -75,7 +75,7 @@ namespace Infrastructure.Repositories
             );
         }
 
-        public async Task IncrementReactsCountAsync(ObjectId postId, int number)
+        public async Task IncrementReactsCountAsync(string postId, int number)
         {
             var filter = Builders<Feed>.Filter.ElemMatch(
                 f => f.Timeline,
@@ -129,7 +129,7 @@ namespace Infrastructure.Repositories
             await _feeds.UpdateManyAsync(filter, update);
         }
 
-        public async Task RemovePostAsync(ObjectId postId)
+        public async Task RemovePostAsync(string postId)
         {
             var filter = Builders<Feed>.Filter.ElemMatch(
                 f => f.Timeline,
@@ -159,7 +159,7 @@ namespace Infrastructure.Repositories
             await _feeds.UpdateManyAsync(filter, update);
         }
 
-        public async Task SetLikedAsync(string userId, ObjectId postId, bool liked)
+        public async Task SetLikedAsync(string userId, string postId, bool liked)
         {
             var filter = Builders<Feed>.Filter.And(
                 Builders<Feed>.Filter.Eq(f => f.UserId, userId),

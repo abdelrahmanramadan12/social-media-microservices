@@ -1,5 +1,6 @@
 using MongoDB.Driver;
 using Web.ServiceCollections;
+using Workers;
 
 namespace Web
 {
@@ -20,7 +21,7 @@ namespace Web
             builder.Services.AddServiceClients();
             builder.Services.AddQueueListeners();
 
-            //builder.Services.AddHostedService<RabbitMqWorker>();
+            builder.Services.AddHostedService<RabbitMqWorker>();
 
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi

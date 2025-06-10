@@ -7,8 +7,8 @@ namespace Web.ServiceCollections
     {
         public static IServiceCollection AddServiceClients(this IServiceCollection services)
         {
-            services.AddSingleton<IProfileServiceClient, ProfileServiceClient>();
-            services.AddSingleton<IFollowServiceClient, FollowServiceClient>();
+            services.AddHttpClient<IProfileServiceClient, ProfileServiceClient>();
+            services.AddHttpClient<IFollowServiceClient, FollowServiceClient>();
 
             return services;
         }

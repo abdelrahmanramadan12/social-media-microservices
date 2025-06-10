@@ -1,17 +1,15 @@
-﻿using Domain.Entities;
-using MongoDB.Bson;
-
-namespace Application.Events
+﻿namespace Application.Events
 {
-    public class CommentEvent
+    public class CommentEvent : QueueEvent
     {
         public EventType EventType { get; set; }
-        public ObjectId CommentId { get; set; }
-        public string TextContent { get; set; }
-        public MediaItem MediaItem { get; set; }
+        public string CommentId { get; set; }
+        public string Content { get; set; }
+        public string? MediaUrl { get; set; }
         public DateTime Timestamp { get; set; }
-        public string AuthorId { get; set; }
-        public ObjectId PostId { get; set; }
+        public string CommentAuthorId { get; set; }
+        public string PostId { get; set; }
         public string PostAuthorId { get; set; }
+        public bool IsEdited { get; set; }
     }
 }

@@ -12,7 +12,7 @@ namespace Application.Events
         Unfollow
     }
 
-    public class FollowEvent
+    public class FollowEvent : QueueEvent
     {
         public FollowEventType EventType {  get; set; }
         public string FollowerId { get; set; }

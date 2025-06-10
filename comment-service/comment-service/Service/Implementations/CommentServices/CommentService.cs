@@ -237,7 +237,7 @@ namespace Service.Implementations.CommentServices
                     CommentAuthorId = comment.AuthorId,
                     Content = comment.Content,
                     MediaUrl = comment.MediaUrl,
-                    CreatedAt = comment.CreatedAt,
+                    Timestamp = comment.CreatedAt,
                     PostAuthorId = post?.AuthorId ?? string.Empty,
                     IsEdited = false
                 });
@@ -451,7 +451,7 @@ namespace Service.Implementations.CommentServices
                     CommentAuthorId = comment.AuthorId,
                     Content = comment.Content,
                     MediaUrl = comment.MediaUrl,
-                    CreatedAt = comment.CreatedAt,
+                    Timestamp = comment.CreatedAt,
                     PostAuthorId = post?.AuthorId ?? string.Empty,
                     IsEdited = true
                 });

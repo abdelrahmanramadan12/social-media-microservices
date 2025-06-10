@@ -7,7 +7,7 @@
         Delete
     }
 
-    public class ProfileEvent
+    public class ProfileEvent : QueueEvent
     {
         public EventType EventType { get; set; }
         public string UserId { get; set; }

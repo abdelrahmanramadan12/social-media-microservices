@@ -21,11 +21,11 @@ namespace Workers.Listeners
 
         public PostQueueListener(IConfiguration config, IFeedCommandService feedCommandService)
         {
-            _userName = config.GetSection("postMQ:UserName").Value!;
-            _password = config.GetSection("postMQ:Password").Value!;
-            _hostName = config.GetSection("postMQ:HostName").Value!;
-            _queueName = config.GetSection("postMQ:QueueName").Value!;
-            _port = Convert.ToInt32(config.GetSection("postMQ:Port").Value);
+            _userName = config.GetSection("RabbitQueues:Username").Value!;
+            _password = config.GetSection("RabbitQueues:Password").Value!;
+            _hostName = config.GetSection("RabbitQueues:HostName").Value!;
+            _queueName = config.GetSection("RabbitQueues:PostQueue").Value!;
+            _port = Convert.ToInt32(config.GetSection("RabbitQueues:Port").Value);
             _feedCommandService = feedCommandService;
         }
 

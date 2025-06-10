@@ -21,11 +21,11 @@ namespace Workers.Listeners
 
         public FollowQueueListener(IConfiguration config, IFeedCommandService feedCommandService)
         {
-            _userName = config.GetSection("followMQ:UserName").Value!;
-            _password = config.GetSection("followMQ:Password").Value!;
-            _hostName = config.GetSection("followMQ:HostName").Value!;
-            _queueName = config.GetSection("followMQ:QueueName").Value!;
-            _port = Convert.ToInt32(config.GetSection("followMQ:Port").Value);
+            _userName = config.GetSection("RabbitQueues:Username").Value!;
+            _password = config.GetSection("RabbitQueues:Password").Value!;
+            _hostName = config.GetSection("RabbitQueues:HostName").Value!;
+            _queueName = config.GetSection("RabbitQueues:FollowQueue").Value!;
+            _port = Convert.ToInt32(config.GetSection("RabbitQueues:Port").Value);
             _feedCommandService = feedCommandService;
         }
 
@@ -33,10 +33,10 @@ namespace Workers.Listeners
         {
             var factory = new ConnectionFactory
             {
-                UserName = _userName,
-                Password = _password,
+                //UserName = _userName,
+                //Password = _password,
                 HostName = _hostName,
-                Port = _port
+                //Port = _port
             };
 
             _connection = await factory.CreateConnectionAsync();

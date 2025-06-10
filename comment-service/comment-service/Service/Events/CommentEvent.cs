@@ -10,7 +10,7 @@ namespace Service.Events
         public string Content { get; set; } = default!;
         public string? MediaUrl { get; set; }
         public string CommentAuthorId { get; set; } = default!;
-        public DateTime CreatedAt { get; set; }
+        public DateTime Timestamp { get; set; }
         public string PostAuthorId { get; set; } = default!;
         public bool IsEdited { get; set; }
     }

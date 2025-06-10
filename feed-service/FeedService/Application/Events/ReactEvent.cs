@@ -8,11 +8,11 @@ namespace Application.Events
         Unlike
     }
 
-    public class ReactEvent
+    public class ReactEvent : QueueEvent
     {
         public ReactEventType EventType { get; set; }
         public string UserId { get; set; }
-        public ObjectId PostId { get; set; }
+        public string PostId { get; set; }
         public string PostAuthorId { get; set; }
         public DateTime Timestamp { get; set; }
     }
