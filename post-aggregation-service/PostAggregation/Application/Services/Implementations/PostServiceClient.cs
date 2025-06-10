@@ -9,9 +9,9 @@ namespace Application.Services.Implementations
     public class PostServiceClient : IPostServiceClient
     {
         private readonly HttpClient _httpClient;
-        private const string GET_POST_BY_ID_ENDPOINT = "api/internal/posts/{0}";
-        private const string GET_PROFILE_POSTS_ENDPOINT = "api/internal/posts/user/{0}";
-        private const string GET_POST_LIST_ENDPOINT = "api/internal/posts/list";
+        private const string GET_POST_BY_ID_ENDPOINT = "/api/internal/posts/{0}";
+        private const string GET_PROFILE_POSTS_ENDPOINT = "/api/internal/posts/user/{0}";
+        private const string GET_POST_LIST_ENDPOINT = "/api/internal/posts/list";
 
         public PostServiceClient(HttpClient httpClient, PostServiceSettings settings)
         {

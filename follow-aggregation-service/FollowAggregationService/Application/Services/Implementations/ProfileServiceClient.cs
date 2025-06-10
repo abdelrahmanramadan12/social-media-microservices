@@ -1,4 +1,3 @@
-using Application.Configurations;
 using Application.DTOs;
 using Application.DTOs.Profile;
 using Application.Services.Interfaces;
@@ -9,14 +8,11 @@ namespace Application.Services.Implementations
     public class ProfileServiceClient : IProfileServiceClient
     {
         private readonly HttpClient _httpClient;
-        private const string BASE_ENDPOINT = "api/internal/profile";
-        private readonly ProfileServiceSettings _settings;
+        private const string BASE_ENDPOINT = "/api/internal/profile";
 
-        public ProfileServiceClient(HttpClient httpClient, ProfileServiceSettings settings)
+        public ProfileServiceClient(HttpClient httpClient)
         {
             _httpClient = httpClient;
-            _settings = settings;
-            _httpClient.BaseAddress = new Uri(_settings.BaseUrl);
         }
 
         public async Task<ResponseWrapper<SimpleUserProfile>> GetByUserIdMinAsync(string userId)

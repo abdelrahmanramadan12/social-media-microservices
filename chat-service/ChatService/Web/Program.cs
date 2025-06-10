@@ -44,12 +44,12 @@ namespace Web
             builder.Services.AddSingleton<IProfileCache, ProfileCache>();
             builder.Services.AddHttpClient<IAuthServiceClient, AuthServiceClient>((sp, client) =>
             {
-                client.BaseAddress = new Uri("http://Auth/8080");
+                client.BaseAddress = new Uri("http://Auth:8080");
                 client.Timeout = TimeSpan.FromSeconds(30);
             });
             builder.Services.AddHttpClient<IProfileServiceClient, ProfileServiceClient>((sp, client) =>
             {
-                client.BaseAddress = new Uri("http://profile/8080");
+                client.BaseAddress = new Uri("http://profile:8080");
                 client.Timeout = TimeSpan.FromSeconds(30);
             });
             builder.Services.AddHttpClient<IMediaServiceClient, MediaServiceClient>((sp, client) =>

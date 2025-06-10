@@ -1,4 +1,3 @@
-using Application.Configurations;
 using Application.DTOs;
 using Application.DTOs.Follow;
 using Application.Services.Interfaces;
@@ -11,12 +10,10 @@ namespace Application.Services.Implementations
     public class FollowServiceClient : IFollowServiceClient
     {
         private readonly HttpClient _httpClient;
-        private readonly FollowServiceSettings _settings;
 
-        public FollowServiceClient(HttpClient httpClient, FollowServiceSettings settings)
+        public FollowServiceClient(HttpClient httpClient)
         {
             _httpClient = httpClient;
-            _settings = settings;
         }
 
         public async Task<ResponseWrapper<List<string>>> FilterFollowers(FilterFollowStatusRequest request)
@@ -26,7 +23,7 @@ namespace Application.Services.Implementations
             try
             {
                 var response = await _httpClient.PostAsync(
-                    $"{_settings.BaseUrl}/api/internal/follow/filter-followers",
+                    $"/api/internal/follow/filter-followers",
                     new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json")
                 );
 
@@ -63,7 +60,7 @@ namespace Application.Services.Implementations
             try
             {
                 var response = await _httpClient.PostAsync(
-                    $"{_settings.BaseUrl}/api/follow/filter-following",
+                    $"/api/follow/filter-following",
                     new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json")
                 );
 
@@ -107,7 +104,7 @@ namespace Application.Services.Implementations
         {
             try
             {
-                var url = $"{_settings.BaseUrl}{endpoint}";
+                var url = $"/{endpoint}";
                 var requestContent = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
 
                 var response = await _httpClient.PostAsync(url, requestContent);
