@@ -40,7 +40,7 @@ namespace Application.Services.Listeners
             _channel = await _connection.CreateChannelAsync();
 
             await _channel.QueueDeclareAsync(
-                queue: "FollowQueue",
+                queue:  _settings.QueueName,
                 durable: true,
                 exclusive: false,
                 autoDelete: false,

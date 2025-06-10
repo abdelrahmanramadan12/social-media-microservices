@@ -69,6 +69,23 @@ namespace Application.Services
             else
                 await _unitOfWork.CacheRepository<CachedReactions>().UpdateAsync(cachedReaction);
 
+            // use hub context 
+           await  _hubContext.Clients.User(authorId)
+                .SendAsync("ReceiveReactionNotification", new
+                {
+                    reactionEventDTO.Id,
+                    reactionEventDTO.ReactedOn,
+                    reactionEventDTO.Content,
+                    reactionEventDTO.ReactionEntityId,
+                    User = new
+                    {
+                        reactionEventDTO.User.Id,
+                        reactionEventDTO.User.UserId,
+                        reactionEventDTO.User.UserNames,
+                        reactionEventDTO.User.ProfileImageUrls,
+                        reactionEventDTO.User.CreatedAt
+                    }
+                });
             await NotifyUserAsync(reactionEventDTO);
         }
 
