@@ -1,4 +1,5 @@
-﻿using Application.Interfaces.Services;
+﻿using Application.Interfaces.Listeners;
+using Application.Interfaces.Services;
 using Domain.Events;
 using Domain.RabbitMQ;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Application.Services.Listeners
 {
-    public class CommentListenerService : IAsyncDisposable
+    public class CommentListenerService : ICommentListener,IAsyncDisposable
     {
         private readonly RabbitMqListenerSettings _settings;
         private readonly IServiceScopeFactory _scopeFactory;
@@ -33,8 +34,8 @@ namespace Application.Services.Listeners
             var factory = new ConnectionFactory
             {
                 HostName = _settings.HostName,
-                UserName = _settings.UserName,
-                Password = _settings.Password
+               // UserName = _settings.UserName,
+                //Password = _settings.Password
             };
 
             _connection = await factory.CreateConnectionAsync();

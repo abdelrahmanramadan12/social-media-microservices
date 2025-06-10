@@ -7,8 +7,8 @@ namespace Domain.CoreEntities
     {
 
         [BsonId]
-        //[BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; } = string.Empty; // Unique identifier for the reaction
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string Id { get; set; } = string.Empty; 
         public string AuthorId { get; set; } = string.Empty;
         public List<string> ReactionsOnCommentId { get; set; } = [];
         public List<string> ReactionsOnPostId { get; set; } = [];

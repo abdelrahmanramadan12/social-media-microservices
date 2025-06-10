@@ -14,28 +14,26 @@ using Workers;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Add controllers and Swagger
 builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
-builder.Services.Configure<MongoDBSettings>(
-    builder.Configuration.GetSection("MongoDbSettings"));
-
-// Register MongoDB services
-builder.Services.AddSingleton<IMongoClient>(serviceProvider =>
+// MongoDB Configuration
+builder.Services.Configure<MongoDBSettings>(builder.Configuration.GetSection("MongoDbSettings"));
+builder.Services.AddSingleton<IMongoClient>(sp =>
 {
-    var settings = serviceProvider.GetRequiredService<IOptions<MongoDBSettings>>().Value;
+    var settings = sp.GetRequiredService<IOptions<MongoDBSettings>>().Value;
     return new MongoClient(settings.ConnectionString);
 });
-
-builder.Services.AddScoped(serviceProvider =>
+builder.Services.AddScoped(sp =>
 {
-    var settings = serviceProvider.GetRequiredService<IOptions<MongoDBSettings>>().Value;
-    var client = serviceProvider.GetRequiredService<IMongoClient>();
+    var settings = sp.GetRequiredService<IOptions<MongoDBSettings>>().Value;
+    var client = sp.GetRequiredService<IMongoClient>();
     return client.GetDatabase(settings.DatabaseName);
 });
 
-builder.Services.AddSignalR();
-
+// Redis Configuration
 builder.Services.AddScoped<IConnectionMultiplexer>(sp =>
 {
     var redisSettings = builder.Configuration.GetSection("RedisSettings");
@@ -52,123 +50,73 @@ builder.Services.AddScoped<IConnectionMultiplexer>(sp =>
     });
 });
 
-// ✅ Add RabbitMQ using MassTransit
-//Configure settings
+// SignalR
+builder.Services.AddSignalR();
+
+// RabbitMQ Settings Configuration
 builder.Services.Configure<RabbitMqListenerSettings>("FollowListener", builder.Configuration.GetSection("RabbitMQ:FollowListener"));
 builder.Services.Configure<RabbitMqListenerSettings>("CommentListener", builder.Configuration.GetSection("RabbitMQ:CommentListener"));
 builder.Services.Configure<RabbitMqListenerSettings>("ReactionListener", builder.Configuration.GetSection("RabbitMQ:ReactionListener"));
 builder.Services.Configure<RabbitMqListenerSettings>("MessageListener", builder.Configuration.GetSection("RabbitMQ:MessageListener"));
 
-
-//Register listeners
+// Register RabbitMQ Listener Services
 builder.Services.AddSingleton<CommentListenerService>(sp =>
 {
-    var optionsMonitor = sp.GetRequiredService<IOptionsMonitor<RabbitMqListenerSettings>>();
-    var options = optionsMonitor.Get("CommentListener");
+    var options = sp.GetRequiredService<IOptionsMonitor<RabbitMqListenerSettings>>().Get("CommentListener");
     var scopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
-
     return new CommentListenerService(Options.Create(options), scopeFactory);
 });
-
+builder.Services.AddSingleton<ICommentListener>(sp => sp.GetRequiredService<CommentListenerService>());
 
 builder.Services.AddSingleton<ReactionListenerService>(sp =>
 {
-    var optionsMonitor = sp.GetRequiredService<IOptionsMonitor<RabbitMqListenerSettings>>();
-    var options = optionsMonitor.Get("ReactionListener");
+    var options = sp.GetRequiredService<IOptionsMonitor<RabbitMqListenerSettings>>().Get("ReactionListener");
     var scopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
-
     return new ReactionListenerService(Options.Create(options), scopeFactory);
 });
+builder.Services.AddSingleton<IReactionListener>(sp => sp.GetRequiredService<ReactionListenerService>());
 
 builder.Services.AddSingleton<MessageListenerService>(sp =>
 {
-    var optionsMonitor = sp.GetRequiredService<IOptionsMonitor<RabbitMqListenerSettings>>();
-    var options = optionsMonitor.Get("MessageListener");
+    var options = sp.GetRequiredService<IOptionsMonitor<RabbitMqListenerSettings>>().Get("MessageListener");
     var scopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
-
     return new MessageListenerService(Options.Create(options), scopeFactory);
 });
+builder.Services.AddSingleton<IMessageListener>(sp => sp.GetRequiredService<MessageListenerService>());
 
 builder.Services.AddSingleton<FollowListenerService>(sp =>
 {
-    var optionsMonitor = sp.GetRequiredService<IOptionsMonitor<RabbitMqListenerSettings>>();
-    var options = optionsMonitor.Get("FollowListener");
+    var options = sp.GetRequiredService<IOptionsMonitor<RabbitMqListenerSettings>>().Get("FollowListener");
     var scopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
-
     return new FollowListenerService(Options.Create(options), scopeFactory);
 });
+builder.Services.AddSingleton<IFollowListener>(sp => sp.GetRequiredService<FollowListenerService>());
 
-
-
-builder.Services.AddSingleton<IFollowListener, FollowListenerService>();
+// Hosted RabbitMQ Worker
 builder.Services.AddHostedService<RabbitMqWorker>();
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-// add infrastructure services
+// Register Application & Infrastructure Services
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddApplicationServiceRegistration(builder.Configuration);
 
 var app = builder.Build();
 
-#region Hub Configuration   
+// Hubs
 app.MapHub<CommentNotificationHub>("/hubs/comment-notifications");
 app.MapHub<FollowNotificationHub>("/hubs/follow-notifications");
 app.MapHub<ReactionNotificationHub>("/hubs/reaction-notifications");
 app.MapHub<MessageNotificationHub>("/hubs/message-notifications");
 app.MapHub<ReactionNotificationHub>("/hubs/reactions");
-#endregion
 
-
-
-
-
-// Configure the HTTP request pipeline.
+// HTTP pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-
-    //using (var scope = app.Services.CreateScope())
-    //{
-    //    try
-    //    {
-    //        //seed CacheDB data
-    //        var followsCacheSeeder = scope.ServiceProvider.GetRequiredService<RedisFollowsSeeder>();
-
-    //        await followsCacheSeeder.SeedInitialFollowsDataAsync();
-
-    //        var reactionCacheReactions = scope.ServiceProvider.GetRequiredService<RedisReactionsSeeder>();
-    //        await reactionCacheReactions.SeedInitialReactionsDataAsync();
-
-    //        var commentsCacheSeeder = scope.ServiceProvider.GetRequiredService<RedisCommentsSeeder>();
-
-    //        await commentsCacheSeeder.SeedInitialCommentsDataAsync();
-    //        //Seed MongoDB data
-    //        var mongoFollowsSeeder = scope.ServiceProvider.GetRequiredService<MongoFollowsSeeder>();
-    //        await mongoFollowsSeeder.SeedInitialFollowsDataAsync();
-
-    //        var mongoReactionsSeeder = scope.ServiceProvider.GetRequiredService<MongoReactionsSeeder>();
-    //        await mongoReactionsSeeder.SeedInitialReactionsDataAsync();
-
-    //        var mongoCommentsSeeder = scope.ServiceProvider.GetRequiredService<MongoCommentsSeeder>();
-    //        await mongoCommentsSeeder.SeedInitialCommentsDataAsync();
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    //        logger.LogError(ex, "An error occurred while seeding Redis data");
-    //    }
-    //}
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
-
 app.MapControllers();
 
 app.Run();
