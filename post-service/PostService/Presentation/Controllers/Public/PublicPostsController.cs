@@ -1,18 +1,16 @@
 using Application.DTOs;
-using Application.DTOs.Responses;
 using Application.IServices;
-using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Presentation.Controllers.Public
 {
-    [Route("api/public/posts")]
+    [Route("api/public/post")]
     [ApiController]
-    public class PublicPostsController : BaseController
+    public class PublicPostController : BaseController
     {
         private readonly IPostService _postService;
         private readonly IEncryptionService _encryptionService;
-        public PublicPostsController(IPostService postSerive, IEncryptionService encryptionService)
+        public PublicPostController(IPostService postSerive, IEncryptionService encryptionService)
         {
             this._postService = postSerive;
             this._encryptionService = encryptionService;
@@ -25,7 +23,8 @@ namespace Presentation.Controllers.Public
             if (!res.Success)
                 return HandleErrorResponse(res);
 
-            return Created($"api/public/posts/{res.Data.PostId}", new { data = FormatPostData(res.Data), message = res.Message });
+            return Created($"api/public/post" +
+                $"/{res.Data.PostId}", new { data = FormatPostData(res.Data), message = res.Message });
         }
 
         [HttpPut]

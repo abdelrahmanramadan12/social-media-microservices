@@ -6,10 +6,10 @@ namespace Presentation.Controllers
 {
     [Route("api/public/[controller]")]
     [ApiController]
-    public class PostsController : BaseController
+    public class PostController : BaseController
     {
         private readonly IPostAggregationService _postAggregationService;
-        public PostsController(IPostAggregationService postAggregationService)
+        public PostController(IPostAggregationService postAggregationService)
         {
             this._postAggregationService = postAggregationService;
         }
