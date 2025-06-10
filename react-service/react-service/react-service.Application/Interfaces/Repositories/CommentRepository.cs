@@ -8,5 +8,7 @@ namespace react_service.Application.Interfaces.Repositories
         Task<bool> DeleteComment(string commentId);
         Task<bool> AddComment(Comment comment);
         Task<Comment> GetCommentAsync(string commentId);
+        Task<Comment> GetCommentByIdAsync(string commentId);
+
     }
 }

@@ -59,6 +59,7 @@ builder.Services.AddSingleton<IPostEventListner, PostEventListener>();
 builder.Services.AddSingleton<ICommentEventListner, CommentEventListener>();
 builder.Services.AddSingleton<IQueuePublisher<ReactionEvent>, ReactionEventPublisher>();
 builder.Services.AddSingleton<IQueuePublisher<CommentReactionEvent>, CommentReactionPublisher>();
+builder.Services.AddSingleton<IQueuePublisher<ReactionEventNoti>, ReactionEventNotiPublisher>();
 builder.Services.AddSingleton<IPostRepository, PostRepository>();
 
 // Register QueuePublishInitializer as a background service

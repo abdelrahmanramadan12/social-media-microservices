@@ -19,15 +19,17 @@ namespace react_service.Application.Services
         private readonly IMapper mapper;
         private readonly IOptions<PaginationSettings> paginationSetting;
         private readonly IQueuePublisher<CommentReactionEvent> reactionPublisher;
+        private readonly IQueuePublisher<ReactionEventNoti> reationNotiPublisher;
 
         public ReactionCommentService(ICommentReactionRepository reactionRepository, ICommentRepository commentRepository, IMapper mapper, IOptions<PaginationSettings> paginationSetting
-            , IQueuePublisher<CommentReactionEvent> reactionPublisher)
+            , IQueuePublisher<CommentReactionEvent> reactionPublisher , IQueuePublisher<ReactionEventNoti> reactionNotiPublisher)
         {
             this.reactionRepository = reactionRepository;
             this.commentRepository = commentRepository;
             this.mapper = mapper;
             this.paginationSetting = paginationSetting;
             this.reactionPublisher = reactionPublisher;
+            this.reationNotiPublisher = reactionNotiPublisher;  
         }
 
 
@@ -102,12 +104,31 @@ namespace react_service.Application.Services
             var reactionObj = mapper.Map<CommentReaction>(reaction);
             reactionObj.UserId = userId;
             await reactionRepository.AddReactionAsync(reactionObj);
+            var commentObj  = await commentRepository.GetCommentByIdAsync(reaction.CommentId);
+
             // Publish ReactionEvent for add
             await reactionPublisher.PublishAsync(new CommentReactionEvent
             {
                 CommentId = reaction.CommentId,
                 UserId = userId,
                 EventType = ReactionEventType.Like
+            });
+            // Publish ReactionEventNoti
+            await reationNotiPublisher.PublishAsync(new ReactionEventNoti
+            {
+
+                AuthorEntityId = commentObj.AuthorId,
+                Id = userId,
+                ReactionEntityId = reactionObj.CommentId,
+                User = new UserSkeleton
+                {
+                    Id = reactionObj.Id,
+                    UserId = userId,
+                    Seen = false,
+                    CreatedAt = DateTime.UtcNow
+                },
+                Type = reactionObj.ReactionType,
+                ReactedOn = ReactedEntity.Comment
             });
 
             response.Message = "Reaction added successfully.";

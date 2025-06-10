@@ -20,15 +20,17 @@ namespace react_service.Application.Services
         private readonly IMapper mapper;
         private readonly IOptions<PaginationSettings> paginationSetting;
         private readonly IQueuePublisher<ReactionEvent> reactionPublisher;
+        private readonly IQueuePublisher<ReactionEventNoti> reationNotiPublisher;
 
         public ReactionPostService(IPostReactionRepository reactionRepository, IPostRepository postRepository, IMapper mapper, IOptions<PaginationSettings> paginationSetting
-            , IQueuePublisher<ReactionEvent> reactionPublisher)
+            , IQueuePublisher<ReactionEvent> reactionPublisher , IQueuePublisher<ReactionEventNoti> reationNotiPublisher)
         {
             this.reactionRepository = reactionRepository;
             this.postRepository = postRepository;
             this.mapper = mapper;
             this.paginationSetting = paginationSetting;
             this.reactionPublisher = reactionPublisher;
+            this.reationNotiPublisher = reationNotiPublisher;
         }
 
 
@@ -113,7 +115,37 @@ namespace react_service.Application.Services
                 EventType = ReactionEventType.Like
             });
 
+            if(res ==  "Created")
+            {
+                response.Message = "Reaction added successfully.";
+                // Publish ReactionEventNoti
+                await reationNotiPublisher.PublishAsync(new ReactionEventNoti
+                {
+
+                    AuthorEntityId = post.AuthorId,
+                    Id = userId,
+                    ReactionEntityId = reactionObj.PostId,
+                    User = new UserSkeleton
+                    {
+                        Id = reactionObj.Id,
+                        UserId = userId,
+                        Seen = false,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    Type = reactionObj.ReactionType,
+                    ReactedOn = ReactedEntity.Post
+                });
+            }
+      
+            else
+            {
+                response.Errors.Add("Reaction Deleted successfully");
+                response.ErrorType = ErrorType.InternalServerError;
+                return response;
+               
+            }
             response.Data = true;
+
             return response;
         }
 

@@ -90,6 +90,7 @@ namespace react_service.Infrastructure.Repositories
         public async Task<string> AddReactionAsync(CommentReaction reaction)
         {
             await _collection.InsertOneAsync(reaction);
+
             return reaction.CommentId;
         }
 

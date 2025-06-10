@@ -58,5 +58,11 @@ namespace react_service.Infrastructure.Repositories
             var post = await _posts.Find(p => p.CommentId == postId && !p.IsDeleted).FirstOrDefaultAsync();
             return post ?? throw new KeyNotFoundException("Comment not found or is deleted.");
         }
+
+        public async Task<Comment> GetCommentByIdAsync(string commentId)
+        {
+            var comment  = await _posts.Find(p => p.CommentId == commentId && !p.IsDeleted).FirstOrDefaultAsync();
+            return comment ?? throw new KeyNotFoundException("Comment not found or is deleted.");
+        }
     }
 }
