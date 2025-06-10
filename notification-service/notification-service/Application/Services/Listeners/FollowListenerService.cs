@@ -63,7 +63,7 @@ namespace Application.Services.Listeners
                 {
                     var followEvent = JsonSerializer.Deserialize<FollowEvent>(message);
 
-                    if (followEvent == null || string.IsNullOrEmpty(followEvent.FollowerId) || string.IsNullOrEmpty(followEvent.UserId))
+                    if (followEvent == null || string.IsNullOrEmpty(followEvent.FollowerId) || string.IsNullOrEmpty(followEvent.FollowingId))
                         return;
 
                     using var scope = _scopeFactory.CreateScope();

@@ -18,14 +18,14 @@ namespace Application.Services
         public async Task UpdateFollowersListNotification(FollowEvent followedDTO)
         {
             // --- CORE (MongoDB) ---
-            var coreUserFollower = await _unitOfWork.CoreRepository<Follows>().GetAsync(followedDTO.UserId);
+            var coreUserFollower = await _unitOfWork.CoreRepository<Follows>().GetAsync(followedDTO.FollowingId);
             var isNewCore = false;
 
             if (coreUserFollower == null)
             {
                 coreUserFollower = new Follows
                 {
-                    MyId = followedDTO.UserId,
+                    MyId = followedDTO.FollowingId,
                     FollowersId = new List<string> { followedDTO.FollowerId },
                     FollowsNotifReadByAuthor = new List<string>()
                 };
@@ -38,14 +38,14 @@ namespace Application.Services
 
             // --- CACHE: CachedFollowed ---
             var cacheUserFollower = await _unitOfWork.CacheRepository<CachedFollowed>()
-                .GetSingleAsync(i => i.UserId == followedDTO.UserId);
+                .GetSingleAsync(i => i.UserId == followedDTO.FollowingId);
             var isNewCache = false;
 
             if (cacheUserFollower == null)
             {
                 cacheUserFollower = new CachedFollowed
                 {
-                    UserId = followedDTO.UserId,
+                    UserId = followedDTO.FollowingId,
                     Followers = new List<UserSkeleton>()
                 };
                 isNewCache = true;
@@ -58,10 +58,10 @@ namespace Application.Services
             // --- GLOBAL CHECK: See if follower already exists in global UserSkeleton cache
             var existingGlobalUser = await _unitOfWork.CacheRepository<UserSkeleton>()
                 .GetSingleAsync(u => u.UserId == followedDTO.FollowerId);
+            UserSkeleton followerUser = new UserSkeleton();
 
             if (existingFollowerInList == null)
             {
-                UserSkeleton followerUser;
 
                 if (existingGlobalUser != null)
                 {
@@ -89,10 +89,8 @@ namespace Application.Services
             else
             {
                 // Update follower info in list and global if exists
-                existingFollowerInList.UserNames = followedDTO.UserNames;
-                existingFollowerInList.ProfileImageUrls = followedDTO.ProfileImageUrls;
-                existingFollowerInList.Seen = false;
-                existingFollowerInList.CreatedAt = DateTime.UtcNow;
+                existingFollowerInList.UserNames =  followerUser.UserNames ;
+                existingFollowerInList.ProfileImageUrls = followerUser.ProfileImageUrls;
 
                 await _unitOfWork.CacheRepository<UserSkeleton>().UpdateAsync(existingFollowerInList);
             }
@@ -111,29 +109,29 @@ namespace Application.Services
 
 
             // --- SignalR Push ---
-            await _hubContext.Clients.User(followedDTO.UserId.ToString())
+            await _hubContext.Clients.User(followedDTO.FollowingId.ToString())
                 .SendAsync("ReceiveFollowNotification", new
                 {
-                    followedDTO.FollowerId,
-                    followedDTO.UserNames,
-                    followedDTO.ProfileImageUrls,
+                    followedDTO.FollowingId,
+                    followerUser.UserNames,
+                    followerUser.ProfileImageUrls,
                     Timestamp = DateTime.UtcNow
                 });
         }
         public async Task RemoveFollowerFromNotificationList(FollowEvent followedDTO)
         {
-            var coreUserFollower = await _unitOfWork.CoreRepository<Follows>().GetAsync(followedDTO.UserId);
+            var coreUserFollower = await _unitOfWork.CoreRepository<Follows>().GetAsync(followedDTO.FollowingId);
             if (coreUserFollower == null)
                 return;
 
             coreUserFollower.FollowersId.Remove(followedDTO.FollowerId);
             coreUserFollower.FollowsNotifReadByAuthor.Remove(followedDTO.FollowerId);
 
-            var cacheUserFollower = await _unitOfWork.CacheRepository<CachedFollowed>().GetAsync(followedDTO.UserId);
+            var cacheUserFollower = await _unitOfWork.CacheRepository<CachedFollowed>().GetAsync(followedDTO.FollowingId);
             if (cacheUserFollower == null)
                 return;
 
-            cacheUserFollower.UserId = followedDTO.UserId;
+            cacheUserFollower.UserId = followedDTO.FollowingId;
             cacheUserFollower.Followers.RemoveAll(x => x.UserId == followedDTO.FollowerId);
 
             await _unitOfWork.CacheRepository<CachedFollowed>().UpdateAsync(cacheUserFollower);

@@ -8,7 +8,7 @@
     public class CommentEvent
     {
         public string Id { get; set; } = string.Empty;
-        public string CommentorId { get; set; } = string.Empty;
+        public string CommentAuthorId { get; set; } = default!;
         public string PostId { get; set; } = string.Empty;
         public string Content { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }

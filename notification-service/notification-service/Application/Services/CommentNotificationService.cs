@@ -34,21 +34,21 @@ namespace Application.Services
             }
 
             // Ensure comment list for commentor exists
-            if (!authorNotification.UserID_CommentIds.TryGetValue(commentEvent.CommentorId, out var commentList))
+            if (!authorNotification.UserID_CommentIds.TryGetValue(commentEvent.CommentAuthorId, out var commentList))
             {
                 commentList = new List<string>();
-                authorNotification.UserID_CommentIds[commentEvent.CommentorId] = commentList;
+                authorNotification.UserID_CommentIds[commentEvent.CommentAuthorId] = commentList;
             }
 
             commentList.Add(commentEvent.Id);
 
             // --- Ensure UserSkeleton is cached ---
             var userSkeleton = await unitOfWork.CacheRepository<UserSkeleton>()
-                .GetSingleAsync(u => u.UserId == commentEvent.CommentorId);
+                .GetSingleAsync(u => u.UserId == commentEvent.CommentAuthorId);
 
             if (userSkeleton == null)
             {
-                var profile = await profileServiceClient.GetProfileAsync(commentEvent.CommentorId);
+                var profile = await profileServiceClient.GetProfileAsync(commentEvent.CommentAuthorId);
                 if (profile?.Data == null)
                     return; // can't continue without profile
 
@@ -97,7 +97,7 @@ namespace Application.Services
                 {
                     CommentId = commentEvent.Id,
                     commentEvent.PostId,
-                    commentEvent.CommentorId
+                    commentEvent.CommentAuthorId
                 });
             }
 
@@ -117,25 +117,25 @@ namespace Application.Services
                 return;
 
             // Safely remove the comment ID from the core dictionary
-            if (authorNotification.UserID_CommentIds.TryGetValue(commentEvent.CommentorId, out var commentList))
+            if (authorNotification.UserID_CommentIds.TryGetValue(commentEvent.CommentAuthorId, out var commentList))
             {
                 commentList.Remove(commentEvent.Id);
 
                 // Clean up the entry if there are no more comments by this user
                 if (commentList.Count == 0)
-                    authorNotification.UserID_CommentIds.Remove(commentEvent.CommentorId);
+                    authorNotification.UserID_CommentIds.Remove(commentEvent.CommentAuthorId);
             }
 
             // Update the user's cached comment notification
             var cacheUser = await unitOfWork.CacheRepository<CachedCommentsNotification>()
-                .GetSingleByIdAsync(commentEvent.CommentorId);
+                .GetSingleByIdAsync(commentEvent.CommentAuthorId);
 
             if (cacheUser != null)
             {
                 cacheUser.CommnetDetails?.RemoveAll(cd =>
                     cd.CommentId == commentEvent.Id &&
                     cd.PostId == commentEvent.PostId &&
-                    cd.User?.Id == commentEvent.CommentorId);
+                    cd.User?.Id == commentEvent.CommentAuthorId);
 
                 await unitOfWork.CacheRepository<CachedCommentsNotification>()
                     .UpdateAsync(cacheUser);
