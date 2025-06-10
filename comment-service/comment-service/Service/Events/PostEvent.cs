@@ -12,7 +12,7 @@ namespace Service.Events
         public Privacy Privacy { get; set; }
         public List<MediaDTO> Media { get; set; } = new List<MediaDTO>();
         public bool HasMedia => Media.Count > 0;
-        public DateTime CreatedAt { get; set; }
+        public DateTime Timestamp { get; set; }
         public bool IsEdited { get; set; }
         public int NumberOfLikes { get; set; }
         public int NumberOfComments { get; set; }
