@@ -1,9 +1,9 @@
-﻿using Application.DTOs;
+﻿using Application.DTOs.Responses;
 
 namespace Application.Abstractions
 {
     public interface IFollowServiceClient
     {
-        Task<Response<FollowsDTO>> ListFollowersAsync(string userId);
+        Task<ResponseWrapper<List<string>>> ListFollowersAsync(string userId);
     }
 }

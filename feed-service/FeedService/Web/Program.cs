@@ -1,3 +1,5 @@
+using Application.Abstractions;
+using Application.Services;
 using MongoDB.Driver;
 using Web.ServiceCollections;
 using Workers;
@@ -16,6 +18,16 @@ namespace Web
                 new MongoClient(builder.Configuration.GetConnectionString("AtlasUri")));
             builder.Services.AddSingleton(sp =>
                 sp.GetRequiredService<IMongoClient>().GetDatabase(builder.Configuration.GetSection("DatabaseName").Value));
+
+            builder.Services.AddHttpClient<IFollowServiceClient, FollowServiceClient>(client =>
+            {
+                client.BaseAddress = new Uri(builder.Configuration.GetSection("Services:FollowService").Value?? throw new NullReferenceException("Missing follow service Base Uri")) ;
+            });
+
+            builder.Services.AddHttpClient<IProfileServiceClient, ProfileServiceClient>(client =>
+            {
+                client.BaseAddress = new Uri(builder.Configuration.GetSection("Services:ProfileService").Value?? throw new NullReferenceException("Missing profile service Base Uri"));
+            });
 
             builder.Services.AddFeedServices();
             builder.Services.AddServiceClients();

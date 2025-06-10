@@ -1,7 +1,7 @@
-﻿using Application.Abstractions;
+﻿using System.Net.Http.Json;
+using Application.Abstractions;
 using Application.DTOs;
-using System.Net.Http.Json;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using Application.DTOs.Responses;
 
 namespace Application.Services
 {
@@ -14,18 +14,18 @@ namespace Application.Services
             _httpClient = httpClient;
         }
 
-        public async Task<Response<ProfileDTO>> GetProfileAsync(string userId)
+        public async Task<ResponseWrapper<ProfileDTO>> GetProfileAsync(string userId)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"/api/public/profiles/by-id/{userId}");
+                var response = await _httpClient.GetAsync($"/api/internal/profile/min/id/{userId}");
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    return new Response<ProfileDTO>()
+                    return new ResponseWrapper<ProfileDTO>()
                     {
-                        Success = false,
-                        Value = null,
+
+                        Data = null,
                         Errors = [$"Profile service returned status code {(int)response.StatusCode}: {response.ReasonPhrase}"]
                     };
                 }
@@ -34,27 +34,24 @@ namespace Application.Services
 
                 if (result == null)
                 {
-                    return new Response<ProfileDTO>()
+                    return new ResponseWrapper<ProfileDTO>()
                     {
-                        Success = false,
-                        Value = null,
+                        Data = null,
                         Errors = [$"Profile service returned a null or invalid response"]
                     };
                 }
 
-                return new Response<ProfileDTO>()
+                return new ResponseWrapper<ProfileDTO>()
                 {
-                    Success = true,
-                    Value = result,
+                    Data = result,
                     Errors = []
                 };
             }
             catch (Exception ex)
             {
-                return new Response<ProfileDTO>()
+                return new ResponseWrapper<ProfileDTO>()
                 {
-                    Success = false,
-                    Value = null,
+                    Data = null,
                     Errors = [$"Unhandled exception: {ex.Message}"]
                 };
             }

@@ -26,7 +26,7 @@ namespace Application.Services.Implementations
             try
             {
                 var response = await _httpClient.PostAsync(
-                    $"{_settings.BaseUrl}/api/follow/filter-followers",
+                    $"{_settings.BaseUrl}/api/internal/follow/filter-followers",
                     new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json")
                 );
 
