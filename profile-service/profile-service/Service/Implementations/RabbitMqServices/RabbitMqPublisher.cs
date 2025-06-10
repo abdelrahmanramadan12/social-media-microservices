@@ -6,7 +6,7 @@ using Service.Interfaces.RabbitMqServices;
 namespace Service.Implementations.RabbitMQServices
 
 {
-    public class RabbitMqPublisher : IRabbitMqPublisher, IAsyncDisposable
+    public class RabbitMqPublisher : IRabbitMqPublisher
     {
 
         private readonly Lazy<Task<IConnection>> _lazyConn;
@@ -16,32 +16,35 @@ namespace Service.Implementations.RabbitMQServices
         {
             _factory = new ConnectionFactory
             {
-                HostName = cfg["RabbitMQ:Host"] ?? "localhost",
-                //UserName = cfg["RabbitMQ:User"],
-                //Password = cfg["RabbitMQ:Pass"],
+                //UserName = cfg.GetSection("RabbitQueues:Username").Value!,
+                //Password = cfg.GetSection("RabbitQueues:Password").Value!,
+                HostName = cfg.GetSection("RabbitQueues:HostName").Value!,
             };
 
             _lazyConn = new(() => _factory.CreateConnectionAsync());
         }
 
-        public async Task PublishAsync<T>(T message, string queueName, CancellationToken ct = default)
+        public async Task PublishAsync<T>(T message, List<string> queueName, CancellationToken ct = default)
         {
             var conn = await _lazyConn.Value;
             await using var channel = await conn.CreateChannelAsync(
                 new CreateChannelOptions(true, true), ct);
 
-            await channel.QueueDeclareAsync(queueName, durable: true,
+            foreach (var queue in queueName)
+            {
+                await channel.QueueDeclareAsync(queue, durable: true,
                                             exclusive: false, autoDelete: false,
                                             arguments: null, cancellationToken: ct);
 
-            var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
+                var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
 
-            await channel.BasicPublishAsync(exchange: string.Empty,
-                                            routingKey: queueName,
-                                            body: body,
-                                            mandatory: true,
-                                            basicProperties: new BasicProperties { Persistent = true },
-                                            cancellationToken: ct);
+                await channel.BasicPublishAsync(exchange: string.Empty,
+                                                routingKey: queue,
+                                                body: body,
+                                                mandatory: true,
+                                                basicProperties: new BasicProperties { Persistent = true },
+                                                cancellationToken: ct);
+            }
         }
 
         public async ValueTask DisposeAsync()

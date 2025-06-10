@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace Service.Interfaces.RabbitMqServices
 {
-    public interface IRabbitMqPublisher
+    public interface IRabbitMqPublisher : IAsyncDisposable
     {
-        Task PublishAsync<T>(T message, string queueName, CancellationToken ct = default);
+        Task PublishAsync<T>(T message, List<string> queueName, CancellationToken ct = default);
     }
 }
