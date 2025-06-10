@@ -243,7 +243,7 @@ namespace Application.Services
                 var mediaResponse = await _mediaServiceClient.UploadMediaAsync(new MediaUploadRequest
                 {
                     Files = new List<IFormFile> { message.Media },
-                    MediaType = (Domain.Enums.MediaType)message.MediaType!,
+                    MediaType = (MediaType)message.MediaType!,
                 });
 
                 if (mediaResponse == null || mediaResponse.Urls == null || !mediaResponse.Urls.Any())
@@ -254,7 +254,7 @@ namespace Application.Services
                 messageEntity.Attachment = new Attachment
                 {
                     Url = mediaResponse.Urls.FirstOrDefault(),
-                    Type = (Domain.Enums.MediaType)message.MediaType!,
+                    Type = (MediaType)message.MediaType!,
                 };
 
 
@@ -268,7 +268,12 @@ namespace Application.Services
                 ConversationId = msg.ConversationId,
                 SenderId = msg.SenderId,
                 Content = msg.Text,
-                Read = true
+                Read = true,
+                Attachment = msg.Attachment != null ? new Attachment
+                {
+                    Url = msg.Attachment.Url,
+                    Type = msg.Attachment.Type
+                } : null,
             };
 
             var conv = await _unitOfWork.Conversations.GetConversationByIdAsync(msg.ConversationId);

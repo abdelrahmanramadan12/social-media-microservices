@@ -16,7 +16,7 @@ namespace Web.Controllers
 
         [HttpPost("message")]
         [ProducesResponseType(typeof(MessageDTO), StatusCodes.Status200OK)]
-        public async Task<IActionResult> SendMessage([FromHeader] string userId, [FromBody] NewMessageDTO message)
+        public async Task<IActionResult> SendMessage([FromHeader] string userId, [FromForm] NewMessageDTO message)
         {
             if (message == null)
             {
@@ -116,7 +116,7 @@ namespace Web.Controllers
         /*------------------------------------------------------------------*/
         [HttpPost("conversation")]
         [ProducesResponseType(typeof(ConversationDTO), StatusCodes.Status200OK)]
-        public async Task<IActionResult> CreateConversation([FromHeader] string userId, [FromBody] NewConversationDTO conversation)
+        public async Task<IActionResult> CreateConversation([FromHeader] string userId, [FromForm] NewConversationDTO conversation)
         {
             if (conversation == null)
             {
@@ -140,7 +140,7 @@ namespace Web.Controllers
 
         [HttpPatch("conversation")]
         [ProducesResponseType(typeof(ConversationDTO), StatusCodes.Status200OK)]
-        public async Task<IActionResult> EditConversation([FromHeader] string userId, [FromBody] EditConversationDTO conversation)
+        public async Task<IActionResult> EditConversation([FromHeader] string userId, [FromForm] EditConversationDTO conversation)
         {
             if (conversation == null || string.IsNullOrEmpty(conversation.Id))
             {
