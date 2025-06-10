@@ -1,6 +1,11 @@
-﻿using Application.Abstractions;
+﻿using System.Net.Http.Json;
+using System.Runtime;
+using System.Text;
+using System.Text.Json;
+using Application.Abstractions;
 using Application.DTOs;
-using System.Net.Http.Json;
+using Application.DTOs.Requests;
+using Application.DTOs.Responses;
 
 namespace Application.Services
 {
@@ -13,47 +18,45 @@ namespace Application.Services
             _httpClient = httpClient;
         }
 
-        public async Task<Response<FollowsDTO>> ListFollowersAsync(string userId)
+        public async Task<ResponseWrapper<List<string>>> ListFollowersAsync(string userId)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"/api/internal/follows/list-followers/{userId}");
+                var response = await _httpClient.PostAsync(
+                    $"/api/internal/follow/list-followers",
+                    new StringContent(JsonSerializer.Serialize(new ListFollowRequest() { UserId = userId }), Encoding.UTF8, "application/json"));
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    return new Response<FollowsDTO>()
+                    return new ResponseWrapper<List<string>>()
                     {
-                        Success = false,
-                        Value = null,
+                        Data = null,
                         Errors = [$"Follow service returned status code {(int)response.StatusCode}: {response.ReasonPhrase}"]
                     };
                 }
 
-                var result = await response.Content.ReadFromJsonAsync<FollowsDTO>();
+                var result = await response.Content.ReadFromJsonAsync<List<string> >();
 
                 if (result == null)
                 {
-                    return new Response<FollowsDTO>()
+                    return new ResponseWrapper<List<string> >()
                     {
-                        Success = false,
-                        Value = null,
+                        Data = null,
                         Errors = [$"Follow service returned a null or invalid response"]
                     };
                 }
 
-                return new Response<FollowsDTO>()
+                return new ResponseWrapper<List<string> >()
                 {
-                    Success = true,
-                    Value = result,
+                    Data = result,
                     Errors = []
                 };
             }
             catch (Exception ex)
             {
-                return new Response<FollowsDTO>()
+                return new ResponseWrapper<List<string> >()
                 {
-                    Success = false,
-                    Value = null,
+                    Data = null,
                     Errors = [$"Unhandled exception: {ex.Message}"]
                 };
             }

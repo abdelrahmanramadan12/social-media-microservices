@@ -25,7 +25,7 @@ namespace Application.Services
         {
             var followersRes = await _followServiceClient.ListFollowersAsync(postEvent.AuthorId);
 
-            if (followersRes.Success && followersRes.Value.Follows.Count > 0)
+            if (followersRes.Success && followersRes.Data.Count > 0)
             {
                 var profileRes = await _profileServiceClient.GetProfileAsync(postEvent.AuthorId);
 
@@ -35,9 +35,9 @@ namespace Application.Services
                     AuthorProfile authorProfile = new AuthorProfile
                     {
                         Id = postEvent.AuthorId,
-                        UserName = profileRes.Value.UserName,
-                        DisplayName = profileRes.Value.DisplayName,
-                        ProfilePictureUrl = profileRes.Value.ProfilePictureUrl
+                        UserName = profileRes.Data.UserName,
+                        DisplayName = profileRes.Data.DisplayName,
+                        ProfilePictureUrl = profileRes.Data.ProfilePictureUrl
                     };
 
                     // initialize post
@@ -55,7 +55,7 @@ namespace Application.Services
                         ReactsCount = 0
                     };
 
-                    foreach (var follow in followersRes.Value.Follows)
+                    foreach (var follow in followersRes.Data)
                     {
                         await _feedRepository.PushToFeedAsync(post, follow);
                     }
