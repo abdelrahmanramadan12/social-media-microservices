@@ -1,18 +1,14 @@
 using AutoMapper;
 using Microsoft.Extensions.Options;
 using react_service.Application.DTO;
-using react_service.Application.DTO.RabbitMQ;
+using react_service.Application.DTO.Reaction.Request.Post;
+using react_service.Application.Events;
 using react_service.Application.Helpers;
 using react_service.Application.Interfaces.Publishers;
 using react_service.Application.Interfaces.Repositories;
 using react_service.Application.Interfaces.Services;
 using react_service.Application.Pagination;
 using react_service.Domain.Entites;
-using react_service.Domain.Enums;
-using react_service.Application.Events;
-using react_service.Domain.Events;
-using ReactionEventType = react_service.Domain.Enums.ReactionEventType;
-using react_service.Application.DTO.Reaction.Request.Post;
 
 namespace react_service.Application.Services
 {
@@ -23,10 +19,10 @@ namespace react_service.Application.Services
         private readonly IPostRepository postRepository;
         private readonly IMapper mapper;
         private readonly IOptions<PaginationSettings> paginationSetting;
-        private readonly IReactionPublisher reactionPublisher;
+        private readonly IQueuePublisher<ReactionEvent> reactionPublisher;
 
         public ReactionPostService(IPostReactionRepository reactionRepository, IPostRepository postRepository, IMapper mapper, IOptions<PaginationSettings> paginationSetting
-            , IReactionPublisher reactionPublisher)
+            , IQueuePublisher<ReactionEvent> reactionPublisher)
         {
             this.reactionRepository = reactionRepository;
             this.postRepository = postRepository;
@@ -53,7 +49,7 @@ namespace react_service.Application.Services
                 return response;
             }
             var postDeleted = await postRepository.IsPostDeleted(postId);
-           
+
             if (postDeleted)
             {
                 response.Errors.Add("Post deleted or doesn't exist");
@@ -68,15 +64,15 @@ namespace react_service.Application.Services
                 return response;
             }
             // Publish ReactionEvent for delete
-            await reactionPublisher.PublishPostReactionAsync(new PostReactionEventDTO
+            await reactionPublisher.PublishAsync(new ReactionEvent
             {
                 PostId = postId,
                 UserId = userId,
-                EventType = Domain.Enums.ReactionEventType.Deleted
+                EventType = ReactionEventType.Unlike
             });
 
 
-           
+
             response.Message = "Reaction deleted successfully.";
             response.Data = true;
             return response;
@@ -108,49 +104,17 @@ namespace react_service.Application.Services
 
             var reactionObj = mapper.Map<PostReaction>(reaction);
             reactionObj.UserId = userId;
-         var res =   await reactionRepository.AddReactionAsync(reactionObj);
+            var res = await reactionRepository.AddReactionAsync(reactionObj);
             // Publish ReactionEvent for add
-            await reactionPublisher.PublishPostReactionAsync(new PostReactionEventDTO
+            await reactionPublisher.PublishAsync(new ReactionEvent
             {
                 PostId = reaction.PostId,
                 UserId = userId,
-                EventType = Domain.Enums.ReactionEventType.Created
+                EventType = ReactionEventType.Like
             });
-            if (res == ReactionEventType.Created.ToString())
-            {
-                await reactionPublisher.PublishReactionNotifAsync(new Domain.Events.ReactionEvent
-                {
-                    AuthorEntityId = post.AuthorId,
-                    ReactionEntityId = reactionObj.PostId,
-                    Type = reactionObj.ReactionType, // Assuming None for deletion
-                    ReactedOn = Domain.Events.ReactedEntity.Post,
-                    User = new UserSkeleton
-                    {
-                        Id = reactionObj.Id,
-                        UserId = userId,
-                        Seen = false,
-                        CreatedAt = reactionObj.CreatedAt
-                    },
-                    Id = reactionObj.Id,
 
-
-                });
-               
-            }
-            if (res == ReactionEventType.Created.ToString())
-            {
-                response.Message = "Reaction added successfully.";
-
-            }
-            else
-            {
-                response.Message = "Reaction deleted successfully.";
-
-            }
             response.Data = true;
             return response;
-
-
         }
 
         public async Task<ResponseWrapper<bool>> DeleteReactionsByPostId(string postId)

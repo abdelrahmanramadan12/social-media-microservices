@@ -1,17 +1,18 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
-using react_service.Infrastructure;
-using react_service.Infrastructure.Mongodb;
 using react_service.Application;
+using react_service.Application.Events;
 using react_service.Application.Interfaces.Listeners;
 using react_service.Application.Interfaces.Publishers;
+using react_service.Application.Interfaces.Repositories;
 using react_service.Application.Mapper;
 using react_service.Application.Pagination;
-using react_service.Application.Services;
+using react_service.Infrastructure;
+using react_service.Infrastructure.Mongodb;
+using react_service.Infrastructure.Repositories;
+using Worker;
 using Workers;
-using Microsoft.OpenApi.Models;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -54,12 +55,15 @@ builder.Services.AddScoped<IMongoDatabase>(sp =>
 });
 
 // Register RabbitMQ services
-builder.Services.AddScoped<IPostEventListner, PostEventListner>();
-builder.Services.AddScoped<IReactionPublisher, ReactionPublisher>();
-builder.Services.AddScoped<react_service.Application.Interfaces.Repositories.IPostRepository, react_service.Infrastructure.Repositories.PostRepository>();
+builder.Services.AddSingleton<IPostEventListner, PostEventListener>();
+builder.Services.AddSingleton<ICommentEventListner, CommentEventListener>();
+builder.Services.AddSingleton<IQueuePublisher<ReactionEvent>, ReactionEventPublisher>();
+builder.Services.AddSingleton<IQueuePublisher<CommentReactionEvent>, CommentReactionPublisher>();
+builder.Services.AddSingleton<IPostRepository, PostRepository>();
 
 // Register QueuePublishInitializer as a background service
 builder.Services.AddHostedService<QueuePublishersInitializer>();
+builder.Services.AddHostedService<QueueListenerWorker>();
 
 // add infrastructure services
 builder.Services.AddInfrastructureServices(builder.Configuration);

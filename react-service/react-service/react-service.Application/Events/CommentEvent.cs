@@ -1,13 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace react_service.Application.Events
 {
     public class CommentEvent : QueueEvent
     {
+        public EventType EventType { get; set; }
         public string CommentId { get; set; } = default!;
         public string PostId { get; set; } = default!;
         public string Content { get; set; } = default!;
