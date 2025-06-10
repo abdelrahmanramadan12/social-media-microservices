@@ -1,6 +1,7 @@
 ﻿using Application.Hubs;
 using Application.Interfaces;
 using Application.Interfaces.Services;
+using Application.Interfaces.Services.Application.Services;
 using Domain.CacheEntities;
 using Domain.CacheEntities.Comments;
 using Domain.CoreEntities;
@@ -10,58 +11,88 @@ using Microsoft.AspNetCore.SignalR;
 namespace Application.Services
 {
 
-    public class CommentNotificationService(IUnitOfWork unitOfWork, IHubContext<CommentNotificationHub> hubContext)
+    public class CommentNotificationService(IUnitOfWork unitOfWork, IHubContext<CommentNotificationHub> hubContext , IProfileServiceClient profileServiceClient)
         : ICommentNotificationService
     {
         private readonly IUnitOfWork unitOfWork = unitOfWork;
         private readonly IHubContext<CommentNotificationHub> _hubContext = hubContext;
-
+        private readonly IProfileServiceClient profileServiceClient = profileServiceClient;
 
         public async Task UpdatCommentListNotification(CommentEvent commentEvent)
         {
+            // --- CORE DB: Load or create author comment notification object ---
             var authorNotification = await unitOfWork.CoreRepository<Comments>()
                 .GetSingleAsync(x => x.PostAuthorId == commentEvent.PostAuthorId);
 
             if (authorNotification == null)
-                return;
+            {
+                authorNotification = new Comments
+                {
+                    PostAuthorId = commentEvent.PostAuthorId,
+                    UserID_CommentIds = new Dictionary<string, List<string>>()
+                };
+            }
 
-            // Add the comment ID
+            // Ensure comment list for commentor exists
             if (!authorNotification.UserID_CommentIds.TryGetValue(commentEvent.CommentorId, out var commentList))
             {
-                commentList = [];
+                commentList = new List<string>();
                 authorNotification.UserID_CommentIds[commentEvent.CommentorId] = commentList;
             }
+
             commentList.Add(commentEvent.Id);
 
-            // Broadcast to all users in the comment notification map
-            foreach (var kvp in authorNotification.UserID_CommentIds)
-            {
-                var userId = kvp.Key;
+            // --- Ensure UserSkeleton is cached ---
+            var userSkeleton = await unitOfWork.CacheRepository<UserSkeleton>()
+                .GetSingleAsync(u => u.UserId == commentEvent.CommentorId);
 
+            if (userSkeleton == null)
+            {
+                var profile = await profileServiceClient.GetProfileAsync(commentEvent.CommentorId);
+                if (profile?.Data == null)
+                    return; // can't continue without profile
+
+                userSkeleton = new UserSkeleton
+                {
+                    UserId = profile.Data.UserId,
+                    UserNames = profile.Data.UserNames,
+                    ProfileImageUrls = profile.Data.ProfileImageUrl,
+                    CreatedAt = DateTime.UtcNow,
+                    Seen = false
+                };
+
+                await unitOfWork.CacheRepository<UserSkeleton>().AddAsync(userSkeleton);
+            }
+
+            // --- Update or create CachedCommentsNotification for each user in map ---
+            foreach (var userId in authorNotification.UserID_CommentIds.Keys)
+            {
                 var cacheUser = await unitOfWork.CacheRepository<CachedCommentsNotification>()
                     .GetSingleByIdAsync(userId);
 
                 if (cacheUser == null)
                 {
-                    cacheUser = new() { UserId = userId, CommnetDetails = [] };
+                    cacheUser = new CachedCommentsNotification
+                    {
+                        UserId = userId,
+                        CommnetDetails = new List<CommnetNotificationDetails>()
+                    };
+
+                    await unitOfWork.CacheRepository<CachedCommentsNotification>().AddAsync(cacheUser);
                 }
 
                 cacheUser.CommnetDetails ??= new List<CommnetNotificationDetails>();
+
                 cacheUser.CommnetDetails.Add(new CommnetNotificationDetails
                 {
                     CommentId = commentEvent.Id,
                     PostId = commentEvent.PostId,
-                    User = new UserSkeleton
-                    {
-                        Id = commentEvent.CommentorId,
-                        Seen = false
-                    }
+                    User = userSkeleton
                 });
 
-                await unitOfWork.CacheRepository<CachedCommentsNotification>()
-                    .UpdateAsync(cacheUser);
+                await unitOfWork.CacheRepository<CachedCommentsNotification>().UpdateAsync(cacheUser);
 
-                // SignalR send to each user
+                // Send notification
                 await _hubContext.Clients.User(userId.ToString()).SendAsync("ReceiveCommentNotification", new
                 {
                     CommentId = commentEvent.Id,
@@ -70,9 +101,8 @@ namespace Application.Services
                 });
             }
 
-            await unitOfWork.CoreRepository<Comments>()
-                .UpdateAsync(authorNotification);
-
+            // --- Save all updates ---
+            await unitOfWork.CoreRepository<Comments>().UpdateAsync(authorNotification);
             await unitOfWork.SaveChangesAsync();
         }
 

@@ -12,12 +12,13 @@ using System.Threading.Tasks;
 
 namespace Application.Services
 {
-    public class ReactionNotificationService(IUnitOfWork unitOfWork1, IHubContext<ReactionNotificationHub> hubContext)
+    public class ReactionNotificationService(IUnitOfWork unitOfWork1, IHubContext<ReactionNotificationHub> hubContext, IProfileServiceClient profileServiceClient)
         : IReactionNotificationService
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork1;
         private readonly IHubContext<ReactionNotificationHub> _hubContext = hubContext;
-
+        private readonly IProfileServiceClient _profileServiceClient = profileServiceClient;
+            
         public async Task UpdateReactionsListNotification(ReactionEvent reactionEventDTO)
         {
             var authorId = reactionEventDTO.AuthorEntityId!;
@@ -47,8 +48,9 @@ namespace Application.Services
 
             // Handle cached reactions
             var cachedReaction = await GetCachedUserReaction(authorId);
+            var UserExist = await _unitOfWork.CacheRepository<UserSkeleton>().GetSingleAsync(i => i.UserId == reactionEventDTO.User.UserId);
             var isNewCache = false;
-
+            var profileDTO = new ResponseWrapper<ProfileDTO>();
             if (cachedReaction == null)
             {
                 cachedReaction = new CachedReactions
@@ -59,9 +61,35 @@ namespace Application.Services
                     ReactionMessageDetails = new List<ReactionMessageDetails>()
                 };
                 isNewCache = true;
-            }
 
-            var profileDTO = HelperRequestDataFromProfileService();
+
+            }
+            if (UserExist == null)
+            {
+                // get userSkeleton 
+                profileDTO = await _profileServiceClient.GetProfileAsync(reactionEventDTO.User.Id);
+                // add userSkeleton to Cache 
+                await _unitOfWork.CacheRepository<UserSkeleton>().AddAsync(UserExist = new UserSkeleton
+                {
+                    UserId = reactionEventDTO.User.UserId,
+                    UserNames = reactionEventDTO.User.UserNames,
+                    ProfileImageUrls = reactionEventDTO.User.ProfileImageUrls,
+                });
+
+
+            }
+            else 
+            {
+                profileDTO.Data = new ProfileDTO
+                {
+                    UserId = UserExist.UserId,
+                    UserNames = UserExist.UserNames,
+                    ProfileImageUrl = UserExist.ProfileImageUrls,
+
+                }; 
+            };
+
+
             UpdateCachedReactionList(cachedReaction, reactionEventDTO, profileDTO);
 
             if (isNewCache)
@@ -139,16 +167,16 @@ namespace Application.Services
             return await _unitOfWork.CacheRepository<CachedReactions>().GetSingleAsync(i=>i.AuthorId == authorEntityId);
         }
 
-        private void UpdateCachedReactionList(CachedReactions cache, ReactionEvent reactionEvent, ProfileDTO profile)
+        private void UpdateCachedReactionList(CachedReactions cache, ReactionEvent reactionEvent, ResponseWrapper<ProfileDTO> profile)
         {
             var userSkeleton = new UserSkeleton
             {
                 Seen = false,
                 CreatedAt = reactionEvent.User.CreatedAt,
                 Id = reactionEvent.Id,
-                UserId = profile.UserId,
-                ProfileImageUrls = profile.ProfileImageUrl,
-                UserNames = profile.UserNames
+                UserId = profile.Data.UserId,
+                ProfileImageUrls = profile.Data.ProfileImageUrl,
+                UserNames = profile.Data.UserNames
             };
 
             switch (reactionEvent.ReactedOn)
@@ -213,15 +241,6 @@ namespace Application.Services
             throw new NotImplementedException();
         }
 
-        private ProfileDTO HelperRequestDataFromProfileService()
-        {
-            // TODO: Replace with actual call to Profile service
-            return new ProfileDTO
-            {
-                UserId = "sample-user-id",
-                ProfileImageUrl = "https://cdn.example.com/avatar.jpg",
-                UserNames = "Sample User"
-            };
-        }
+     
     }
 }
