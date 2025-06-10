@@ -1,13 +1,22 @@
 version: '3.4'
 
 services:
+  madia:
+    image: madia:latest
+    build:
+      context: ../../media-service/Media
+      dockerfile: Dockerfile
+
   web:
-    image: ${DOCKER_REGISTRY-}web
+    image: chat:latest
     build:
       context: .
       dockerfile: Web/Dockerfile
-    environment:
-    - REDIS_URL=http://redis:6379
+    depends_on:
+      - madia
+      - redis
+    ports:
+      - "8080:8080"
 
   redis:
     image: redis

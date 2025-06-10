@@ -2,6 +2,7 @@ using Application.Abstractions;
 using Application.Services;
 using Infrastructure.Caches;
 using Infrastructure.Repositories;
+using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using Scalar.AspNetCore;
 using StackExchange.Redis;
@@ -43,7 +44,11 @@ namespace Web
             builder.Services.AddSingleton<IProfileCache, ProfileCache>();
             builder.Services.AddHttpClient<IAuthServiceClient, AuthServiceClient>();
             builder.Services.AddHttpClient<IProfileServiceClient, ProfileServiceClient>();
-            builder.Services.AddHttpClient<IMediaServiceClient, MediaServiceClient>();
+            builder.Services.AddHttpClient<IMediaServiceClient, MediaServiceClient>((sp, client) =>
+            {
+                client.BaseAddress = new Uri("media/8080");
+                client.Timeout = TimeSpan.FromSeconds(30);
+            });
             builder.Services.AddScoped<IRealtimeMessenger, RealtimeMessenger>();
             builder.Services.AddScoped<IChatCommandService,  ChatCommandService>();
             builder.Services.AddScoped<IChatQueryService,  ChatQueryService>();

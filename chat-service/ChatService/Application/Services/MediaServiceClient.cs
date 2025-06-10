@@ -8,7 +8,7 @@ namespace Application.Services;
 public class MediaServiceClient : IMediaServiceClient
 {
     private readonly HttpClient _http;
-    private const string BASE_ROUTE = "api/internal/media";
+    private const string BASE_ROUTE = "/api/internal/media";
 
     public MediaServiceClient(HttpClient http)
     {
