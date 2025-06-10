@@ -1,0 +1,15 @@
+version: '3.4'
+
+services:
+  web:
+    image: ${DOCKER_REGISTRY-}web
+    build:
+      context: .
+      dockerfile: Web/Dockerfile
+    environment:
+    - REDIS_URL=http://redis:6379
+
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
