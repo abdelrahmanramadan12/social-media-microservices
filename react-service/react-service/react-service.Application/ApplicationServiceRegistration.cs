@@ -19,6 +19,7 @@ namespace react_service.Application
 
 
             services.AddScoped<IReactionPostService, ReactionPostService>();
+            services.AddScoped<IReactionCommentService, ReactionCommentService>();
             return services;
         }
     }

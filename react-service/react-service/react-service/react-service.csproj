@@ -15,10 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\Public\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.4" />
     <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="8.1.4" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="8.1.4" />

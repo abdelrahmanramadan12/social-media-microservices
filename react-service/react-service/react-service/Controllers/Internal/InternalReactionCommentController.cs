@@ -1,27 +1,28 @@
 using Microsoft.AspNetCore.Mvc;
 using react_service.Application.DTO;
-using react_service.Application.DTO.ReactionPost.Request;
+using react_service.Application.DTO.Reaction.Request.Comment;
+using react_service.Application.DTO.ReactionPost.Request.Comment;
+using react_service.Application.DTO.ReactionPost.Request.Post;
 using react_service.Application.Interfaces.Services;
-using react_service.DTO.ReactionPost.Request;
 using Web.Controllers;
 
-namespace react_service.Controllers
+namespace react_service.Controllers.Internal
 {
     [ApiController]
-    [Route("api/internal/reacts/post")]
-    public class InternalReactionPostController : BaseController
+    [Route("api/internal/reacts/comment")]
+    public class InternalReactionCommentController : BaseController
     {
-        private readonly IReactionPostService _reactionService;
+        private readonly IReactionCommentService _reactionService;
 
-        public InternalReactionPostController(IReactionPostService reactionService)
+        public InternalReactionCommentController(IReactionCommentService reactionService)
         {
             _reactionService = reactionService;
         }
 
         [HttpPost("filter")]
-        public async Task<IActionResult> FilterPostsReactedByUser([FromBody] FilterPostsReactedByUserRequest request)
+        public async Task<IActionResult> FilterCommentsReactedByUser([FromBody] FilterCommentsReactedByUserRequest request)
         {
-            var response = await _reactionService.FilterPostsReactedByUserAsync(request.PostIds, request.UserId);
+            var response = await _reactionService.FilterCommentsReactedByUserAsync(request.CommentIds, request.UserId);
             if (!response.Success)
             {
                 return HandleErrorResponse(response);
@@ -30,7 +31,7 @@ namespace react_service.Controllers
         }
 
         [HttpPost("user")]
-        public async Task<IActionResult> GetPostsReactedByUser([FromBody] GetPostsReactedByUserRequest request)
+        public async Task<IActionResult> GetCommentsReactedByUser([FromBody] GetReactionsByUserRequest request)
         {
             if (request == null || string.IsNullOrEmpty(request.UserId))
             {
@@ -39,9 +40,9 @@ namespace react_service.Controllers
                     Errors = new List<string> { "User ID cannot be null or empty." },
                     ErrorType = ErrorType.BadRequest
                 };
-                return HandleErrorResponse<object>(errorResponse);
+                return HandleErrorResponse(errorResponse);
             }
-            var response = await _reactionService.GetPostsReactedByUserAsync(request.UserId, request.Next);
+            var response = await _reactionService.GetCommentsReactedByUserAsync(request.UserId, request.Next);
             if (!response.Success)
             {
                 return HandlePaginationErrorResponse(response);
@@ -50,18 +51,18 @@ namespace react_service.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> GetUserIdsReactedToPost([FromBody] GetReactsOfPostRequest request)
+        public async Task<IActionResult> GetUserIdsReactedToComment([FromBody] GetReactsOfCommentRequest request)
         {
-            if (request == null || string.IsNullOrEmpty(request.PostId))
+            if (request == null || string.IsNullOrEmpty(request.CommentId))
             {
                 var errorResponse = new ResponseWrapper<List<string>>
                 {
-                    Errors = new List<string> { "Post ID cannot be null or empty." },
+                    Errors = new List<string> { "Comment ID cannot be null or empty." },
                     ErrorType = ErrorType.BadRequest
                 };
                 return HandleErrorResponse(errorResponse);
             }
-            var response = await _reactionService.GetUserIdsReactedToPostAsync(request.PostId, request.Next, 10);
+            var response = await _reactionService.GetUserIdsReactedToCommentAsync(request.CommentId, request.Next, 10);
             if (!response.Success)
             {
                 return HandlePaginationErrorResponse(response);
@@ -70,18 +71,18 @@ namespace react_service.Controllers
         }
 
         [HttpPost("is-liked")]
-        public async Task<IActionResult> IsPostLikedByUser([FromBody] IsPostLikedByUserRequest request)
+        public async Task<IActionResult> IsCommentLikedByUser([FromBody] IsCommentLikedByUserRequest request)
         {
-            if (request == null || string.IsNullOrEmpty(request.PostId) || string.IsNullOrEmpty(request.UserId))
+            if (request == null || string.IsNullOrEmpty(request.CommentId) || string.IsNullOrEmpty(request.UserId))
             {
                 var errorResponse = new ResponseWrapper<object>
                 {
-                    Errors = new List<string> { "Post ID and User ID cannot be null or empty." },
+                    Errors = new List<string> { "Comment ID and User ID cannot be null or empty." },
                     ErrorType = ErrorType.BadRequest
                 };
                 return HandleErrorResponse(errorResponse);
             }
-            var response = await _reactionService.IsPostReactedByUserAsync(request.PostId, request.UserId);
+            var response = await _reactionService.IsCommentReactedByUserAsync(request.CommentId, request.UserId);
             if (!response.Success)
             {
                 return HandleErrorResponse(response);

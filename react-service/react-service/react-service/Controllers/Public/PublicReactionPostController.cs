@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
-using react_service.Application.DTO.ReactionPost.Request;
+using react_service.Application.DTO.Reaction.Request.Post;
 using react_service.Application.Interfaces.Services;
 using Web.Controllers;
 
-namespace react_service.Controllers
+namespace react_service.Controllers.Public
 {
     [ApiController]
     [Route("api/public/reacts/post")]
@@ -17,30 +17,30 @@ namespace react_service.Controllers
         }
 
         [HttpDelete]
-        public async Task<IActionResult> DeleteReaction([FromBody] DeleteReactionRequest request, [FromHeader(Name = "userId")] string userId)
+        public async Task<IActionResult> DeleteReaction([FromBody] DeletePostReactionRequest request, [FromHeader(Name = "userId")] string userId)
         {
             var res = await _reactionService.DeleteReactionAsync(request?.PostId, userId);
             if (res.Success)
             {
-                return HandleResponse<bool>(res);
+                return HandleResponse(res);
             }
             else
             {
-                return HandleErrorResponse<bool>(res);
+                return HandleErrorResponse(res);
             }
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddReaction([FromBody] CreateReactionRequest request, [FromHeader(Name = "userId")] string userId)
+        public async Task<IActionResult> AddReaction([FromBody] CreatePostReactionRequest request, [FromHeader(Name = "userId")] string userId)
         {
             var res = await _reactionService.AddReactionAsync(request, userId);
             if (res.Success)
             {
-                return HandleResponse<bool>(res);
+                return HandleResponse(res);
             }
             else
             {
-                return HandleErrorResponse<bool>(res);
+                return HandleErrorResponse(res);
             }
         }
     }

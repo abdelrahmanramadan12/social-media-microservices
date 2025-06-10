@@ -1,5 +1,6 @@
-﻿
+
 using react_service.Domain.Entites;
+using react_service.Domain.Enums;
 
 namespace react_service.Domain.Events
 {

@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Http;
 using System.Net.Http.Json;
-using react_service.Application.DTO.ReactionPost.Response;
+using react_service.Application.DTO.Reaction.Response;
 
 
 
