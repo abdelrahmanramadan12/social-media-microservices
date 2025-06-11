@@ -199,17 +199,24 @@ namespace Application.Services
             existingMessage.EditedAt = DateTime.UtcNow;
             existingMessage.IsEdited = true;
 
-            var msg= await _unitOfWork.Messages.EditAsync(existingMessage);
-            if (!msg)
+            var msg = await _unitOfWork.Messages.EditAsync(existingMessage);
+            if (msg == null)
             {
                 throw new Exception("Failed to edit message. Please try again.");
             }
             return new MessageDTO
             {
-                Id = existingMessage.Id,
-                ConversationId = existingMessage.ConversationId,
-                SenderId = existingMessage.SenderId,
-                Content = existingMessage.Text,
+                Id = msg.Id,
+                ConversationId = msg.ConversationId,
+                SenderId = msg.SenderId,
+                Content = msg.Text,
+                Read = true,
+                HasAttachment = msg.Attachment != null,
+                Attachment = msg.Attachment != null ? new Attachment
+                {
+                    Url = msg.Attachment.Url,
+                    Type = msg.Attachment.Type
+                } : null
             };
         }
         public async Task MarkReadAsync(string userId, string conversationId)
@@ -249,15 +256,14 @@ namespace Application.Services
                 if (mediaResponse == null || mediaResponse.Urls == null || !mediaResponse.Urls.Any())
                 {
                     throw new InvalidOperationException("Failed to upload media.");
-                }
-                
-                messageEntity.Attachment = new Attachment
+                } else
                 {
-                    Url = mediaResponse.Urls.FirstOrDefault(),
-                    Type = (MediaType)message.MediaType!,
-                };
-
-
+                    messageEntity.Attachment = new Attachment
+                    {
+                        Url = mediaResponse.Urls.FirstOrDefault(),
+                        Type = (MediaType)message.MediaType!,
+                    };
+                }
             }
 
             var msg = await _unitOfWork.Messages.AddAsync(messageEntity);
@@ -274,6 +280,7 @@ namespace Application.Services
                     Url = msg.Attachment.Url,
                     Type = msg.Attachment.Type
                 } : null,
+                HasAttachment = msg.Attachment != null
             };
 
             var conv = await _unitOfWork.Conversations.GetConversationByIdAsync(msg.ConversationId);

@@ -1,11 +1,10 @@
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
-using Domain.Enums;
 using Microsoft.Extensions.Configuration;
 using Service.DTOs.Requests;
 using Service.DTOs.Responses;
 using Service.Enums;
 using Service.Interfaces.MediaServices;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 
 namespace Service.Implementations.MediaServices
 {
@@ -27,7 +26,7 @@ namespace Service.Implementations.MediaServices
             var streamContent = new StreamContent(request.File.OpenReadStream());
             streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(
                 string.IsNullOrWhiteSpace(request.File.ContentType) ? "application/octet-stream" : request.File.ContentType);
-            form.Add(streamContent, "Files", request.File.FileName); 
+            form.Add(streamContent, "Files", request.File.FileName);
 
             // Add MediaType and UsageCategory
             form.Add(new StringContent(request.MediaType.ToString()), "MediaType");

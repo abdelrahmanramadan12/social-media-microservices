@@ -27,15 +27,16 @@ namespace Infrastructure.Repositories
             return messageEntity;
         }
 
-        public async Task<bool> EditAsync(Message existingMessage)
+        public async Task<Message> EditAsync(Message existingMessage)
         {
             var filter = Builders<Message>.Filter.Eq(m => m.Id, existingMessage.Id);
-            var msg= await _messages.ReplaceOneAsync(filter,existingMessage);
-            if (msg.IsAcknowledged && msg.ModifiedCount > 0)
+            var res = await _messages.ReplaceOneAsync(filter,existingMessage);
+            if (res.IsAcknowledged && res.ModifiedCount > 0)
             {
-                return true;
+                var msg = _messages.Find(filter);
+                return await msg.FirstOrDefaultAsync();
             }
-            return false;
+            return null;
         }
 
         public async Task<Message> GetByIdAsync(string messageId)
