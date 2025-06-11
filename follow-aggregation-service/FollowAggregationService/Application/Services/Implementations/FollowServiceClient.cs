@@ -60,7 +60,7 @@ namespace Application.Services.Implementations
             try
             {
                 var response = await _httpClient.PostAsync(
-                    $"/api/follow/filter-following",
+                    $"/api/internal/follow/filter-following",
                     new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json")
                 );
 
@@ -104,16 +104,15 @@ namespace Application.Services.Implementations
         {
             try
             {
-                var url = $"/{endpoint}";
+                var url = endpoint;
                 var requestContent = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
 
                 var response = await _httpClient.PostAsync(url, requestContent);
 
-                var json = await response.Content.ReadAsStringAsync();
+                var result = await response.Content.ReadFromJsonAsync<PaginationResponseWrapper<List<string>>>();
 
                 if (response.IsSuccessStatusCode)
                 {
-                    var result = JsonSerializer.Deserialize<PaginationResponseWrapper<List<string>>>(json);
                     if (result != null)
                         return result;
                     else
@@ -129,7 +128,6 @@ namespace Application.Services.Implementations
                     // Try to extract error details from the response
                     try
                     {
-                        var result = JsonSerializer.Deserialize<PaginationResponseWrapper<List<string>>>(json);
                         return result ?? new PaginationResponseWrapper<List<string>>
                         {
                             Data = new List<string>(),

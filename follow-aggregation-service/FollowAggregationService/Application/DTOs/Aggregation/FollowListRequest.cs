@@ -8,7 +8,7 @@ namespace Application.DTOs.Aggregation
 {
     public class FollowListRequest
     {
-        public string UserId { get; set; }
+        public string? UserId { get; set; }
         public string OtherId { get; set; }
         public string? Next {  get; set; }
     }

@@ -8,7 +8,7 @@ namespace Application.DTOs.Follow
 {
     public class ListFollowPageRequest
     {
-        public required string UserId { get; set; }
+        public string?UserId { get; set; }
         public string? Next { get; set; }
     }
 }

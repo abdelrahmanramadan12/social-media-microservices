@@ -7,7 +7,9 @@ namespace Application.DTOs
         BadRequest,
         UnAuthorized,
         Validation,
-        InternalServerError
+        InternalServerError,
+        NetworkError,
+        Timeout
     }
     public class ResponseWrapper<T>
     {

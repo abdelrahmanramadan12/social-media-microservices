@@ -44,17 +44,17 @@ namespace Presentation.Controllers
                 data = response.Data,
                 message = response.Message
             };
-            return Ok(response.Data);
+            return Ok(new { Data=response.Data,Message="Users retrieved successfully"});
         }
 
         protected ActionResult HandleResponse<T>(ResponseWrapper<T> response)
         {
-            var reponse = new
+            var responseObj = new
             {
                 data = response.Data,
                 message = response.Message
             };
-            return Ok(response);
+            return Ok(responseObj);
         }
     }
 }
