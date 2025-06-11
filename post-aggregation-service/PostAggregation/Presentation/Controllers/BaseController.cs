@@ -45,17 +45,17 @@ namespace Presentation.Controllers
                 data = response.Data,
                 message = response.Message
             };
-            return Ok(response.Data);
+            return Ok(paginationHeader);
         }
 
         protected ActionResult HandleResponse<T>(ResponseWrapper<T> response)
         {
-            var reponse = new
+            var res = new
             {
                 data = response.Data,
                 message = response.Message
             };
-            return Ok(response);
+            return Ok(res);
         }
     }
 }

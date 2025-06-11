@@ -9,7 +9,7 @@ namespace Application.Services.Implementations
     public class ProfileServiceClient : IProfileServiceClient
     {
         private readonly HttpClient _httpClient;
-        private const string BASE_ENDPOINT = "/api/internal/profile";
+        private const string BASE_ENDPOINT = "api/internal/profile";
 
 
         public ProfileServiceClient(HttpClient httpClient)

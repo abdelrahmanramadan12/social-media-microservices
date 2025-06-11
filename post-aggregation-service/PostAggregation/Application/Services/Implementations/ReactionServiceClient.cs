@@ -53,22 +53,22 @@ namespace Application.Services.Implementations
             }
         }
 
-        public async Task<ResponseWrapper<GetPostsReactedByUserResponse>> GetPostsReactedByUserAsync(GetPostsReactedByUserRequest request)
+        public async Task<PaginationResponseWrapper<List<string>>> GetPostsReactedByUserAsync(GetPostsReactedByUserRequest request)
         {
             try
             {
                 var response = await _httpClient.PostAsJsonAsync(GET_POSTS_BY_USER_ENDPOINT, request);
                 if (!response.IsSuccessStatusCode)
                 {
-                    return new ResponseWrapper<GetPostsReactedByUserResponse>
+                    return new PaginationResponseWrapper<List<string>>
                     {
                         Errors = new List<string> { $"Failed to get reacted posts: {response.StatusCode}" },
                         ErrorType = ErrorType.InternalServerError
                     };
                 }
 
-                var result = await response.Content.ReadFromJsonAsync<ResponseWrapper<GetPostsReactedByUserResponse>>();
-                return result ?? new ResponseWrapper<GetPostsReactedByUserResponse>
+                var result = await response.Content.ReadFromJsonAsync<PaginationResponseWrapper<List<string>>>();
+                return result ?? new PaginationResponseWrapper<List<string>>
                 {
                     Errors = new List<string> { "Empty response from reaction service" },
                     ErrorType = ErrorType.InternalServerError
@@ -76,7 +76,7 @@ namespace Application.Services.Implementations
             }
             catch (Exception ex)
             {
-                return new ResponseWrapper<GetPostsReactedByUserResponse>
+                return new PaginationResponseWrapper<List<string>>
                 {
                     Errors = new List<string> { $"Error getting reacted posts: {ex.Message}" },
                     ErrorType = ErrorType.InternalServerError

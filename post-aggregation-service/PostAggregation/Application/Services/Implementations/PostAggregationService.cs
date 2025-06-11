@@ -161,7 +161,7 @@ namespace Application.Services.Implementations
                 return response;
             }
 
-            if (reactedPostsResult.Data?.Reactions == null || !reactedPostsResult.Data.Reactions.Any())
+            if (reactedPostsResult.Data == null || !reactedPostsResult.Data.Any())
             {
                 return new PaginationResponseWrapper<List<PostAggregationResponse>>
                 {
@@ -171,10 +171,10 @@ namespace Application.Services.Implementations
                 };
             }
 
-            var reactedPostIds = reactedPostsResult.Data.Reactions.Select(r => r.PostId).ToList();
+            var reactedPostIds = reactedPostsResult.Data;
             List<PostResponseDTO> postList = new();
-            bool hasMore = reactedPostsResult.Data.HasMore;
-            string nextCursor = reactedPostsResult.Data.Next;
+            bool hasMore = reactedPostsResult.HasMore;
+            string nextCursor = reactedPostsResult.Next;
             var fetchedPostIds = new HashSet<string>();
 
             int iterationLimit = 5;
@@ -200,9 +200,9 @@ namespace Application.Services.Implementations
                         return response;
                     }
 
-                    reactedPostIds = reactedPostsResult.Data?.Reactions.Select(r => r.PostId).ToList();
-                    hasMore = reactedPostsResult.Data.HasMore;
-                    nextCursor = reactedPostsResult.Data.Next;
+                    reactedPostIds = reactedPostsResult.Data;
+                    hasMore = reactedPostsResult.HasMore;
+                    nextCursor = reactedPostsResult.Next;
                     continue;
                 }
 
@@ -237,9 +237,9 @@ namespace Application.Services.Implementations
                         return response;
                     }
 
-                    reactedPostIds = reactedPostsResult.Data?.Reactions.Select(r => r.PostId).ToList();
-                    hasMore = reactedPostsResult.Data.HasMore;
-                    nextCursor = reactedPostsResult.Data.Next;
+                    reactedPostIds = reactedPostsResult.Data;
+                    hasMore = reactedPostsResult.HasMore;
+                    nextCursor = reactedPostsResult.Next;
                 }
             }
 
@@ -262,7 +262,7 @@ namespace Application.Services.Implementations
                 return response;
             }
 
-            postList = followFilterResult.Data;
+            //postList = followFilterResult.Data;
             var authorIds = postList.Select(p => p.AuthorId).Distinct().ToList();
             var profilesResult = await GetAuthorProfiles(authorIds);
 
@@ -333,7 +333,6 @@ namespace Application.Services.Implementations
                 return response;
             }
 
-            postList = followFilterResult.Data;
             var authorIds = postList.Select(p => p.AuthorId).Distinct().ToList();
             var profilesResult = await GetAuthorProfiles(authorIds);
 
