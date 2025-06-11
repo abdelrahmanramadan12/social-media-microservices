@@ -1,11 +1,9 @@
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
-using react_service.Domain.Entites;
-using react_service.Infrastructure.Mongodb;
 using react_service.Application.Interfaces.Repositories;
 using react_service.Application.Pagination;
-using System.Xml.XPath;
-using react_service.Domain.Enums;
+using react_service.Domain.Entites;
+using react_service.Infrastructure.Mongodb;
 
 namespace react_service.Infrastructure.Repositories
 {
@@ -116,17 +114,17 @@ namespace react_service.Infrastructure.Repositories
             {
                 var reactionExist = await CheckUserAndPostIdExist(reaction.PostId, reaction.UserId);
                 var reationType = reaction.ReactionType;
-                if (reactionExist )
+                if (reactionExist)
                 {
-                    var reactionObj =  await GetReactionByIdAsync(reaction.PostId , reaction.UserId);
+                    var reactionObj = await GetReactionByIdAsync(reaction.PostId, reaction.UserId);
 
-                    if(reactionObj.ReactionType == reaction.ReactionType)
+                    if (reactionObj.ReactionType == reaction.ReactionType)
                     {
                         await HardDeleteReactionAsync(reaction.PostId, reaction.UserId); // Hard delete the existing reaction    
                         return "Deleted";
 
                     }
-                    
+
 
                     await HardDeleteReactionAsync(reaction.PostId, reaction.UserId); // Hard delete the existing reaction    
                     reaction.IsDeleted = false;
@@ -142,7 +140,7 @@ namespace react_service.Infrastructure.Repositories
 
             }
             catch (Exception ex)
-             {
+            {
                 // await session.AbortTransactionAsync();
                 throw new Exception("Failed to create reaction within transaction", ex);
             }
@@ -207,7 +205,7 @@ namespace react_service.Infrastructure.Repositories
             };
             if (!string.IsNullOrEmpty(lastSeenId))
             {
-                filters.Add(filterBuilder.Gt(r => r.Id, lastSeenId));
+                filters.Add(filterBuilder.Gt(r => r.UserId, lastSeenId));
             }
             var filter = filterBuilder.And(filters);
             return await _collection.Find(filter)
@@ -220,13 +218,13 @@ namespace react_service.Infrastructure.Repositories
         {
             var filterBuilder = Builders<PostReaction>.Filter;
 
-                var filters = new List<FilterDefinition<PostReaction>>
+            var filters = new List<FilterDefinition<PostReaction>>
             {
                 filterBuilder.Eq(r => r.PostId, postId),
                 filterBuilder.Eq(r => r.UserId, userId)
             };
 
-                    var filter = filterBuilder.And(filters);
+            var filter = filterBuilder.And(filters);
 
             return await _collection.Find(filter).FirstOrDefaultAsync();
         }

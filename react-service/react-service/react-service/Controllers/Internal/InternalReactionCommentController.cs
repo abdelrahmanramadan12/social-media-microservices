@@ -13,10 +13,17 @@ namespace react_service.Controllers.Internal
     public class InternalReactionCommentController : BaseController
     {
         private readonly IReactionCommentService _reactionService;
+        private readonly IConfiguration _configuration;
+        private readonly int _defaultPageSize = 10;
 
-        public InternalReactionCommentController(IReactionCommentService reactionService)
+        public InternalReactionCommentController(IReactionCommentService reactionService, IConfiguration configuration)
         {
             _reactionService = reactionService;
+            _configuration = configuration;
+            if (_configuration != null && _configuration["DefaultPageSize"] != null)
+            {
+                _defaultPageSize = int.Parse(_configuration["DefaultPageSize"]);
+            }
         }
 
         [HttpPost("filter")]
@@ -62,7 +69,7 @@ namespace react_service.Controllers.Internal
                 };
                 return HandleErrorResponse(errorResponse);
             }
-            var response = await _reactionService.GetUserIdsReactedToCommentAsync(request.CommentId, request.Next, 10);
+            var response = await _reactionService.GetUserIdsReactedToCommentAsync(request.CommentId, request.Next, _defaultPageSize);
             if (!response.Success)
             {
                 return HandlePaginationErrorResponse(response);

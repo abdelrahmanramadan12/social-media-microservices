@@ -5,6 +5,6 @@ namespace Application.Services.Interfaces
 {
     public interface IReactionServiceClient
     {
-        Task<PaginationResponseWrapper<string>> GetReactsOfPostAsync(GetReactsOfPostRequest request);
+        Task<PaginationResponseWrapper<List<string>>> GetReactsOfPostAsync(GetReactsOfPostRequest request);
     }
 }

@@ -123,7 +123,7 @@ namespace react_service.Infrastructure.Repositories
             };
             if (!string.IsNullOrEmpty(lastSeenId))
             {
-                filters.Add(filterBuilder.Gt(r => r.Id, lastSeenId));
+                filters.Add(filterBuilder.Gt(r => r.UserId, lastSeenId));
             }
             var filter = filterBuilder.And(filters);
             return await _collection.Find(filter)

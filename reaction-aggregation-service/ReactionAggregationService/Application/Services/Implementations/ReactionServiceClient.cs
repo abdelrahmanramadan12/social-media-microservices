@@ -24,11 +24,11 @@ namespace Application.Services.Implementations
             _httpClient.BaseAddress = new Uri(_settings.BaseUrl);
         }
 
-        public async Task<PaginationResponseWrapper<string>> GetReactsOfPostAsync(GetReactsOfPostRequest request)
+        public async Task<PaginationResponseWrapper<List<string>>> GetReactsOfPostAsync(GetReactsOfPostRequest request)
         {
             if (request == null || string.IsNullOrWhiteSpace(request.PostId))
             {
-                return new PaginationResponseWrapper<string>
+                return new PaginationResponseWrapper<List<string>>
                 {
                     Errors = new List<string> { "Post ID is required." },
                     Message = "Invalid input.",
@@ -37,12 +37,12 @@ namespace Application.Services.Implementations
             }
             try
             {
-                var response = await _httpClient.PostAsJsonAsync($"{BASE_ENDPOINT}/reacts", request);
-                return await HandleResponse<string>(response, "Failed to retrieve post reactions.");
+                var response = await _httpClient.PostAsJsonAsync($"{BASE_ENDPOINT}", request);
+                return await HandleResponse<List<string>>(response, "Failed to retrieve post reactions.");
             }
             catch (Exception ex)
             {
-                return new PaginationResponseWrapper<string>
+                return new PaginationResponseWrapper<List<string>>
                 {
                     Errors = new List<string> { ex.Message },
                     Message = "Unhandled exception occurred.",

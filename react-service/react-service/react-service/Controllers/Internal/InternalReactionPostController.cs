@@ -12,10 +12,17 @@ namespace react_service.Controllers.Internal
     public class InternalReactionPostController : BaseController
     {
         private readonly IReactionPostService _reactionService;
+        private readonly IConfiguration _configuration;
+        private readonly int _defaultPageSize = 10;
 
-        public InternalReactionPostController(IReactionPostService reactionService)
+        public InternalReactionPostController(IReactionPostService reactionService, IConfiguration configuration)
         {
             _reactionService = reactionService;
+            _configuration = configuration;
+            if (_configuration != null && _configuration["DefaultPageSize"] != null)
+            {
+                _defaultPageSize = int.Parse(_configuration["DefaultPageSize"]);
+            }
         }
 
         [HttpPost("filter")]
@@ -61,7 +68,7 @@ namespace react_service.Controllers.Internal
                 };
                 return HandleErrorResponse(errorResponse);
             }
-            var response = await _reactionService.GetUserIdsReactedToPostAsync(request.PostId, request.Next, 10);
+            var response = await _reactionService.GetUserIdsReactedToPostAsync(request.PostId, request.Next, _defaultPageSize);
             if (!response.Success)
             {
                 return HandlePaginationErrorResponse(response);

@@ -67,7 +67,7 @@ namespace Application.Services.Implementations
                         HasMore = false
                     };
                 }
-                var userProfileRequest = new GetUsersProfileByIdsRequest { UserIds = new List<string> { reactions.Data } };
+                var userProfileRequest = new GetUsersProfileByIdsRequest { UserIds =  reactions.Data  };
                 var userProfiles = await _profileServiceClient.GetUsersByIdsAsync(userProfileRequest);
 
                 if (!userProfiles.Success)
