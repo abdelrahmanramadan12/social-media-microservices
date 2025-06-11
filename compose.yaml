@@ -1,0 +1,141 @@
+version: '3.8'
+
+services:
+  chat:
+    image: miinamaaher/thryve-chat:latest
+    ports:
+      - "7070:8080"
+      - "7071:8081"
+    depends_on:
+      - media
+      - redis
+      - auth
+      - profile
+    
+  comment:
+    image: miinamaaher/thryve-comment:latest
+    ports:
+      - "7072:8080"
+      - "7073:8081"
+    depends_on:
+      - media
+      - rabbit
+
+  comment-aggregate:
+    image: miinamaaher/thryve-comment-aggregate:latest
+    ports:
+      - "7074:8080"
+      - "7075:8081"
+    depends_on:
+      - comment
+      - profile
+      - react
+    
+  react:
+    image: miinamaaher/thryve-react:latest
+    ports:
+      - "7076:8080"
+      - "7077:8081"
+    depends_on:
+      - rabbit
+
+#   react-aggregate:
+#     image: miinamaaher/thryve-react-aggregate:latest
+#     ports:
+#       - "7078:8080"
+#       - "7079:8081"
+#     depends_on:
+#       - react
+#       - profile
+  
+  post:
+    image: miinamaaher/thryve-post:latest
+    ports:
+      - "7080:8080"
+      - "7081:8081"
+    depends_on:
+      - media
+      - rabbit
+
+  # post-aggregate:
+  #   image: miinamaaher/thryve-post-aggregate:latest
+  #   ports:
+  #     - "7082:8080"
+  #     - "7083:8081"
+  #   depends_on:
+  #     - post
+  #     - profile
+  #     - follow
+  #     - react
+  
+  follow:
+    image: miinamaaher/thryve-follow:latest
+    ports:
+      - "7084:8080"
+      - "7085:8081"
+    depends_on:
+      - rabbit
+
+  follow-aggregate:
+    image: miinamaaher/thryve-follow-aggregate:latest
+    ports:
+      - "7086:8080"
+      - "7087:8081"
+    depends_on:
+      - profile
+      - follow
+
+  media:
+    image: miinamaaher/thryve-media:latest
+    ports:
+      - "7088:8080"
+      - "7089:8081"
+
+  profile:
+    image: miinamaaher/thryve-profile:latest
+    ports:
+      - "7090:8080"
+      - "7091:8081"
+    depends_on:
+      - rabbit
+
+  auth:
+    image: miinamaaher/thryve-auth:latest
+    ports:
+      - "7092:8080"
+      - "7093:8081"
+
+#   gateway:
+#     image: miinamaaher/thryve-gateway:latest
+#     ports:
+#       - "7094:8080"
+#       - "7095:8081"
+
+  feed:
+    image: miinamaaher/thryve-feed:latest
+    ports:
+      - "7096:8080"
+      - "7097:8081"
+    depends_on:
+      - rabbit
+      - profile
+      - follow
+
+#   notification:
+#     image: miinamaaher/thryve-notification:latest
+#     ports:
+#       - "7098:8080"
+#       - "7099:8081"
+#     depends_on:
+#       - rabbit
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+
+  rabbit:
+    image: rabbitmq:management
+    ports:
+      - "15672:15672"
+      - "5672:5672"
