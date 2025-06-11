@@ -12,12 +12,11 @@ namespace Application.Services.Implementations
     public class FollowServiceClient : IFollowServiceClient
     {
         private readonly HttpClient _httpClient;
-        private readonly FollowServiceSettings _settings;
 
-        public FollowServiceClient(HttpClient httpClient, FollowServiceSettings settings)
+        public FollowServiceClient(HttpClient httpClient)
         {
             _httpClient = httpClient;
-            _settings = settings;
+
         }
 
         public async Task<ResponseWrapper<bool>> IsFollower(IsFollowerRequest request)
@@ -26,7 +25,7 @@ namespace Application.Services.Implementations
 
             try
             {
-                var response = await _httpClient.PostAsJsonAsync($"{_settings.BaseUrl}/api/follow/is-follower", request);
+                var response = await _httpClient.PostAsJsonAsync($"/api/follow/is-follower", request);
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -60,7 +59,7 @@ namespace Application.Services.Implementations
 
             try
             {
-                var response = await _httpClient.PostAsJsonAsync($"{_settings.BaseUrl}/api/follow/filter-followers", request);
+                var response = await _httpClient.PostAsJsonAsync($"/api/internal/follow/filter-followers", request);
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -94,7 +93,7 @@ namespace Application.Services.Implementations
 
             try
             {
-                var response = await _httpClient.PostAsJsonAsync($"{_settings.BaseUrl}/api/follow/filter-following", request);
+                var response = await _httpClient.PostAsJsonAsync($"/api/follow/filter-following", request);
 
                 if (!response.IsSuccessStatusCode)
                 {

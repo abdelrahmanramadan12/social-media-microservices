@@ -9,14 +9,14 @@ namespace Application.Services.Implementations
     public class PostServiceClient : IPostServiceClient
     {
         private readonly HttpClient _httpClient;
-        private const string GET_POST_BY_ID_ENDPOINT = "/api/internal/posts/{0}";
-        private const string GET_PROFILE_POSTS_ENDPOINT = "/api/internal/posts/user/{0}";
-        private const string GET_POST_LIST_ENDPOINT = "/api/internal/posts/list";
+        private const string GET_POST_BY_ID_ENDPOINT = "api/internal/posts/{0}";
+        private const string GET_PROFILE_POSTS_ENDPOINT = "api/internal/posts/user";
+        private const string GET_POST_LIST_ENDPOINT = "api/internal/posts/list";
 
-        public PostServiceClient(HttpClient httpClient, PostServiceSettings settings)
+        public PostServiceClient(HttpClient httpClient)
         {
             _httpClient = httpClient;
-            _httpClient.BaseAddress = new Uri(settings.BaseUrl);
+         
         }
 
         public async Task<ResponseWrapper<PostResponseDTO>> GetPostByIdAsync(string postId)
@@ -56,14 +56,13 @@ namespace Application.Services.Implementations
             {
                 var request = new GetProfilePostListRequest
                 {
+                    ProfileUserId = profileUserId,
                     UserId = userId,
                     Next = next
                 };
 
-                var response = await _httpClient.PostAsJsonAsync(
-                    string.Format(GET_PROFILE_POSTS_ENDPOINT, profileUserId),
-                    request
-                );
+                var response = await _httpClient.PostAsJsonAsync(GET_PROFILE_POSTS_ENDPOINT, request);
+
 
                 if (!response.IsSuccessStatusCode)
                 {

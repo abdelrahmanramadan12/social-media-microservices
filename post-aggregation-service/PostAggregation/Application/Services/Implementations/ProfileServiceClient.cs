@@ -10,13 +10,11 @@ namespace Application.Services.Implementations
     {
         private readonly HttpClient _httpClient;
         private const string BASE_ENDPOINT = "/api/internal/profile";
-        private readonly ProfileServiceSettings _settings;
 
-        public ProfileServiceClient(HttpClient httpClient, ProfileServiceSettings settings)
+
+        public ProfileServiceClient(HttpClient httpClient)
         {
             _httpClient = httpClient;
-            _settings = settings;
-            _httpClient.BaseAddress = new Uri(_settings.BaseUrl);
         }
 
         public async Task<ResponseWrapper<SimpleUserProfile>> GetByUserIdMinAsync(string userId)
