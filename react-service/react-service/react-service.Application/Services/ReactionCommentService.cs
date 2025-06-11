@@ -3,7 +3,6 @@ using Microsoft.Extensions.Options;
 using react_service.Application.DTO;
 using react_service.Application.DTO.Reaction.Request.Comment;
 using react_service.Application.Events;
-using react_service.Application.Helpers;
 using react_service.Application.Interfaces.Publishers;
 using react_service.Application.Interfaces.Repositories;
 using react_service.Application.Interfaces.Services;
@@ -193,13 +192,13 @@ namespace react_service.Application.Services
                 response.ErrorType = ErrorType.BadRequest;
                 return response;
             }
-            string lastSeenId = string.IsNullOrWhiteSpace(nextReactIdHash) ? "" : PaginationHelper.DecodeCursor(nextReactIdHash!);
+            string lastSeenId = nextReactIdHash ?? "";
             var reactionList = (await reactionRepository.GetCommentsReactedByUserAsync(userId, lastSeenId)).ToList();
             bool hasMore = reactionList.Count > (paginationSetting.Value.DefaultPageSize - 1);
             var lastId = hasMore ? reactionList.Last().Id : null;
             response.Data = reactionList.Select(r => r.Id).ToList();
             response.HasMore = hasMore;
-            response.Next = lastId != null ? PaginationHelper.GenerateCursor(lastId) : null;
+            response.Next = lastId;
 
             response.Message = "Comments reacted by user retrieved successfully.";
             return response;
@@ -236,7 +235,7 @@ namespace react_service.Application.Services
                 response.ErrorType = ErrorType.BadRequest;
                 return response;
             }
-            string lastSeenId = string.IsNullOrWhiteSpace(next) ? "" : PaginationHelper.DecodeCursor(next);
+            string lastSeenId = next ?? "";
             var commentDeleted = await commentRepository.IsCommentDeleted(commentId);
             if (commentDeleted)
             {
@@ -246,7 +245,7 @@ namespace react_service.Application.Services
             }
             var userIds = await reactionRepository.GetUserIdsReactedToCommentAsync(commentId, lastSeenId, take + 1);
             bool hasMore = userIds.Count > take;
-            string nextCursor = hasMore ? PaginationHelper.GenerateCursor(userIds[take]) : null;
+            string nextCursor = hasMore ? userIds[take] : null;
             if (hasMore) userIds = userIds.Take(take).ToList();
             response.Data = userIds;
             response.HasMore = hasMore;

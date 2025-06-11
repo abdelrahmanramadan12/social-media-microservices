@@ -20,6 +20,7 @@ services:
     depends_on:
       - media
       - rabbit
+    restart: always
 
   comment-aggregate:
     image: miinamaaher/thryve-comment-aggregate:latest
@@ -38,15 +39,16 @@ services:
       - "7077:8081"
     depends_on:
       - rabbit
+    restart: always
 
-#   react-aggregate:
-#     image: miinamaaher/thryve-react-aggregate:latest
-#     ports:
-#       - "7078:8080"
-#       - "7079:8081"
-#     depends_on:
-#       - react
-#       - profile
+  # react-aggregate:
+  #   image: miinamaaher/thryve-react-aggregate:latest
+  #   ports:
+  #     - "7078:8080"
+  #     - "7079:8081"
+  #   depends_on:
+  #     - react
+  #     - profile
   
   post:
     image: miinamaaher/thryve-post:latest
@@ -56,6 +58,7 @@ services:
     depends_on:
       - media
       - rabbit
+    restart: always
 
   # post-aggregate:
   #   image: miinamaaher/thryve-post-aggregate:latest
@@ -75,6 +78,7 @@ services:
       - "7085:8081"
     depends_on:
       - rabbit
+    restart: always
 
   follow-aggregate:
     image: miinamaaher/thryve-follow-aggregate:latest
@@ -98,6 +102,7 @@ services:
       - "7091:8081"
     depends_on:
       - rabbit
+    restart: always
 
   auth:
     image: miinamaaher/thryve-auth:latest
@@ -120,19 +125,28 @@ services:
       - rabbit
       - profile
       - follow
+    restart: always
 
-#   notification:
-#     image: miinamaaher/thryve-notification:latest
-#     ports:
-#       - "7098:8080"
-#       - "7099:8081"
-#     depends_on:
-#       - rabbit
+  notification:
+    image: miinamaaher/thryve-notification:latest
+    ports:
+      - "7098:8080"
+      - "7099:8081"
+    depends_on:
+      - rabbit
+      - profile
+      - redis-notification
+    restart: always
 
   redis:
     image: redis:latest
     ports:
       - "6379:6379"
+  
+  redis-notification:
+    image: redis:latest
+    ports:
+      - "6380:6379"
 
   rabbit:
     image: rabbitmq:management
