@@ -12,34 +12,32 @@ services:
       - auth
       - profile
     
-#   comment:
-#     image: miinamaaher/thryve-comment:latest
-#     ports:
-#       - "7072:8080"
-#       - "7073:8081"
-#     depends_on:
-#       - media
-#       - rabbit
+  comment:
+    image: miinamaaher/thryve-comment:latest
+    ports:
+      - "7072:8080"
+      - "7073:8081"
+    depends_on:
+      - media
+      - rabbit
 
-#   comment-aggregate:
-#     image: miinamaaher/thryve-comment-aggregate:latest
-#     ports:
-#       - "7074:8080"
-#       - "7075:8081"
-#     depends_on:
-#       - comment
-#       - profile
-#       - react
-
+  comment-aggregate:
+    image: miinamaaher/thryve-comment-aggregate:latest
+    ports:
+      - "7074:8080"
+      - "7075:8081"
+    depends_on:
+      - comment
+      - profile
+      - react
     
-#   react:
-#     image: miinamaaher/thryve-react:latest
-#     ports:
-#       - "7076:8080"
-#       - "7077:8081"
-#     depends_on:
-#       - rabbit
-
+  react:
+    image: miinamaaher/thryve-react:latest
+    ports:
+      - "7076:8080"
+      - "7077:8081"
+    depends_on:
+      - rabbit
 
 #   react-aggregate:
 #     image: miinamaaher/thryve-react-aggregate:latest
@@ -78,14 +76,14 @@ services:
     depends_on:
       - rabbit
 
-  # follow-aggregate:
-  #   image: miinamaaher/thryve-follow-aggregate:latest
-  #   ports:
-  #     - "7086:8080"
-  #     - "7087:8081"
-  #   depends_on:
-  #     - profile
-  #     - follow
+  follow-aggregate:
+    image: miinamaaher/thryve-follow-aggregate:latest
+    ports:
+      - "7086:8080"
+      - "7087:8081"
+    depends_on:
+      - profile
+      - follow
 
   media:
     image: miinamaaher/thryve-media:latest
@@ -113,13 +111,15 @@ services:
 #       - "7094:8080"
 #       - "7095:8081"
 
-#   feed:
-#     image: miinamaaher/thryve-feed:latest
-#     ports:
-#       - "7096:8080"
-#       - "7097:8081"
-#     depends_on:
-#       - rabbit
+  feed:
+    image: miinamaaher/thryve-feed:latest
+    ports:
+      - "7096:8080"
+      - "7097:8081"
+    depends_on:
+      - rabbit
+      - profile
+      - follow
 
 #   notification:
 #     image: miinamaaher/thryve-notification:latest

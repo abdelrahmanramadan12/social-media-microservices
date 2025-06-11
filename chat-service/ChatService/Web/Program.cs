@@ -42,19 +42,22 @@ namespace Web
             builder.Services.AddSingleton<IUnitOfWork, UnitOfWork>();
             builder.Services.AddSingleton<IConnectionManager, ConnectionManager>();
             builder.Services.AddSingleton<IProfileCache, ProfileCache>();
+
+            var config = builder.Configuration;
+
             builder.Services.AddHttpClient<IAuthServiceClient, AuthServiceClient>((sp, client) =>
             {
-                client.BaseAddress = new Uri("http://Auth:8080");
+                client.BaseAddress = new Uri(config["HttpClients:Auth"]!);
                 client.Timeout = TimeSpan.FromSeconds(30);
             });
             builder.Services.AddHttpClient<IProfileServiceClient, ProfileServiceClient>((sp, client) =>
             {
-                client.BaseAddress = new Uri("http://profile:8080");
+                client.BaseAddress = new Uri(config["HttpClients:Profile"]!);
                 client.Timeout = TimeSpan.FromSeconds(30);
             });
             builder.Services.AddHttpClient<IMediaServiceClient, MediaServiceClient>((sp, client) =>
             {
-                client.BaseAddress = new Uri("http://media:8080");
+                client.BaseAddress = new Uri(config["HttpClients:Media"]!);
                 client.Timeout = TimeSpan.FromSeconds(30);
             });
             builder.Services.AddScoped<IRealtimeMessenger, RealtimeMessenger>();
