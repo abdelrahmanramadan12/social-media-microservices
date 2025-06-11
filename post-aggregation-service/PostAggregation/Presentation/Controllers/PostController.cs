@@ -32,7 +32,7 @@ namespace Presentation.Controllers
             return HandlePaginationResponse(response);
         }
 
-        [HttpGet("reacted   ")]
+        [HttpGet("reacted")]
         public async Task<IActionResult> GetReactedPosts([FromHeader(Name = "UserId")] string userId, [FromQuery] string? next)
         {
             var response = await _postAggregationService.GetReactedPosts(new ReactedPostsRequest

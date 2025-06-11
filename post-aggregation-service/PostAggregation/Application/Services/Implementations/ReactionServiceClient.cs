@@ -9,18 +9,17 @@ namespace Application.Services.Implementations
     public class ReactionServiceClient : IReactionServiceClient
     {
         private readonly HttpClient _httpClient;
-        private readonly ReactionServiceSettings _settings;
 
-        private const string FILTER_POSTS_ENDPOINT = "/api/internal/reacts/post/filter";
-        private const string GET_POSTS_BY_USER_ENDPOINT = "/api/internal/reacts/post/user";
-        private const string GET_REACTS_OF_POST_ENDPOINT = "/api/internal/reacts/post";
-        private const string IS_POST_LIKED_BY_USER_ENDPOINT = "/api/internal/reacts/post/is-liked";
 
-        public ReactionServiceClient(HttpClient httpClient, ReactionServiceSettings settings)
+        private const string FILTER_POSTS_ENDPOINT = "api/internal/reacts/post/filter";
+        private const string GET_POSTS_BY_USER_ENDPOINT = "api/internal/reacts/post/user";
+        private const string GET_REACTS_OF_POST_ENDPOINT = "api/internal/reacts/post";
+        private const string IS_POST_LIKED_BY_USER_ENDPOINT = "api/internal/reacts/post/is-liked";
+
+        public ReactionServiceClient(HttpClient httpClient)
         {
             _httpClient = httpClient;
-            _settings = settings;
-            _httpClient.BaseAddress = new Uri(_settings.BaseUrl);
+
         }
 
         public async Task<ResponseWrapper<FilteredPostsReactedByUserResponse>> FilterPostsReactedByUserAsync(FilterPostsReactedByUserRequest request)

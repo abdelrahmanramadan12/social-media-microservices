@@ -7,25 +7,55 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllers();
 
-// Configure Post service
-var postServiceSettings = builder.Configuration.GetSection(PostServiceSettings.ConfigurationSection).Get<PostServiceSettings>();
-builder.Services.AddSingleton(postServiceSettings);
-builder.Services.AddHttpClient<IPostServiceClient, PostServiceClient>(client =>
+//// Configure Post service
+//var postServiceSettings = builder.Configuration.GetSection(PostServiceSettings.ConfigurationSection).Get<PostServiceSettings>();
+//builder.Services.AddSingleton(postServiceSettings);
+//builder.Services.AddHttpClient<IPostServiceClient, PostServiceClient>();
+
+
+//// Configure Reaction service
+//var reactionServiceSettings = builder.Configuration.GetSection(ReactionServiceSettings.ConfigurationSection).Get<ReactionServiceSettings>();
+//builder.Services.AddSingleton(reactionServiceSettings);
+//builder.Services.AddHttpClient<IReactionServiceClient, ReactionServiceClient>();
+
+//// Configure Follow service
+//var followServiceSettings = builder.Configuration.GetSection(FollowServiceSettings.ConfigurationSection).Get<FollowServiceSettings>();
+//builder.Services.AddSingleton(followServiceSettings);
+//builder.Services.AddHttpClient<IFollowServiceClient, FollowServiceClient>();
+
+//// Configure Profile service
+
+//var profileServiceSettings = builder.Configuration.GetSection(ProfileServiceSettings.ConfigurationSection).Get<ProfileServiceSettings>();
+//builder.Services.AddSingleton(profileServiceSettings);
+//builder.Services.AddHttpClient<IProfileServiceClient, ProfileServiceClient>();
+
+
+builder.Services.AddHttpClient<IPostServiceClient, PostServiceClient>((sp, client) =>
 {
-    client.BaseAddress = new Uri(postServiceSettings.BaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-    client.DefaultRequestHeaders.Add("Accept", "application/json");
+    var config = sp.GetRequiredService<IConfiguration>();
+    client.BaseAddress = new Uri(config["Services:Post"]);
 });
 
-// Configure Reaction service
-var reactionServiceSettings = builder.Configuration.GetSection(ReactionServiceSettings.ConfigurationSection).Get<ReactionServiceSettings>();
-builder.Services.AddSingleton(reactionServiceSettings);
-builder.Services.AddHttpClient<IReactionServiceClient, ReactionServiceClient>();
+builder.Services.AddHttpClient<IReactionServiceClient, ReactionServiceClient>((sp, client) =>
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    client.BaseAddress = new Uri(config["Services:Reaction"]);
+});
 
-// Configure Follow service
-var followServiceSettings = builder.Configuration.GetSection(FollowServiceSettings.ConfigurationSection).Get<FollowServiceSettings>();
-builder.Services.AddSingleton(followServiceSettings);
-builder.Services.AddHttpClient<IFollowServiceClient, FollowServiceClient>();
+builder.Services.AddHttpClient<IProfileServiceClient, ProfileServiceClient>((sp, client) =>
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    client.BaseAddress = new Uri(config["Services:Profile"]);
+});
+
+builder.Services.AddHttpClient<IFollowServiceClient, FollowServiceClient>((sp, client) =>
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    client.BaseAddress = new Uri(config["Services:Follow"]);
+});
+
+
+builder.Services.AddScoped<IPostAggregationService, PostAggregationService>();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
