@@ -127,7 +127,7 @@ namespace Application.Services
             coreUserFollower.FollowersId.Remove(followedDTO.FollowerId);
             coreUserFollower.FollowsNotifReadByAuthor.Remove(followedDTO.FollowerId);
 
-            var cacheUserFollower = await _unitOfWork.CacheRepository<CachedFollowed>().GetAsync(followedDTO.FollowingId);
+            var cacheUserFollower = await _unitOfWork.CacheRepository<CachedFollowed>().GetAsync(followedDTO.FollowingId,null);
             if (cacheUserFollower == null)
                 return;
 

@@ -76,7 +76,7 @@ namespace Infrastructure.Repositories
             return entities.AsQueryable();
         }
 
-        public async Task<T?> GetAsync(string id, string? id2 = "", long number = 0)
+        public async Task<T?> GetAsync(string id, string? next ,string? id2 = "",long number = 0 )
         {
             var key = GetRedisKey(id.ToString());
             var serializedEntity = await _redisDb.StringGetAsync(key).ConfigureAwait(false);

@@ -1,22 +1,22 @@
-﻿using Application.Interfaces;
+﻿using Application.DTO;
+using Application.Interfaces;
 using Application.Interfaces.Services;
 using Domain.CoreEntities;
 using Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using StackExchange.Redis;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using System.Xml.Linq;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace notification_service.Controllers
 {
     [Route("api/internal/[controller]")]
     [ApiController]
-
-
-
-    public class NotificationController(INotificationService notificationService, IConnectionMultiplexer connectionMultiplexer) : ControllerBase
+    public class NotificationController(INotificationService notificationService, IConnectionMultiplexer connectionMultiplexer) : BaseController
     {
-
         private readonly INotificationService _notificationService = notificationService;
         private readonly IDatabase _redisDb = connectionMultiplexer.GetDatabase();
 
@@ -39,157 +39,136 @@ namespace notification_service.Controllers
         }
         #endregion
 
-
         #region GetNotifications
         /// <summary>
         /// Retrieves all notifications for the specified user.
         /// </summary>
-        /// <remarks>The user ID must be valid and correspond to an existing user in the system.  If the
-        /// user ID is missing or invalid, the response may indicate an error.</remarks>
-        /// <param name="userId">The unique identifier of the user whose notifications are to be retrieved.  This value must be provided in
-        /// the request header.</param>
-        /// <returns>An <see cref="IActionResult"/> containing a collection of notifications for the specified user. Returns an
-        /// empty collection if no notifications are found.</returns>
-
         [HttpGet("AllNotifications")]
-        public IActionResult GetAllNotifications([FromHeader(Name = "userId")] string userId)
+        public async Task<IActionResult> GetAllNotifications([FromHeader(Name = "userId")] string userId ,[FromHeader(Name = "next")] string next   )
         {
-            var notifications = _notificationService.GetAllNotifications(userId); // Example usage of the service
-            return Ok(notifications);
+            var response = await _notificationService.GetAllNotifications(userId , next );
+            return HandlePaginatedResponse(response);
         }
 
         [HttpGet("FollowNotification")]
-        public IActionResult GetFollowNotification([FromHeader(Name = "userId")] string userId)
+        public async Task<IActionResult> GetFollowNotification([FromHeader(Name = "userId")] string userId, [FromHeader(Name = "next")] string next)
         {
-            var followNotifications = _notificationService.GetFollowNotification(userId); // Example usage of the service
-            return Ok(followNotifications);
+            var response = await _notificationService.GetFollowNotification(userId , next );
+            return HandlePaginatedResponse(response);
         }
 
         [HttpGet("CommentsNotification")]
-        public IActionResult GetCommentsNotification([FromHeader(Name = "userId")] string userId)
+        public async Task<IActionResult> GetCommentsNotification([FromHeader(Name = "userId")] string userId, [FromHeader(Name = "next")] string next)
         {
-            var mentionNotifications = _notificationService.GetCommentNotification(userId); // Example usage of the service
-            return Ok(mentionNotifications);
+            var response = await _notificationService.GetCommentNotification(userId , next);
+            return HandlePaginatedResponse(response);
         }
 
         [HttpGet("ReactionsNotification")]
-        public IActionResult GetReactionsNotification([FromHeader(Name = "userId")] string userId)
+        public async Task<IActionResult> GetReactionsNotification([FromHeader(Name = "userId")] string userId, [FromHeader(Name = "next")] string next)
         {
-            var likeNotifications = _notificationService.GetReactionNotification(userId); // Example usage of the service
-            return Ok(likeNotifications);
+            var response = await _notificationService.GetReactionNotification(userId, next);
+            return HandlePaginatedResponse(response);
         }
 
         [HttpGet("MessageNotification")]
-        public IActionResult GetMessagesNotification([FromHeader(Name = "userId")] string userId)
+        public async Task<IActionResult> GetMessagesNotification([FromHeader(Name = "userId")] string userId, [FromHeader(Name = "next")] string next)
         {
-            var MessageNotifications = _notificationService.GetMessageNotifications(userId);
-            return Ok(MessageNotifications);
-
+            var response = await _notificationService.GetMessageNotifications(userId, next);
+            return HandlePaginatedResponse(response);
         }
         #endregion
-
 
         #region GetUnreadNotifications
         /// <summary>
         /// Retrieves all unread notifications for the specified user.
         /// </summary>
-        /// <remarks>This method uses the <c>_notificationService</c> to fetch unread notifications.
-        /// Ensure that the <paramref name="userId"/> corresponds to a valid user.</remarks>
-        /// <param name="userId">The unique identifier of the user whose unread notifications are to be retrieved. This value must be
-        /// provided in the request header.</param>
-        /// <returns>An <see cref="IActionResult"/> containing a collection of unread notifications for the user. If no unread
-        /// notifications exist, the collection will be empty.</returns>
-
         [HttpGet("AllUnreadNotifications")]
-        public IActionResult GetAllUnreadNotifications([FromHeader(Name = "userId")] string userId)
+        public async Task<IActionResult> GetAllUnreadNotifications([FromHeader(Name = "userId")] string userId, [FromHeader(Name = "next")] string next)
         {
-            var unreadNotifications = _notificationService.GetAllUnseenNotification(userId); // Example usage of the service
-            return Ok(unreadNotifications);
+            var response = await _notificationService.GetAllUnseenNotification(userId, next);
+            return HandlePaginatedResponse(response);
         }
 
         [HttpGet("UnreadReactionsNotifications")]
-        public IActionResult GetUnreadReactionsNotifications([FromHeader(Name = "userId")] string userId)
+        public async Task<IActionResult> GetUnreadReactionsNotifications([FromHeader(Name = "userId")] string userId, [FromHeader(Name = "next")] string next)
         {
-            var unreadReactionsNotifications = _notificationService.GetUnreadReactionsNotifications(userId); // Example usage of the service
-            return Ok(unreadReactionsNotifications);
+            var response = await _notificationService.GetUnreadReactionsNotifications(userId, next);
+            return HandlePaginatedResponse(response);
         }
 
         [HttpGet("UnreadCommentNotifications")]
-        public IActionResult GetUnreadCommentNotifications([FromHeader(Name = "userId")] string userId)
+        public async Task<IActionResult> GetUnreadCommentNotifications([FromHeader(Name = "userId")] string userId, [FromHeader(Name = "next")] string next)
         {
-            var unreadCommentNotifications = _notificationService.GetUnreadCommentNotifications(userId); // Example usage of the service
-            return Ok(unreadCommentNotifications);
+            var response = await _notificationService.GetUnreadCommentNotifications(userId, next);
+            return HandlePaginatedResponse(response);
         }
 
         [HttpGet("UnreadFollowedNotifications")]
-        public IActionResult GetUnreadFollowedNotifications([FromHeader(Name = "userId")] string userId)
+        public async Task<IActionResult> GetUnreadFollowedNotifications([FromHeader(Name = "userId")] string userId , [FromHeader(Name = "next")] string next)
         {
-            var unreadFollowedNotifications = _notificationService.GetUnreadFollowedNotifications(userId); // Example usage of the service
-            return Ok(unreadFollowedNotifications);
+            var response = await _notificationService.GetUnreadFollowedNotifications(userId, next);
+            return HandlePaginatedResponse(response);
         }
 
         [HttpGet("UnreadMessageNotifications")]
-        public IActionResult GetUnreadMessageNotifications([FromHeader(Name = "userId")] string userId)
+        public async Task<IActionResult> GetUnreadMessageNotifications([FromHeader(Name = "userId")] string userId , [FromHeader(Name = "next")] string next)
         {
-            var unreadMessageNotifications = _notificationService.GetUnreadMessageNotifications(userId).Result; // Example usage of the service
-            return Ok(unreadMessageNotifications);
+            var response = await _notificationService.GetUnreadMessageNotifications(userId, next);
+            return HandlePaginatedResponse(response);
         }
-
-
-
         #endregion
-
 
         #region MarkNotificationsAsRead
         [HttpPost("mark-notifications-follow-as-read")]
-        public async Task<IActionResult> MarkNotificationsFollowAsRead([FromHeader(Name = "userId")] string userId, [FromQuery] string followerId)
+        public async Task<IActionResult> MarkNotificationsFollowAsRead(
+            [FromHeader(Name = "userId")] string userId,
+            [FromQuery] string followerId)
         {
-            try
-            {
-                await _notificationService.MarkNotificationsFollowAsRead(userId, followerId);
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-            return Ok();
+            var response = await _notificationService.MarkNotificationsFollowAsRead(userId, followerId);
+            return HandleResponse(response);
         }
 
         [HttpPost("mark-all-notifications-as-read")]
         public async Task<IActionResult> MarkAllNotificationsAsRead([FromHeader(Name = "userId")] string userId)
         {
-            await _notificationService.MarkAllNotificationsAsRead(userId);
-            return Ok();
+            var response = await _notificationService.MarkAllNotificationsAsRead(userId);
+            return HandleResponse(response);
         }
 
         [HttpPost("mark-notifications-reaction-comment-as-read")]
-        public async Task<IActionResult> MarkNotificationsReactionCommentAsRead([FromHeader(Name = "userId")] string userId, [FromQuery] string reactionId)
+        public async Task<IActionResult> MarkNotificationsReactionCommentAsRead(
+            [FromHeader(Name = "userId")] string userId,
+            [FromQuery] string reactionId)
         {
-            await _notificationService.MarkNotificationsReactionCommentAsRead(userId, reactionId);
-            return Ok();
+            var response = await _notificationService.MarkNotificationsReactionCommentAsRead(userId, reactionId);
+            return HandleResponse(response);
         }
 
         [HttpPost("mark-notifications-reaction-post-as-read")]
-        public async Task<IActionResult> MarkNotificationsReactionPostAsRead([FromHeader(Name = "userId")] string userId, [FromQuery] string reactionId)
+        public async Task<IActionResult> MarkNotificationsReactionPostAsRead(
+            [FromHeader(Name = "userId")] string userId,
+            [FromQuery] string reactionId)
         {
-            await _notificationService.MarkNotificationsReactionPostAsRead(userId, reactionId);
-            return Ok();
+            var response = await _notificationService.MarkNotificationsReactionPostAsRead(userId, reactionId);
+            return HandleResponse(response);
         }
 
         [HttpPost("mark-notifications-message-as-read")]
-        public async Task<IActionResult> MarkNotificationsMessageAsRead([FromHeader(Name = "userId")] string userId, [FromQuery] string messageId)
+        public async Task<IActionResult> MarkNotificationsMessageAsRead(
+            [FromHeader(Name = "userId")] string userId,
+            [FromQuery] string messageId)
         {
-            await _notificationService.MarkNotificationsMessagesAsRead(userId, messageId);
-            return Ok();
+            var response = await _notificationService.MarkNotificationsMessagesAsRead(userId, messageId);
+            return HandleResponse(response);
         }
-
         #endregion
 
-
         [HttpGet("get-notifications-types")]
-        public IActionResult GetNotificationTypes()
-                                                => Ok(_notificationService.GetNotificationTypes());
-
+        public async Task<IActionResult> GetNotificationTypes()
+        {
+            var response = await _notificationService.GetNotificationTypes();
+            return HandleResponse(response);
+        }
     }
 }
-

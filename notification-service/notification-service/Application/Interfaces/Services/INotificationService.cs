@@ -3,34 +3,35 @@ using Domain.CacheEntities;
 using Domain.CacheEntities.Comments;
 using Domain.CacheEntities.Reactions;
 using Domain.Enums;
+using ThirdParty.Json.LitJson;
 
 namespace Application.Interfaces.Services
 {
     public interface INotificationService
     {
-        List<NotificationsDTO> GetAllNotifications(string userId);
-        List<NotificationsDTO> GetFollowNotification(string userId);
-        List<NotificationsDTO> GetCommentNotification(string userId);
-        List<NotificationsDTO> GetReactionNotification(string userId);
-        List<NotificationsDTO> GetMessageNotifications(string userId);
+        Task<PaginationResponseWrapper<List<NotificationsDTO>>> GetAllNotifications(string userId , string next );
+        Task<PaginationResponseWrapper<List<NotificationsDTO>>> GetFollowNotification(string userId , string next);
+        Task<PaginationResponseWrapper<List<NotificationsDTO>>> GetCommentNotification(string userId , string next);
+        Task<PaginationResponseWrapper<List<NotificationsDTO>>> GetReactionNotification(string userId , string next);
+        Task<PaginationResponseWrapper<List<NotificationsDTO>>> GetMessageNotifications(string userId ,string next);
         
-        Task<bool> MarkAllNotificationsAsRead(string userId);
-        Task<List<NotificationEntity>> GetNotificationTypes();
-        Task<List<NotificationsDTO>> GetUnreadMessageNotifications(string userId);
-        List<NotificationsDTO> GetUnreadReactionsNotifications(string userId);
-        List<NotificationsDTO> GetUnreadFollowedNotifications(string userId);
-        List<NotificationsDTO> GetUnreadCommentNotifications(string userId);
-        List<NotificationsDTO> GetAllUnseenNotification(string userId);
+        Task<ResponseWrapper<bool>> MarkAllNotificationsAsRead(string userId);
+        Task<ResponseWrapper<List<NotificationEntity>>> GetNotificationTypes();
+        Task<PaginationResponseWrapper<List<NotificationsDTO>>> GetUnreadMessageNotifications(string userId,string next);
+        Task<PaginationResponseWrapper<List<NotificationsDTO>>> GetUnreadReactionsNotifications(string userId,string next);
+        Task<PaginationResponseWrapper<List<NotificationsDTO>>> GetUnreadFollowedNotifications(string userId ,string next );
+        Task<PaginationResponseWrapper<List<NotificationsDTO>>> GetUnreadCommentNotifications(string userId, string next );
+        Task<PaginationResponseWrapper<List<NotificationsDTO>>> GetAllUnseenNotification(string userId ,string next );
 
         //Task<bool> MarkCommentNotificationAsRead(string userId, string notificationId);
         //Task<bool> MarkFollowingNotificationAsRead(string userId, string notificationId);
         //Task<bool> MarkReactionNotificationAsRead(string userId, string notificationId);
 
-        Task<bool> MarkNotificationsReactionCommentAsRead(string userId, string reactionId);
-        Task<bool> MarkNotificationsReactionPostAsRead(string userId, string reactionId);
-        Task<bool> MarkNotificationsCommentAsRead(string userId, string CommentId);
-        Task<bool> MarkNotificationsFollowAsRead(string userId, string userFollowedId);
-        Task<bool> MarkNotificationsMessagesAsRead(string userId, string MessageId);
+       Task<ResponseWrapper<bool>> MarkNotificationsReactionCommentAsRead(string userId, string reactionId);
+       Task<ResponseWrapper<bool>>MarkNotificationsReactionPostAsRead(string userId, string reactionId);
+        Task<ResponseWrapper<bool>> MarkNotificationsCommentAsRead(string userId, string CommentId);
+        Task<ResponseWrapper<bool>> MarkNotificationsFollowAsRead(string userId, string userFollowedId);
+        Task<ResponseWrapper<bool>> MarkNotificationsMessagesAsRead(string userId, string MessageId);
 
     }
 }

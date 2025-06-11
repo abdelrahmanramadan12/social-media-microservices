@@ -72,6 +72,38 @@ builder.Services.AddRabbitMqListeners(builder.Configuration);
 builder.Services.AddApplicationServiceRegistration(builder.Configuration);
 
 var app = builder.Build();
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var services = scope.ServiceProvider;
+
+        // --- Seed Redis (Cache) Data ---
+        var followsCacheSeeder = services.GetRequiredService<RedisFollowsSeeder>();
+        await followsCacheSeeder.SeedInitialFollowsDataAsync();
+
+        var reactionsCacheSeeder = services.GetRequiredService<RedisReactionsSeeder>();
+        await reactionsCacheSeeder.SeedInitialReactionsDataAsync();
+
+        var commentsCacheSeeder = services.GetRequiredService<RedisCommentsSeeder>();
+        await commentsCacheSeeder.SeedInitialCommentsDataAsync();
+
+        // --- Seed MongoDB (Core) Data ---
+        var mongoFollowsSeeder = services.GetRequiredService<MongoFollowsSeeder>();
+        await mongoFollowsSeeder.SeedInitialFollowsDataAsync();
+
+        var mongoReactionsSeeder = services.GetRequiredService<MongoReactionsSeeder>();
+        await mongoReactionsSeeder.SeedInitialReactionsDataAsync();
+
+        var mongoCommentsSeeder = services.GetRequiredService<MongoCommentsSeeder>();
+        await mongoCommentsSeeder.SeedInitialCommentsDataAsync();
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while seeding data.");
+    }
+}
 
 // Hubs
 app.MapHub<CommentNotificationHub>("/hubs/comment-notifications");
