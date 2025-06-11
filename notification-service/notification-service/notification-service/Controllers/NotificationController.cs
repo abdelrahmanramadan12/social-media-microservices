@@ -1,19 +1,10 @@
-﻿using Application.DTO;
-using Application.Interfaces;
-using Application.Interfaces.Services;
-using Domain.CoreEntities;
-using Domain.Enums;
+﻿using Application.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.WebUtilities;
 using StackExchange.Redis;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace notification_service.Controllers
 {
-    [Route("api/internal/[controller]")]
+    [Route("api/public/[controller]")]
     [ApiController]
     public class NotificationController(INotificationService notificationService, IConnectionMultiplexer connectionMultiplexer) : BaseController
     {
@@ -44,23 +35,23 @@ namespace notification_service.Controllers
         /// Retrieves all notifications for the specified user.
         /// </summary>
         [HttpGet("AllNotifications")]
-        public async Task<IActionResult> GetAllNotifications([FromHeader(Name = "userId")] string userId ,[FromHeader(Name = "next")] string next   )
+        public async Task<IActionResult> GetAllNotifications([FromHeader(Name = "userId")] string userId, [FromHeader(Name = "next")] string next)
         {
-            var response = await _notificationService.GetAllNotifications(userId , next );
+            var response = await _notificationService.GetAllNotifications(userId, next);
             return HandlePaginatedResponse(response);
         }
 
         [HttpGet("FollowNotification")]
         public async Task<IActionResult> GetFollowNotification([FromHeader(Name = "userId")] string userId, [FromHeader(Name = "next")] string next)
         {
-            var response = await _notificationService.GetFollowNotification(userId , next );
+            var response = await _notificationService.GetFollowNotification(userId, next);
             return HandlePaginatedResponse(response);
         }
 
         [HttpGet("CommentsNotification")]
         public async Task<IActionResult> GetCommentsNotification([FromHeader(Name = "userId")] string userId, [FromHeader(Name = "next")] string next)
         {
-            var response = await _notificationService.GetCommentNotification(userId , next);
+            var response = await _notificationService.GetCommentNotification(userId, next);
             return HandlePaginatedResponse(response);
         }
 
@@ -105,14 +96,14 @@ namespace notification_service.Controllers
         }
 
         [HttpGet("UnreadFollowedNotifications")]
-        public async Task<IActionResult> GetUnreadFollowedNotifications([FromHeader(Name = "userId")] string userId , [FromHeader(Name = "next")] string next)
+        public async Task<IActionResult> GetUnreadFollowedNotifications([FromHeader(Name = "userId")] string userId, [FromHeader(Name = "next")] string next)
         {
             var response = await _notificationService.GetUnreadFollowedNotifications(userId, next);
             return HandlePaginatedResponse(response);
         }
 
         [HttpGet("UnreadMessageNotifications")]
-        public async Task<IActionResult> GetUnreadMessageNotifications([FromHeader(Name = "userId")] string userId , [FromHeader(Name = "next")] string next)
+        public async Task<IActionResult> GetUnreadMessageNotifications([FromHeader(Name = "userId")] string userId, [FromHeader(Name = "next")] string next)
         {
             var response = await _notificationService.GetUnreadMessageNotifications(userId, next);
             return HandlePaginatedResponse(response);
