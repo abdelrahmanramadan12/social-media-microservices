@@ -175,22 +175,9 @@ namespace Application.Services.Implementations
             List<PostResponseDTO> postList = new();
             bool hasMore = reactedPostsResult.HasMore;
             string nextCursor = reactedPostsResult.Next;
-            var fetchedPostIds = new HashSet<string>();
-
-            int iterationLimit = 5;
-            int iteration = 0;
-            while (postList.Count < MIN_POSTS_COUNT && hasMore && iteration < iterationLimit)
-            {
-                iteration++;
+            var fetchedPostIds = new HashSet<string>(reactedPostIds);
                 
-                var newPostIds = reactedPostIds.Except(fetchedPostIds).ToList();
-                if (!newPostIds.Any())
-                {
-                    reactedPostsResult = await _reactionServiceClient.GetPostsReactedByUserAsync(new GetPostsReactedByUserRequest
-                    {
-                        UserId = request.UserId,
-                        Next = nextCursor
-                    });
+
 
                     if (!reactedPostsResult.Success)
                     {
@@ -203,10 +190,9 @@ namespace Application.Services.Implementations
                     reactedPostIds = reactedPostsResult.Data;
                     hasMore = reactedPostsResult.HasMore;
                     nextCursor = reactedPostsResult.Next;
-                    continue;
-                }
+                
 
-                var postsResult = await _postServiceClient.GetPostListAsync(request.UserId, newPostIds);
+                var postsResult = await _postServiceClient.GetPostListAsync(request.UserId, reactedPostIds);
 
                 if (!postsResult.Success)
                 {
@@ -241,7 +227,7 @@ namespace Application.Services.Implementations
                     hasMore = reactedPostsResult.HasMore;
                     nextCursor = reactedPostsResult.Next;
                 }
-            }
+            
 
             if (!postList.Any())
             {

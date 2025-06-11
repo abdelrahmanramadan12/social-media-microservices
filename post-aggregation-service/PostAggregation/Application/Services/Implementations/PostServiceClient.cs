@@ -63,7 +63,6 @@ namespace Application.Services.Implementations
 
                 var response = await _httpClient.PostAsJsonAsync(GET_PROFILE_POSTS_ENDPOINT, request);
 
-
                 if (!response.IsSuccessStatusCode)
                 {
                     return new PaginationResponseWrapper<List<PostResponseDTO>>
@@ -73,6 +72,7 @@ namespace Application.Services.Implementations
                     };
                 }
 
+                var x = await response.Content.ReadAsStringAsync();
                 var result = await response.Content.ReadFromJsonAsync<PaginationResponseWrapper<List<PostResponseDTO>>>();
                 return result ?? new PaginationResponseWrapper<List<PostResponseDTO>>
                 {
@@ -109,7 +109,7 @@ namespace Application.Services.Implementations
                         ErrorType = ErrorType.InternalServerError
                     };
                 }
-
+                var x = await response.Content.ReadAsStringAsync();
                 var result = await response.Content.ReadFromJsonAsync<ResponseWrapper<List<PostResponseDTO>>>();
                 return result ?? new ResponseWrapper<List<PostResponseDTO>>
                 {
