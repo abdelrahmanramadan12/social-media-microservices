@@ -16,8 +16,9 @@ namespace Presentation.Controllers
         }
 
         [HttpPost("list")]
-        public async Task<IActionResult> GetCommentList([FromBody] GetPagedCommentRequest request)
+        public async Task<IActionResult> GetCommentList([FromHeader(Name ="userId")] string userId ,[FromBody] GetPagedCommentRequest request)
         {
+            request.UserId = userId;
             var response = await _commentAggregationService.GetCommentList(request);
             if (!response.Success)
             {

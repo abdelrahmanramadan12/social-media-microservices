@@ -5,26 +5,33 @@ using Microsoft.Extensions.Configuration;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 
+// Configure named HttpClients from configuration
+builder.Services.AddHttpClient<IReactionServiceClient, ReactionServiceClient>((sp, client) =>
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    client.BaseAddress = new Uri(config["Clients:Reaction"]);
+});
 
-// Register HttpClient and ReactionServiceClient
-builder.Services.AddHttpClient<IReactionServiceClient, ReactionServiceClient>();
-builder.Services.AddHttpClient<IProfileServiceClient, ProfileServiceClient>();
-builder.Services.AddHttpClient<ICommentServiceClient, CommentServiceClient>();
+builder.Services.AddHttpClient<IProfileServiceClient, ProfileServiceClient>((sp, client) =>
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    client.BaseAddress = new Uri(config["Clients:Profile"]);
+});
+
+builder.Services.AddHttpClient<ICommentServiceClient, CommentServiceClient>((sp, client) =>
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    client.BaseAddress = new Uri(config["Clients:Comment"]);
+});
+
+// Scoped service
 builder.Services.AddScoped<ICommentAggregationService, CommentAggregationService>();
-
 
 var app = builder.Build();
 
-
-
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();

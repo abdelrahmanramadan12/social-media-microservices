@@ -66,7 +66,7 @@ namespace Application.Services.Implementation
             
             var profileTask = _profileServiceClient.GetUsersByIdsAsync(new DTOs.Profile.GetUsersProfileByIdsRequest { UserIds = authorIds });
             var reactionTask = string.IsNullOrEmpty(request.Next) && string.IsNullOrEmpty(request.PostId) ? Task.FromResult<ResponseWrapper<List<string>>>(null) :
-                _reactionServiceClient.FilterCommentsReactedByUserAsync(new DTOs.Reaction.FilterCommentsReactedByUserRequest { CommentIds = commentIds, UserId = request.Next });
+                _reactionServiceClient.FilterCommentsReactedByUserAsync(new DTOs.Reaction.FilterCommentsReactedByUserRequest { CommentIds = commentIds, UserId = request.UserId });
 
             await Task.WhenAll(profileTask, reactionTask);
             var profileResult = await profileTask;
