@@ -1,6 +1,0 @@
-@TestWeb9_HostAddress = http://localhost:5166
-
-GET {{TestWeb9_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
