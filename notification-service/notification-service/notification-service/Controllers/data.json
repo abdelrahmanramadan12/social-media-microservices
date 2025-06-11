@@ -1,0 +1,145 @@
+[
+    {
+      "UserId": "user1",
+      "Followers": [
+        {
+          "Id": "follower1_1",
+          "UsersId": "user101",
+          "ProfileImageUrls": "https://example.com/profiles/user101.jpg",
+          "UserNames": "Alex Johnson",
+          "Seen": false,
+          "CreatedAt": "2024-05-20T08:00:00Z"
+        },
+        {
+          "Id": "follower1_2",
+          "UsersId": "user102",
+          "ProfileImageUrls": "https://example.com/profiles/user102.jpg",
+          "UserNames": "Maria Garcia",
+          "Seen": true,
+          "CreatedAt": "2024-05-18T14:30:00Z"
+        }
+      ]
+    },
+    {
+      "UserId": "user2",
+      "Followers": [
+        {
+          "Id": "follower2_1",
+          "UsersId": "user103",
+          "ProfileImageUrls": "https://example.com/profiles/user103.jpg",
+          "UserNames": "James Smith",
+          "Seen": false,
+          "CreatedAt": "2024-05-15T09:45:00Z"
+        }
+      ]
+    },
+    {
+      "UserId": "user3",
+      "Followers": [
+        {
+          "Id": "follower3_1",
+          "UsersId": "user104",
+          "ProfileImageUrls": "https://example.com/profiles/user104.jpg",
+          "UserNames": "Emma Wilson",
+          "Seen": true,
+          "CreatedAt": "2024-05-10T11:20:00Z"
+        },
+        {
+          "Id": "follower3_2",
+          "UsersId": "user105",
+          "ProfileImageUrls": "https://example.com/profiles/user105.jpg",
+          "UserNames": "Liam Brown",
+          "Seen": false,
+          "CreatedAt": "2024-05-05T16:10:00Z"
+        }
+      ]
+    },
+    {
+      "UserId": "user4",
+      "Followers": []
+    },
+    {
+      "UserId": "user5",
+      "Followers": [
+        {
+          "Id": "follower5_1",
+          "UsersId": "user106",
+          "ProfileImageUrls": "https://example.com/profiles/user106.jpg",
+          "UserNames": "Olivia Davis",
+          "Seen": true,
+          "CreatedAt": "2024-04-28T13:00:00Z"
+        },
+        {
+          "Id": "follower5_2",
+          "UsersId": "user107",
+          "ProfileImageUrls": "https://example.com/profiles/user107.jpg",
+          "UserNames": "Noah Martinez",
+          "Seen": false,
+          "CreatedAt": "2024-04-25T10:15:00Z"
+        },
+        {
+          "Id": "follower5_3",
+          "UsersId": "user108",
+          "ProfileImageUrls": "https://example.com/profiles/user108.jpg",
+          "UserNames": "Sophia Anderson",
+          "Seen": true,
+          "CreatedAt": "2024-04-20T18:30:00Z"
+        }
+      ]
+    },
+    {
+      "UserId": "user6",
+      "Followers": [
+        {
+          "Id": "follower6_1",
+          "UsersId": "user109",
+          "ProfileImageUrls": "https://example.com/profiles/user109.jpg",
+          "UserNames": "William Taylor",
+          "Seen": false,
+          "CreatedAt": "2024-04-15T12:00:00Z"
+        }
+      ]
+    },
+    {
+      "UserId": "user7",
+      "Followers": []
+    },
+    {
+      "UserId": "user8",
+      "Followers": [
+        {
+          "Id": "follower8_1",
+          "UsersId": "user110",
+          "ProfileImageUrls": "https://example.com/profiles/user110.jpg",
+          "UserNames": "Ava Thomas",
+          "Seen": true,
+          "CreatedAt": "2024-04-10T09:00:00Z"
+        }
+      ]
+    },
+    {
+      "UserId": "user9",
+      "Followers": [
+        {
+          "Id": "follower9_1",
+          "UsersId": "user111",
+          "ProfileImageUrls": "https://example.com/profiles/user111.jpg",
+          "UserNames": "Benjamin Lee",
+          "Seen": false,
+          "CreatedAt": "2024-04-05T14:45:00Z"
+        },
+        {
+          "Id": "follower9_2",
+          "UsersId": "user112",
+          "ProfileImageUrls": "https://example.com/profiles/user112.jpg",
+          "UserNames": "Mia Hernandez",
+          "Seen": true,
+          "CreatedAt": "2024-04-01T17:30:00Z"
+        }
+      ]
+    },
+    {
+      "UserId": "user10",
+      "Followers": []
+    }
+  ]

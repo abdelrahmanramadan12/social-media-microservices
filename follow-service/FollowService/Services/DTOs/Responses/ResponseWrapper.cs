@@ -1,0 +1,31 @@
+namespace Application.DTOs.Responses
+{
+    public enum ErrorType
+    {
+        None,
+        NotFound,
+        BadRequest,
+        UnAuthorized,
+        Validation,
+        InternalServerError
+    }
+
+    public class ResponseWrapper
+    {
+        public string? Message { get; set; }
+
+        private List<string> _errors = new List<string>();
+        public List<string> Errors
+        {
+            get => _errors;
+            set => _errors = value ?? new List<string>();
+        }
+        public bool Success => Errors == null || Errors.Count == 0;
+        public ErrorType ErrorType { get; set; } = ErrorType.None;
+    }
+
+    public class ResponseWrapper<T> : ResponseWrapper
+    {
+        public T Data { get; set; }
+    }
+}
