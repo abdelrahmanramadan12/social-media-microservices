@@ -31,6 +31,9 @@ public class MediaServiceClient : IMediaServiceClient
         // Add media type
         form.Add(new StringContent(request.MediaType.ToString()), "MediaType");
 
+        // Add usage category
+        form.Add(new StringContent(request.usageCategory.ToString()), "UsageCategory");
+
         var response = await _http.PostAsync(BASE_ROUTE, form, ct);
         response.EnsureSuccessStatusCode();
 
