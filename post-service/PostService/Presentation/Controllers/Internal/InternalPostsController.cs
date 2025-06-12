@@ -1,5 +1,4 @@
 using Application.DTOs;
-using Application.DTOs.Responses;
 using Application.IServices;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,10 +10,17 @@ namespace Presentation.Controllers.Internal
     {
         private readonly IPostService _postService;
         private readonly IEncryptionService _encryptionService;
-        public InternalPostsController(IPostService postSerive, IEncryptionService encryptionService)
+        private readonly int _defaultPageSize = 15;
+        private readonly IConfiguration _configuration;
+        public InternalPostsController(IPostService postSerive, IEncryptionService encryptionService, IConfiguration configuration)
         {
-            this._postService = postSerive;
-            this._encryptionService = encryptionService;
+            _postService = postSerive;
+            _encryptionService = encryptionService;
+            _configuration = configuration;
+            if (_configuration != null && _configuration["Pagination:DefaultPageSize"] != null)
+            {
+                _defaultPageSize = int.Parse(_configuration["Pagination:DefaultPageSize"]);
+            }
         }
         // Endpoints
         [HttpGet("{postId}")]
@@ -27,56 +33,26 @@ namespace Presentation.Controllers.Internal
         [HttpPost("user")]
         public async Task<IActionResult> GetProfilePostList([FromBody] GetProfilePostListRequest request)
         {
-            string decryptedCursor = null!;
-            if (!string.IsNullOrWhiteSpace(request.Next))
-            {
-                try
-                {
-                    decryptedCursor = _encryptionService.Decrypt(request.Next);
-                }
-                catch
-                {
-                    decryptedCursor = null!;
-                }
-            }
 
-            const int pageSize = 15;
-            var res = await _postService.GetProfilePostListAsync(request.UserId, request.ProfileUserId, pageSize, decryptedCursor);
+            var res = await _postService.GetProfilePostListAsync(request.UserId, request.ProfileUserId, _defaultPageSize, request.Next);
 
             if (!res.Success)
-                return HandleErrorResponse(res);
-
-            if (res.Data == null || !res.Data.Any())
             {
-                return Ok(new { data = new List<object>(), next = (string?)null, message = res.Message ?? "No posts found" });
+                return HandlePaginationErrorResponse<List<PostResponseDTO>>(res);
             }
-
-            var formattedList = res.Data.Select(post => FormatPostData(post)).ToList();
-            string nextCursor = null;
-
-            // If we got exactly pageSize items, there might be more posts
-            if (res.Data.Count == pageSize)
-            {
-                var lastPost = res.Data[^1];
-                try
-                {
-                    nextCursor = _encryptionService.Encrypt(lastPost.PostId);
-                }
-                catch
-                {
-                    // If encryption fails, treat it as if there are no more posts
-                    nextCursor = null;
-                }
-            }
-
-            return Ok(new { data = formattedList, next = nextCursor, message = res.Message ?? "Posts retrieved successfully" });
-        }
+            return HandlePaginationResponse<List<PostResponseDTO>>(res);
+       }
 
         [HttpPost("list")]
         public async Task<IActionResult> GetPostList([FromBody] GetPostListRequest request)
         {
             var res = await _postService.GetPostListAsync(request.UserId, request.PostIds);
-            return HandleResponse(res);
+            if (!res.Success)
+            {
+                return HandleErrorResponse<List<PostResponseDTO>>(res);
+            }
+            return HandleResponse<List<PostResponseDTO>>(res);
+
         }
     }
 }

@@ -7,7 +7,7 @@ namespace Application.IServices
     {
         // GetPost 
         public Task<ResponseWrapper<PostResponseDTO>> GetPostByIdAsync(string postId);
-        public Task<ResponseWrapper<List<PostResponseDTO>>> GetProfilePostListAsync(string userId, string targetUserId, int pageSize, string cursorPostId);
+        public Task<PaginationResponseWrapper<List<PostResponseDTO>>> GetProfilePostListAsync(string userId, string targetUserId, int pageSize, string cursorPostId);
         public Task<ResponseWrapper<List<PostResponseDTO>>> GetPostListAsync(string userId, List<string> PostIds);
         public Task<ResponseWrapper<PostResponseDTO>> AddPostAsync(string userId, PostInputDTO postInputDto);
         public Task<ResponseWrapper<PostResponseDTO>> UpdatePostAsync(string userId, PostInputDTO postInputDto);

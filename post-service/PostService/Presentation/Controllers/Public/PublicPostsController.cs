@@ -21,17 +21,21 @@ namespace Presentation.Controllers.Public
         {
             var res = await _postService.AddPostAsync(userId, postDto);
             if (!res.Success)
-                return HandleErrorResponse(res);
-
-            return Created($"api/public/post" +
-                $"/{res.Data.PostId}", new { data = FormatPostData(res.Data), message = res.Message });
+            {
+                return HandleErrorResponse<PostResponseDTO>(res);
+            }
+            return HandleResponse<PostResponseDTO>(res);
         }
 
         [HttpPut]
         public async Task<IActionResult> UpdatePost([FromForm] PostInputDTO postDto, [FromHeader(Name = "userId")] string userId)
         {
             var res = await _postService.UpdatePostAsync(userId, postDto);
-            return HandleResponse(res);
+            if (!res.Success)
+            {
+                return HandleErrorResponse<PostResponseDTO>(res);
+            }
+            return HandleResponse<PostResponseDTO>(res);
         }
 
         [HttpDelete]
@@ -39,8 +43,10 @@ namespace Presentation.Controllers.Public
         {
             var res = await _postService.DeletePostAsync(userId, request.PostId);
             if (!res.Success)
-                return HandleErrorResponse(res);
-            return NoContent();
+            {
+                return HandleErrorResponse<string>(res);
+            }
+            return HandleResponse<string>(res);
         }
     }
 }

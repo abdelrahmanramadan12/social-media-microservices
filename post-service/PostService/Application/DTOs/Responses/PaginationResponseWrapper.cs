@@ -1,24 +1,16 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
 namespace Application.DTOs.Responses
 {
-    public enum ErrorType
+    public class PaginationResponseWrapper<T>
     {
-        None,
-        NotFound,
-        BadRequest,
-        UnAuthorized,
-        Validation,
-        InternalServerError
-    }
-
-    public class PaginationMetadata
-    {
-        public string? Next { get; set; }
-        public bool HasMore => !string.IsNullOrEmpty(Next);
-    }
-
-    public class ResponseWrapper<T>
-    {
-        public T Data { get; set; }
+        public T Data { get; set; } = default!;
+        public bool HasMore { get; set; }
+        public string Next { get; set; } = string.Empty;
         public string Message { get; set; }
 
         private List<string> _errors = new List<string>();

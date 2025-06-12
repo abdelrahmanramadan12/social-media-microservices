@@ -168,10 +168,10 @@ namespace Application.Services
             return response;
         }
 
-        public async Task<ResponseWrapper<List<PostResponseDTO>>> GetProfilePostListAsync(string userId, string targetUserId, int pageSize, string cursorPostId)
+        public async Task<PaginationResponseWrapper<List<PostResponseDTO>>> GetProfilePostListAsync(string userId, string targetUserId, int pageSize, string cursorPostId)
         {
-            var response = new ResponseWrapper<List<PostResponseDTO>>();
-            List<Post> profilePosts = await _postRepository.GetUserPostsAsync(targetUserId, pageSize, cursorPostId);
+            var response = new PaginationResponseWrapper<List<PostResponseDTO>>();
+            List<Post> profilePosts = await _postRepository.GetUserPostsAsync(targetUserId, pageSize + 1 , cursorPostId);
             if (profilePosts == null || profilePosts.Count() <= 0)
             {
                 response.Data = new List<PostResponseDTO>();
@@ -181,6 +181,13 @@ namespace Application.Services
             profilePosts = profilePosts.Where(post => post.Privacy != Privacy.OnlyMe || post.AuthorId == userId).ToList();
             response.Data = _helperService.AgregatePostResponseList(profilePosts);
             response.Message = "Posts retrieved successfully";
+
+            if (response.Data != null && response.Data.Count() > pageSize)
+            {
+                response.Next = response.Data.LastOrDefault().PostId;
+                response.HasMore = !string.IsNullOrEmpty(response.Next);
+            }
+            response.HasMore = !string.IsNullOrEmpty(response.Next);
             return response;
         }
 

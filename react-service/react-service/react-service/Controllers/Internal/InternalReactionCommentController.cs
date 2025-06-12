@@ -20,9 +20,9 @@ namespace react_service.Controllers.Internal
         {
             _reactionService = reactionService;
             _configuration = configuration;
-            if (_configuration != null && _configuration["DefaultPageSize"] != null)
+            if (_configuration != null && _configuration["Pagination:DefaultPageSize"] != null)
             {
-                _defaultPageSize = int.Parse(_configuration["DefaultPageSize"]);
+                _defaultPageSize = int.Parse(_configuration["Pagination:DefaultPageSize"]);
             }
         }
 

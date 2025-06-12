@@ -10,86 +10,52 @@ namespace Presentation.Controllers
     {
         protected ActionResult HandleErrorResponse<T>(ResponseWrapper<T> response)
         {
-            if (response == null)
-            {
-                return StatusCode(500, new { errors = new[] { "An unexpected error occurred" } });
-            }
-
+            var errorPayload = new { errors = response.Errors };
             return response.ErrorType switch
             {
-                ErrorType.NotFound => NotFound(new { errors = response.Errors }),
-                ErrorType.BadRequest => BadRequest(new { errors = response.Errors }),
-                ErrorType.UnAuthorized => Unauthorized(new { errors = response.Errors }),
-                ErrorType.Validation => UnprocessableEntity(new { errors = response.Errors }),
-                ErrorType.InternalServerError => StatusCode(500, new { errors = response.Errors }),
-                _ => BadRequest(new { errors = response.Errors })
+                ErrorType.NotFound => NotFound(errorPayload),
+                ErrorType.BadRequest => BadRequest(errorPayload),
+                ErrorType.UnAuthorized => Unauthorized(errorPayload),
+                ErrorType.Validation => UnprocessableEntity(errorPayload),
+                ErrorType.InternalServerError => StatusCode(500, errorPayload),
+                _ => BadRequest(errorPayload)
             };
         }
 
-        protected object FormatPostData(PostResponseDTO post)
+        protected ActionResult HandlePaginationErrorResponse<T>(PaginationResponseWrapper<T> response)
         {
-            return new
+            var errorPayload = new { errors = response.Errors };
+            return response.ErrorType switch
             {
-                post.PostId,
-                post.AuthorId,
-                post.PostContent,
-                post.Privacy,
-                media = post.Media,
-                post.HasMedia,
-                post.CreatedAt,
-                post.IsEdited,
-                post.NumberOfLikes,
-                post.NumberOfComments
+                ErrorType.NotFound => NotFound(errorPayload),
+                ErrorType.BadRequest => BadRequest(errorPayload),
+                ErrorType.UnAuthorized => Unauthorized(errorPayload),
+                ErrorType.Validation => UnprocessableEntity(errorPayload),
+                ErrorType.InternalServerError => StatusCode(500, errorPayload),
+                _ => BadRequest(errorPayload)
             };
+        }
+
+        protected ActionResult HandlePaginationResponse<T>(PaginationResponseWrapper<T> response)
+        {
+            var paginationHeader = new
+            {
+                next = response.Next,
+                hasMore = response.HasMore,
+                data = response.Data,
+                message = response.Message
+            };
+            return Ok(paginationHeader);
         }
 
         protected ActionResult HandleResponse<T>(ResponseWrapper<T> response)
         {
-            if (!response.Success)
-            {
-                return HandleErrorResponse(response);
-            }
-
-            if (response.Data is PostResponseDTO postData)
-            {
-                return Ok(new
-                {
-                    data = FormatPostData(postData),
-                    message = response.Message
-                });
-            }
-            else if (response.Data is List<PostResponseDTO> postList)
-            {
-                var formattedList = postList.Select(post => FormatPostData(post)).ToList();
-
-                return Ok(new
-                {
-                    data = formattedList,
-                    message = response.Message
-                });
-            }
-
-            return Ok(new
+            var responseObj = new
             {
                 data = response.Data,
                 message = response.Message
-            });
-        }
-
-        protected ActionResult HandlePaginatedResponse<T>(ResponseWrapper<T> response)
-        {
-            if (!response.Success)
-            {
-                return HandleErrorResponse(response);
-            }
-
-            return Ok(new
-            {
-                data = response.Data,
-                next = response?.Pagination?.Next,
-                hasMore = response?.Pagination?.HasMore,
-                message = response?.Message
-            });
+            };
+            return Ok(responseObj);
         }
     }
 }
