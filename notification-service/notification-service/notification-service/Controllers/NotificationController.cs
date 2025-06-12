@@ -153,6 +153,14 @@ namespace notification_service.Controllers
             var response = await _notificationService.MarkNotificationsMessagesAsRead(userId, messageId);
             return HandleResponse(response);
         }
+        [HttpPost("mark-notifications-comment-as-read")]
+        public async Task<IActionResult> MarkNotificationsCommentAsRead(
+            [FromHeader(Name = "userId")] string userId,
+            [FromQuery] string commentId)
+        {
+            var response = await _notificationService.MarkNotificationsCommentAsRead(userId, commentId);
+            return HandleResponse(response);
+        }
         #endregion
 
         [HttpGet("get-notifications-types")]
