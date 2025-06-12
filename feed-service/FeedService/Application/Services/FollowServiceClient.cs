@@ -22,9 +22,9 @@ namespace Application.Services
         {
             try
             {
-                var response = await _httpClient.PostAsync(
+                var response = await _httpClient.PostAsJsonAsync(
                     $"/api/internal/follow/list-followers",
-                    new StringContent(JsonSerializer.Serialize(new ListFollowRequest() { UserId = userId }), Encoding.UTF8, "application/json"));
+                    new ListFollowRequest() { UserId = userId });
 
                 if (!response.IsSuccessStatusCode)
                 {
