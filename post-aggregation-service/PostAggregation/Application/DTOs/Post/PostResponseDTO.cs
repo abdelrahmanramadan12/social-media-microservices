@@ -26,7 +26,7 @@ namespace Application.DTOs.Post
         public string PostContent { get; set; }
         public Privacy Privacy { get; set; }
         public List<MediaDTO> Media { get; set; } = new List<MediaDTO>();
-        public bool HasMedia => Media.Count > 0;
+        public bool HasMedia { get; set; }
         public DateTime CreatedAt { get; set; }
         public bool IsEdited { get; set; }
         public int NumberOfLikes { get; set; }

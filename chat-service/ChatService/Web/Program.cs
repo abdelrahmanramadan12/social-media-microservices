@@ -2,7 +2,6 @@ using Application.Abstractions;
 using Application.Services;
 using Infrastructure.Caches;
 using Infrastructure.Repositories;
-using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using Scalar.AspNetCore;
 using StackExchange.Redis;
@@ -61,8 +60,8 @@ namespace Web
                 client.Timeout = TimeSpan.FromSeconds(30);
             });
             builder.Services.AddScoped<IRealtimeMessenger, RealtimeMessenger>();
-            builder.Services.AddScoped<IChatCommandService,  ChatCommandService>();
-            builder.Services.AddScoped<IChatQueryService,  ChatQueryService>();
+            builder.Services.AddScoped<IChatCommandService, ChatCommandService>();
+            builder.Services.AddScoped<IChatQueryService, ChatQueryService>();
 
             var app = builder.Build();
 

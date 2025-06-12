@@ -1,4 +1,3 @@
-using Application.Configuration;
 using Application.DTOs;
 using Application.DTOs.Post;
 using Application.Services.Interfaces;
@@ -16,7 +15,7 @@ namespace Application.Services.Implementations
         public PostServiceClient(HttpClient httpClient)
         {
             _httpClient = httpClient;
-         
+
         }
 
         public async Task<ResponseWrapper<PostResponseDTO>> GetPostByIdAsync(string postId)
@@ -109,7 +108,6 @@ namespace Application.Services.Implementations
                         ErrorType = ErrorType.InternalServerError
                     };
                 }
-                var x = await response.Content.ReadAsStringAsync();
                 var result = await response.Content.ReadFromJsonAsync<ResponseWrapper<List<PostResponseDTO>>>();
                 return result ?? new ResponseWrapper<List<PostResponseDTO>>
                 {

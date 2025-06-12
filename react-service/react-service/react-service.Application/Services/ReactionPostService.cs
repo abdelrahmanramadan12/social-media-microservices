@@ -22,7 +22,7 @@ namespace react_service.Application.Services
         private readonly IQueuePublisher<ReactionEventNoti> reationNotiPublisher;
 
         public ReactionPostService(IPostReactionRepository reactionRepository, IPostRepository postRepository, IMapper mapper, IOptions<PaginationSettings> paginationSetting
-            , IQueuePublisher<ReactionEvent> reactionPublisher , IQueuePublisher<ReactionEventNoti> reationNotiPublisher)
+            , IQueuePublisher<ReactionEvent> reactionPublisher, IQueuePublisher<ReactionEventNoti> reationNotiPublisher)
         {
             this.reactionRepository = reactionRepository;
             this.postRepository = postRepository;
@@ -114,7 +114,7 @@ namespace react_service.Application.Services
                 EventType = ReactionEventType.Like
             });
 
-            if(res ==  "Created")
+            if (res == "Created")
             {
                 response.Message = "Reaction added successfully.";
                 // Publish ReactionEventNoti
@@ -135,13 +135,13 @@ namespace react_service.Application.Services
                     ReactedOn = ReactedEntity.Post
                 });
             }
-      
+
             else
             {
                 response.Errors.Add("Reaction Deleted successfully");
                 response.ErrorType = ErrorType.InternalServerError;
                 return response;
-               
+
             }
             response.Data = true;
 
@@ -208,8 +208,8 @@ namespace react_service.Application.Services
             string lastSeenId = nextReactIdHash ?? "";
             var reactionList = (await reactionRepository.GetPostsReactedByUserAsync(userId, lastSeenId)).ToList();
             bool hasMore = reactionList.Count > (paginationSetting.Value.DefaultPageSize - 1);
-            var lastId = hasMore ? reactionList.Last().Id : null;
-            response.Data = reactionList.Select(r => r.Id).ToList();
+            var lastId = hasMore ? reactionList.Last().PostId : null;
+            response.Data = reactionList.Select(r => r.PostId).ToList();
             response.HasMore = hasMore;
             response.Next = lastId;
 

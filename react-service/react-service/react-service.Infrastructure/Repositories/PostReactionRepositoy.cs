@@ -89,7 +89,7 @@ namespace react_service.Infrastructure.Repositories
 
             return await _collection
                 .Find(filter)
-                .SortByDescending(r => r.CreatedAt)
+                .SortByDescending(r => r.PostId)
                 .Limit(PaginationSetting.Value.DefaultPageSize)
                 .ToListAsync();
         }

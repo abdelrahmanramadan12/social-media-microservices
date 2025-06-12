@@ -15,9 +15,9 @@ namespace Web.Controllers
             _feedQueryService = feedQueryService;
         }
 
-        [HttpGet("timeline/{userId}")]
+        [HttpGet("timeline")]
         [ProducesResponseType(typeof(List<Post>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetTimeline(string userId)
+        public async Task<IActionResult> GetTimeline([FromHeader] string userId)
         {
             var res = await _feedQueryService.GetUserTimeline(userId);
             return Ok(res);

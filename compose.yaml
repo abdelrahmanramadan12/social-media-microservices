@@ -41,14 +41,14 @@ services:
       - rabbit
     restart: always
 
-  # react-aggregate:
-  #   image: miinamaaher/thryve-react-aggregate:latest
-  #   ports:
-  #     - "7078:8080"
-  #     - "7079:8081"
-  #   depends_on:
-  #     - react
-  #     - profile
+  react-aggregate:
+    image: miinamaaher/thryve-react-aggregate:latest
+    ports:
+      - "7078:8080"
+      - "7079:8081"
+    depends_on:
+      - react
+      - profile
   
   post:
     image: miinamaaher/thryve-post:latest
@@ -60,16 +60,16 @@ services:
       - rabbit
     restart: always
 
-  # post-aggregate:
-  #   image: miinamaaher/thryve-post-aggregate:latest
-  #   ports:
-  #     - "7082:8080"
-  #     - "7083:8081"
-  #   depends_on:
-  #     - post
-  #     - profile
-  #     - follow
-  #     - react
+  post-aggregate:
+    image: miinamaaher/thryve-post-aggregate:latest
+    ports:
+      - "7082:8080"
+      - "7083:8081"
+    depends_on:
+      - post
+      - profile
+      - follow
+      - react
   
   follow:
     image: miinamaaher/thryve-follow:latest
@@ -110,11 +110,11 @@ services:
       - "7092:8080"
       - "7093:8081"
 
-#   gateway:
-#     image: miinamaaher/thryve-gateway:latest
-#     ports:
-#       - "7094:8080"
-#       - "7095:8081"
+  gateway:
+    image: miinamaaher/thryve-gateway:latest
+    ports:
+      - "7094:8080"
+      - "7095:8081"
 
   feed:
     image: miinamaaher/thryve-feed:latest
