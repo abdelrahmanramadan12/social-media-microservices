@@ -13,6 +13,30 @@ namespace Infrastructure.Repositories
         public FeedRepository(IMongoDatabase db)
         {
             _feeds = db.GetCollection<Feed>("feeds");
+            EnsureIndexes();
+        }
+
+        public void EnsureIndexes()
+        {
+            var indexModels = new List<CreateIndexModel<Feed>>
+            {
+                // Index on userId
+                new CreateIndexModel<Feed>(
+                    Builders<Feed>.IndexKeys.Ascending(f => f.UserId),
+                    new CreateIndexOptions { Name = "idx_userId" }),
+
+                // Index on timeline.postId
+                new CreateIndexModel<Feed>(
+                    Builders<Feed>.IndexKeys.Ascending("timeline.postId"),
+                    new CreateIndexOptions { Name = "idx_timeline_postId" }),
+
+                // Index on timeline.authorProfile.id
+                new CreateIndexModel<Feed>(
+                    Builders<Feed>.IndexKeys.Ascending("timeline.authorProfile.id"),
+                    new CreateIndexOptions { Name = "idx_timeline_authorId" })
+            };
+
+            _feeds.Indexes.CreateMany(indexModels);
         }
 
         public async Task<Response<Feed>> FindUserFeedAsync(string userId)
