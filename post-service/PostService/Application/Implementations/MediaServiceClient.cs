@@ -57,6 +57,9 @@ public class MediaServiceClient : IMediaServiceClient
         // Add media type
         form.Add(new StringContent(mediaUploadRequest.MediaType.ToString()), "MediaType");
 
+        // Add usage category
+        form.Add(new StringContent(mediaUploadRequest.usageCategory.ToString()), "UsageCategory");
+
         // Add current URLs
         foreach (var url in currentUrls)
         {
