@@ -84,7 +84,7 @@ namespace Application.Services.Listeners
             };
 
             _channel.BasicConsumeAsync(
-                queue: "FollowQueue",
+                queue: _settings.QueueName,
                 autoAck: false,
                 consumer: consumer);
 
