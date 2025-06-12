@@ -23,7 +23,7 @@ namespace Application.Services
             try
             {
                 var response = await _httpClient.PostAsJsonAsync(
-                    $"/api/internal/follow/list-followers",
+                    "/api/internal/follow/list-followers",
                     new ListFollowRequest() { UserId = userId });
 
                 if (!response.IsSuccessStatusCode)
@@ -31,24 +31,24 @@ namespace Application.Services
                     return new ResponseWrapper<List<string>>()
                     {
                         Data = null,
-                        Errors = [$"Follow service returned status code {(int)response.StatusCode}: {response.ReasonPhrase}"]
+                        Errors = [$"Follow service returned status code {response.StatusCode}: {response.ReasonPhrase}"]
                     };
                 }
 
-                var result = await response.Content.ReadFromJsonAsync<List<string> >();
+                var result = await response.Content.ReadFromJsonAsync<ResponseWrapper<List<string>>>();
 
-                if (result == null)
+                if (result == null || result.Data == null)
                 {
                     return new ResponseWrapper<List<string> >()
                     {
                         Data = null,
-                        Errors = [$"Follow service returned a null or invalid response"]
+                        Errors = ["Follow service returned a null or invalid response"]
                     };
                 }
 
                 return new ResponseWrapper<List<string> >()
                 {
-                    Data = result,
+                    Data = result.Data,
                     Errors = []
                 };
             }

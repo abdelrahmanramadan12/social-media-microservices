@@ -10,17 +10,10 @@ namespace Application.DTOs.Responses
         InternalServerError
     }
 
-    public class PaginationMetadata
-    {
-        public string? Next { get; set; }
-        public bool HasMore => !string.IsNullOrEmpty(Next);
-    }
-
     public class ResponseWrapper<T>
     {
         public T Data { get; set; }
         public string Message { get; set; }
-        public PaginationMetadata? Pagination { get; set; }
 
         private List<string> _errors = new List<string>();
         public List<string> Errors

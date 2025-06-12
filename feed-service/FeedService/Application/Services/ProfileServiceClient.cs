@@ -30,9 +30,9 @@ namespace Application.Services
                     };
                 }
 
-                var result = await response.Content.ReadFromJsonAsync<ProfileDTO>();
+                var result = await response.Content.ReadFromJsonAsync<ResponseWrapper<ProfileDTO>>();
 
-                if (result == null)
+                if (result == null || result.Data == null)
                 {
                     return new ResponseWrapper<ProfileDTO>()
                     {
@@ -43,7 +43,7 @@ namespace Application.Services
 
                 return new ResponseWrapper<ProfileDTO>()
                 {
-                    Data = result,
+                    Data = result.Data,
                     Errors = []
                 };
             }

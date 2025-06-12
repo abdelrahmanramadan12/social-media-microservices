@@ -16,9 +16,7 @@ namespace Infrastructure.Data
 
             modelBuilder.Entity<Profile>(entity =>
             {
-                // Index on UserId
-                entity.HasIndex(p => p.UserId);
-                // Unique constraint on UserName
+                entity.HasIndex(p => p.UserId).IsUnique();
                 entity.HasIndex(p => p.UserName).IsUnique();
             });
         }
