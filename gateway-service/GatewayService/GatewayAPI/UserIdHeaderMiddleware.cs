@@ -25,7 +25,7 @@ public class UserIdHeaderMiddleware
             try
             {
                 using var httpClient = new HttpClient();
-                var verifyRequest = new HttpRequestMessage(HttpMethod.Get, "http://sm-auth-service.runasp.net/verify");
+                var verifyRequest = new HttpRequestMessage(HttpMethod.Get, "http://auth:8080/verify");
                 verifyRequest.Headers.Add("Authorization", $"Bearer {token}");
                 var verifyResponse = await httpClient.SendAsync(verifyRequest);
                 if (!verifyResponse.IsSuccessStatusCode)

@@ -115,6 +115,21 @@ services:
     ports:
       - "7094:8080"
       - "7095:8081"
+    depends_on:
+      - chat
+      - comment
+      - comment-aggregate
+      - react
+      - react-aggregate
+      - post
+      - post-aggregate
+      - follow
+      - follow-aggregate
+      - media
+      - profile
+      - auth
+      - feed
+      - notification
 
   feed:
     image: miinamaaher/thryve-feed:latest
