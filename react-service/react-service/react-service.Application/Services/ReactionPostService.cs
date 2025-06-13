@@ -1,4 +1,3 @@
-using AutoMapper;
 using Microsoft.Extensions.Options;
 using react_service.Application.DTO;
 using react_service.Application.DTO.Reaction.Request.Post;
@@ -16,17 +15,15 @@ namespace react_service.Application.Services
         // private readonly HttpClient _httpClient; // Remove or comment out this unused field
         private readonly IPostReactionRepository reactionRepository;
         private readonly IPostRepository postRepository;
-        private readonly IMapper mapper;
         private readonly IOptions<PaginationSettings> paginationSetting;
         private readonly IQueuePublisher<ReactionEvent> reactionPublisher;
         private readonly IQueuePublisher<ReactionEventNoti> reationNotiPublisher;
 
-        public ReactionPostService(IPostReactionRepository reactionRepository, IPostRepository postRepository, IMapper mapper, IOptions<PaginationSettings> paginationSetting
+        public ReactionPostService(IPostReactionRepository reactionRepository, IPostRepository postRepository, IOptions<PaginationSettings> paginationSetting
             , IQueuePublisher<ReactionEvent> reactionPublisher, IQueuePublisher<ReactionEventNoti> reationNotiPublisher)
         {
             this.reactionRepository = reactionRepository;
             this.postRepository = postRepository;
-            this.mapper = mapper;
             this.paginationSetting = paginationSetting;
             this.reactionPublisher = reactionPublisher;
             this.reationNotiPublisher = reationNotiPublisher;
@@ -103,8 +100,15 @@ namespace react_service.Application.Services
             }
             var post = await postRepository.GetPostAsync(reaction.PostId);
 
-            var reactionObj = mapper.Map<PostReaction>(reaction);
-            reactionObj.UserId = userId;
+            var reactionObj = new PostReaction()
+            {
+                PostId = reaction.PostId,
+                ReactionType = reaction.ReactionType,
+                CreatedAt = DateTime.UtcNow,
+                IsDeleted = false,
+                UserId = userId
+            };
+
             var res = await reactionRepository.AddReactionAsync(reactionObj);
             // Publish ReactionEvent for add
             await reactionPublisher.PublishAsync(new ReactionEvent

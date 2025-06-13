@@ -1,4 +1,3 @@
-using AutoMapper;
 using Microsoft.Extensions.Options;
 using react_service.Application.DTO;
 using react_service.Application.DTO.Reaction.Request.Comment;
@@ -15,20 +14,18 @@ namespace react_service.Application.Services
     {
         private readonly ICommentReactionRepository reactionRepository;
         private readonly ICommentRepository commentRepository;
-        private readonly IMapper mapper;
         private readonly IOptions<PaginationSettings> paginationSetting;
         private readonly IQueuePublisher<CommentReactionEvent> reactionPublisher;
         private readonly IQueuePublisher<ReactionEventNoti> reationNotiPublisher;
 
-        public ReactionCommentService(ICommentReactionRepository reactionRepository, ICommentRepository commentRepository, IMapper mapper, IOptions<PaginationSettings> paginationSetting
-            , IQueuePublisher<CommentReactionEvent> reactionPublisher , IQueuePublisher<ReactionEventNoti> reactionNotiPublisher)
+        public ReactionCommentService(ICommentReactionRepository reactionRepository, ICommentRepository commentRepository, IOptions<PaginationSettings> paginationSetting
+            , IQueuePublisher<CommentReactionEvent> reactionPublisher, IQueuePublisher<ReactionEventNoti> reactionNotiPublisher)
         {
             this.reactionRepository = reactionRepository;
             this.commentRepository = commentRepository;
-            this.mapper = mapper;
             this.paginationSetting = paginationSetting;
             this.reactionPublisher = reactionPublisher;
-            this.reationNotiPublisher = reactionNotiPublisher;  
+            this.reationNotiPublisher = reactionNotiPublisher;
         }
 
 
@@ -100,10 +97,16 @@ namespace react_service.Application.Services
             }
             var comment = await commentRepository.GetCommentAsync(reaction.CommentId);
 
-            var reactionObj = mapper.Map<CommentReaction>(reaction);
-            reactionObj.UserId = userId;
+            var reactionObj = new CommentReaction()
+            {
+                CommentId = reaction.CommentId,
+                CreatedAt = DateTime.UtcNow,
+                ReactionType = reaction.ReactionType,
+                UserId = userId,
+            };
+
             await reactionRepository.AddReactionAsync(reactionObj);
-            var commentObj  = await commentRepository.GetCommentByIdAsync(reaction.CommentId);
+            var commentObj = await commentRepository.GetCommentByIdAsync(reaction.CommentId);
 
             // Publish ReactionEvent for add
             await reactionPublisher.PublishAsync(new CommentReactionEvent

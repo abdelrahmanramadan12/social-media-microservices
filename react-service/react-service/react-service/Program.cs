@@ -6,7 +6,6 @@ using react_service.Application.Events;
 using react_service.Application.Interfaces.Listeners;
 using react_service.Application.Interfaces.Publishers;
 using react_service.Application.Interfaces.Repositories;
-using react_service.Application.Mapper;
 using react_service.Application.Pagination;
 using react_service.Infrastructure;
 using react_service.Infrastructure.Mongodb;
@@ -29,7 +28,6 @@ builder.Services.Configure<PaginationSettings>(
 
 builder.Services.AddSingleton(sp =>
     sp.GetRequiredService<IOptions<PaginationSettings>>().Value);
-builder.Services.AddAutoMapper(typeof(ReactionPostProfile));
 
 // Register MongoDB clients for different databases
 builder.Services.AddSingleton<IMongoClient>(sp =>
