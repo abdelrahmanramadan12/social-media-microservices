@@ -83,12 +83,12 @@ namespace Infrastructure.Repositories
             );
 
             var update = Builders<Feed>.Update
-                .Inc("Timeline.$[post].CommentsCount", number);
+                .Inc("timeline.$[post].commentsCount", number);
 
             var arrayFilter = new[]
             {
                 new BsonDocumentArrayFilterDefinition<BsonDocument>(
-                    new BsonDocument("post.PostId", postId)
+                    new BsonDocument("post.postId", postId)
                 )
             };
 
@@ -107,12 +107,12 @@ namespace Infrastructure.Repositories
             );
 
             var update = Builders<Feed>.Update
-                .Inc("Timeline.$[post].ReactsCount", number);
+                .Inc("timeline.$[post].reactsCount", number);
 
             var arrayFilter = new[]
             {
                 new BsonDocumentArrayFilterDefinition<BsonDocument>(
-                    new BsonDocument("post.PostId", postId)
+                    new BsonDocument("post.postId", postId)
                 )
             };
 
@@ -191,12 +191,12 @@ namespace Infrastructure.Repositories
             );
 
             var update = Builders<Feed>.Update
-                .Set("Timeline.$[post].IsLiked", liked);
+                .Set("timeline.$[post].isLiked", liked);
 
             var arrayFilter = new[]
             {
                 new BsonDocumentArrayFilterDefinition<BsonDocument>(
-                    new BsonDocument("post.PostId", postId)
+                    new BsonDocument("post.postId", postId)
                 )
             };
 
@@ -215,12 +215,12 @@ namespace Infrastructure.Repositories
             );
 
             var update = Builders<Feed>.Update
-                .Set("Timeline.$[post].AuthorProfile", authorProfile);
+                .Set("timeline.$[post].authorProfile", authorProfile);
 
             var arrayFilter = new[]
             {
                 new BsonDocumentArrayFilterDefinition<BsonDocument>(
-                    new BsonDocument("post.AuthorProfile.Id", authorProfile.Id)
+                    new BsonDocument("post.authorProfile.id", authorProfile.Id)
                 )
             };
 
@@ -239,15 +239,15 @@ namespace Infrastructure.Repositories
             );
 
             var update = Builders<Feed>.Update
-                .Set("Timeline.$[post].Content", post.Content)
-                .Set("Timeline.$[post].IsEdited", post.IsEdited)
-                .Set("Timeline.$[post].MediaList", post.MediaList)
-                .Set("Timeline.$[post].Privacy", post.Privacy);
+                .Set("Timeline.$[post].content", post.Content)
+                .Set("Timeline.$[post].isEdited", post.IsEdited)
+                .Set("Timeline.$[post].mediaList", post.MediaList)
+                .Set("Timeline.$[post].privacy", post.Privacy);
 
             var arrayFilter = new[]
             {
                 new BsonDocumentArrayFilterDefinition<BsonDocument>(
-                    new BsonDocument("post.PostId", post.PostId)
+                    new BsonDocument("post.postId", post.PostId)
                 )
             };
 
