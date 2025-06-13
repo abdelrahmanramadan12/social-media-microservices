@@ -57,7 +57,7 @@ namespace Application.Services.Listeners
                 {
                     var commentEvent = JsonSerializer.Deserialize<CommentEvent>(messageJson);
 
-                    if (commentEvent == null || string.IsNullOrEmpty(commentEvent.Id))
+                    if (commentEvent == null || string.IsNullOrEmpty(commentEvent.CommentId))
                     {
                         Console.WriteLine("Invalid CommentEvent received.");
                         return;
@@ -66,9 +66,9 @@ namespace Application.Services.Listeners
                     using var scope = _scopeFactory.CreateScope();
                     var commentService = scope.ServiceProvider.GetRequiredService<ICommentNotificationService>();
 
-                    if (commentEvent.CommentType == CommentType.ADDED)
+                    if (commentEvent.EventType == EventType.Create)
                         await commentService.UpdatCommentListNotification(commentEvent);
-                    else
+                    else if (commentEvent.EventType == EventType.Delete)
                         await commentService.RemoveCommentListNotification(commentEvent);
                 }
                 catch (Exception ex)

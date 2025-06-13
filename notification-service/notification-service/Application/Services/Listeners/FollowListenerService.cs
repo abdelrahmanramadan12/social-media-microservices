@@ -69,7 +69,7 @@ namespace Application.Services.Listeners
                     using var scope = _scopeFactory.CreateScope();
                     var followService = scope.ServiceProvider.GetRequiredService<IFollowNotificationService>();
 
-                    if (followEvent.EventType == FollowEventType.FOLLOW)
+                    if (followEvent.EventType == FollowEventType.Follow)
                         await followService.UpdateFollowersListNotification(followEvent);
                     else
                         await followService.RemoveFollowerFromNotificationList(followEvent);

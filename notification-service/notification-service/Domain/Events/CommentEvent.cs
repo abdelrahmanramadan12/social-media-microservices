@@ -1,18 +1,22 @@
 ﻿namespace Domain.Events
 {
-    public enum CommentType
+    public enum EventType
     {
-        ADDED,
-        REMOVED
+        Create,
+        Update,
+        Delete
     }
     public class CommentEvent
     {
-        public string Id { get; set; } = string.Empty;
+        public string CommentId { get; set; } = string.Empty;
         public string CommentAuthorId { get; set; } = default!;
         public string PostId { get; set; } = string.Empty;
         public string Content { get; set; } = string.Empty;
-        public DateTime CreatedAt { get; set; }
+        public DateTime Timestamp { get; set; }
         public string PostAuthorId { get; set; } = string.Empty;
-        public CommentType CommentType { get; set; }
+        public EventType EventType { get; set; }
+        public bool IsEdited { get; set; }
+        public string? MediaUrl { get; set; }
+
     }
 }

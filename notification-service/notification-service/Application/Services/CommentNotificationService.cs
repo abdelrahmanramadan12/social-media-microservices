@@ -40,7 +40,7 @@ namespace Application.Services
                 authorNotification.UserID_CommentIds[commentEvent.CommentAuthorId] = commentList;
             }
 
-            commentList.Add(commentEvent.Id);
+            commentList.Add(commentEvent.CommentId);
 
             // --- Ensure UserSkeleton is cached ---
             var userSkeleton = await unitOfWork.CacheRepository<UserSkeleton>()
@@ -85,7 +85,7 @@ namespace Application.Services
 
                 cacheUser.CommnetDetails.Add(new CommnetNotificationDetails
                 {
-                    CommentId = commentEvent.Id,
+                    CommentId = commentEvent.CommentId,
                     PostId = commentEvent.PostId,
                     User = userSkeleton
                 });
@@ -95,7 +95,7 @@ namespace Application.Services
                 // Send notification
                 await _hubContext.Clients.User(userId.ToString()).SendAsync("ReceiveCommentNotification", new
                 {
-                    CommentId = commentEvent.Id,
+                    CommentId = commentEvent.CommentId,
                     commentEvent.PostId,
                     commentEvent.CommentAuthorId
                 });
@@ -119,7 +119,7 @@ namespace Application.Services
             // Safely remove the comment ID from the core dictionary
             if (authorNotification.UserID_CommentIds.TryGetValue(commentEvent.CommentAuthorId, out var commentList))
             {
-                commentList.Remove(commentEvent.Id);
+                commentList.Remove(commentEvent.CommentId);
 
                 // Clean up the entry if there are no more comments by this user
                 if (commentList.Count == 0)
@@ -133,7 +133,7 @@ namespace Application.Services
             if (cacheUser != null)
             {
                 cacheUser.CommnetDetails?.RemoveAll(cd =>
-                    cd.CommentId == commentEvent.Id &&
+                    cd.CommentId == commentEvent.CommentId &&
                     cd.PostId == commentEvent.PostId &&
                     cd.User?.Id == commentEvent.CommentAuthorId);
 
