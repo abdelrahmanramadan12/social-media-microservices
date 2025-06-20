@@ -1,6 +1,6 @@
 # Thryve – Backend
 
-![cover](diagrams\Thryve.png)
+![cover](diagrams/Thryve.png)
 
 **Thryve** is a distributed microservices-based social media platform built as the graduation project of the **Integrated Development and Architecture** track at the [Information Technology Institut (ITI)](https://iti.gov.eg/home).
 
@@ -35,7 +35,7 @@ Designed with modern architectural patterns and scalable technologies, Thryve ai
 
 ## 🏗️ Overall System 
 
-![system diagram](diagrams\system-diagram.svg)
+![system diagram](diagrams/system-diagram.svg)
 
 Thryve follows an **event-driven microservices architecture** with a total of **15 microservices**, each focusing on a single business capability.
 
@@ -66,7 +66,7 @@ The system uses **fan-out** and **CQRS patterns** in specific services (e.g., fe
 
 ## 📝 Post Service
 
-![post service diagram](diagrams\post-service-diagram.svg)
+![post service diagram](diagrams/post-service-diagram.svg)
 
 Handles creation, editing, deletion, and retrieval of user posts.
 
@@ -79,7 +79,7 @@ Handles creation, editing, deletion, and retrieval of user posts.
 
 ## 💬 Comment Service
 
-![comment service diagram](diagrams\comment-service-diagram.svg)
+![comment service diagram](diagrams/comment-service-diagram.svg)
 
 Manages comments under posts.
 
@@ -91,7 +91,7 @@ Manages comments under posts.
 
 ## ❤️ Reaction Service
 
-![react service diagram](diagrams\react-service-diagram.svg)
+![react service diagram](diagrams/react-service-diagram.svg)
 
 Handles reactions (like/ Unlike) on posts and comments.
 
@@ -102,7 +102,7 @@ Handles reactions (like/ Unlike) on posts and comments.
 
 ## 👤 Profile Service
 
-![profile service diagram](diagrams\profile-service-diagram.svg)
+![profile service diagram](diagrams/profile-service-diagram.svg)
 
 Maintains user profile information and settings.
 
@@ -114,7 +114,7 @@ Maintains user profile information and settings.
 
 ## ➕ Follow Service
 
-![follow service diagram](diagrams\follow-service-diagram.svg)
+![follow service diagram](diagrams/follow-service-diagram.svg)
 
 Manages user following and follower relationships.
 
@@ -126,7 +126,7 @@ Manages user following and follower relationships.
 
 ## 📰 Feed Service
 
-![feed service diagram](diagrams\feed-service-diagram.svg)
+![feed service diagram](diagrams/feed-service-diagram.svg)
 
 Implements **Fan-Out on Write** and **CQRS** for timeline generation.
 
@@ -138,7 +138,7 @@ Implements **Fan-Out on Write** and **CQRS** for timeline generation.
 
 ## 💬 Chat Service
 
-![chat service diagram](diagrams\chat-service-diagram.svg)
+![chat service diagram](diagrams/chat-service-diagram.svg)
 
 Enables real-time direct messaging between users.
 
@@ -150,7 +150,7 @@ Enables real-time direct messaging between users.
 
 ## 🧠 BFF (Backend For Frontend)
 
-![comment aggregate service diagram](diagrams\comment-aggregate-service-diagram.svg)
+![comment aggregate service diagram](diagrams/comment-aggregate-service-diagram.svg)
 
 Provides tailored APIs to the frontend application by aggregating data from multiple microservices.
 
@@ -165,7 +165,7 @@ The BFF layer helps optimize API calls and reduce frontend complexity.
 
 ## 🔔 Notification Service
 
-![notification service diagram](diagrams\notification-service-diagram.svg)
+![notification service diagram](diagrams/notification-service-diagram.svg)
 
 Enables real-time push notificatons.
 
