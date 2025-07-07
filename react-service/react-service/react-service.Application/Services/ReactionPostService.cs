@@ -110,17 +110,20 @@ namespace react_service.Application.Services
             };
 
             var res = await reactionRepository.AddReactionAsync(reactionObj);
-            // Publish ReactionEvent for add
-            await reactionPublisher.PublishAsync(new ReactionEvent
-            {
-                PostId = reaction.PostId,
-                UserId = userId,
-                EventType = ReactionEventType.Like
-            });
+            
 
             if (res == "Created")
             {
                 response.Message = "Reaction added successfully.";
+
+                // Publish ReactionEvent for add
+                await reactionPublisher.PublishAsync(new ReactionEvent
+                {
+                    PostId = reaction.PostId,
+                    UserId = userId,
+                    EventType = ReactionEventType.Like
+                });
+
                 // Publish ReactionEventNoti
                 await reationNotiPublisher.PublishAsync(new ReactionEventNoti
                 {
@@ -142,10 +145,9 @@ namespace react_service.Application.Services
 
             else
             {
-                response.Errors.Add("Reaction Deleted successfully");
+                response.Errors.Add("Reaction Already Exists");
                 response.ErrorType = ErrorType.InternalServerError;
                 return response;
-
             }
             response.Data = true;
 

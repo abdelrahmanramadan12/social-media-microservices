@@ -107,41 +107,18 @@ namespace react_service.Infrastructure.Repositories
 
         public async Task<string> AddReactionAsync(PostReaction reaction)
         {
-            // var session = await mongoClient.StartSessionAsync(); 
-
-            //session.StartTransaction();
             try
             {
                 var reactionExist = await CheckUserAndPostIdExist(reaction.PostId, reaction.UserId);
-                var reationType = reaction.ReactionType;
-                if (reactionExist)
+                if (!reactionExist)
                 {
-                    var reactionObj = await GetReactionByIdAsync(reaction.PostId, reaction.UserId);
-
-                    if (reactionObj.ReactionType == reaction.ReactionType)
-                    {
-                        await HardDeleteReactionAsync(reaction.PostId, reaction.UserId); // Hard delete the existing reaction    
-                        return "Deleted";
-
-                    }
-
-
-                    await HardDeleteReactionAsync(reaction.PostId, reaction.UserId); // Hard delete the existing reaction    
-                    reaction.IsDeleted = false;
-
-
-
+                    await _collection.InsertOneAsync(reaction);
+                    return "already exists";
                 }
-                await _collection.InsertOneAsync(reaction);
-
                 return "Created";
-
-                //   await session.CommitTransactionAsync();
-
             }
             catch (Exception ex)
             {
-                // await session.AbortTransactionAsync();
                 throw new Exception("Failed to create reaction within transaction", ex);
             }
         }
@@ -160,7 +137,6 @@ namespace react_service.Infrastructure.Repositories
                 return result.ModifiedCount > 0;
             }
             return false;
-
         }
 
         public async Task<bool> DeleteAllPostReactions(string postId)
