@@ -48,7 +48,7 @@ namespace Service.Implementations.RabbitMqServices
             }
 
             await _channel.QueueDeclareAsync(queue: _queueName,
-                    durable: false,
+                    durable: true,
                     exclusive: false,
                     autoDelete: false,
                     arguments: null);

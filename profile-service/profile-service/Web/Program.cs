@@ -12,6 +12,7 @@ using Service.Interfaces.FollowServices;
 using Service.Interfaces.MediaServices;
 using Service.Interfaces.ProfileServices;
 using Service.Interfaces.RabbitMqServices;
+using Worker;
 
 namespace Web
 {
@@ -47,6 +48,8 @@ namespace Web
 
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
+
+            builder.Services.AddHostedService<RabbitMqWorker>();
 
             var app = builder.Build();
 
