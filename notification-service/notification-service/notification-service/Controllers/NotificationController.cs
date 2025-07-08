@@ -35,35 +35,35 @@ namespace notification_service.Controllers
         /// Retrieves all notifications for the specified user.
         /// </summary>
         [HttpGet("AllNotifications")]
-        public async Task<IActionResult> GetAllNotifications([FromHeader(Name = "userId")] string userId, [FromHeader(Name = "next")] string next)
+        public async Task<IActionResult> GetAllNotifications([FromHeader(Name = "userId")] string userId, [FromQuery] string next = "")
         {
             var response = await _notificationService.GetAllNotifications(userId, next);
             return HandlePaginatedResponse(response);
         }
 
         [HttpGet("FollowNotification")]
-        public async Task<IActionResult> GetFollowNotification([FromHeader(Name = "userId")] string userId, [FromHeader(Name = "next")] string next)
+        public async Task<IActionResult> GetFollowNotification([FromHeader(Name = "userId")] string userId, [FromQuery] string next = "")
         {
             var response = await _notificationService.GetFollowNotification(userId, next);
             return HandlePaginatedResponse(response);
         }
 
         [HttpGet("CommentsNotification")]
-        public async Task<IActionResult> GetCommentsNotification([FromHeader(Name = "userId")] string userId, [FromHeader(Name = "next")] string next)
+        public async Task<IActionResult> GetCommentsNotification([FromHeader(Name = "userId")] string userId, [FromQuery] string next = "")
         {
             var response = await _notificationService.GetCommentNotification(userId, next);
             return HandlePaginatedResponse(response);
         }
 
         [HttpGet("ReactionsNotification")]
-        public async Task<IActionResult> GetReactionsNotification([FromHeader(Name = "userId")] string userId, [FromHeader(Name = "next")] string next)
+        public async Task<IActionResult> GetReactionsNotification([FromHeader(Name = "userId")] string userId, [FromQuery] string next = "")
         {
             var response = await _notificationService.GetReactionNotification(userId, next);
             return HandlePaginatedResponse(response);
         }
 
         [HttpGet("MessageNotification")]
-        public async Task<IActionResult> GetMessagesNotification([FromHeader(Name = "userId")] string userId, [FromHeader(Name = "next")] string next)
+        public async Task<IActionResult> GetMessagesNotification([FromHeader(Name = "userId")] string userId, [FromQuery] string next = "")
         {
             var response = await _notificationService.GetMessageNotifications(userId, next);
             return HandlePaginatedResponse(response);
@@ -75,35 +75,35 @@ namespace notification_service.Controllers
         /// Retrieves all unread notifications for the specified user.
         /// </summary>
         [HttpGet("AllUnreadNotifications")]
-        public async Task<IActionResult> GetAllUnreadNotifications([FromHeader(Name = "userId")] string userId, [FromHeader(Name = "next")] string next)
+        public async Task<IActionResult> GetAllUnreadNotifications([FromHeader(Name = "userId")] string userId, [FromQuery] string next = "")
         {
             var response = await _notificationService.GetAllUnseenNotification(userId, next);
             return HandlePaginatedResponse(response);
         }
 
         [HttpGet("UnreadReactionsNotifications")]
-        public async Task<IActionResult> GetUnreadReactionsNotifications([FromHeader(Name = "userId")] string userId, [FromHeader(Name = "next")] string next)
+        public async Task<IActionResult> GetUnreadReactionsNotifications([FromHeader(Name = "userId")] string userId, [FromQuery] string next = "")
         {
             var response = await _notificationService.GetUnreadReactionsNotifications(userId, next);
             return HandlePaginatedResponse(response);
         }
 
         [HttpGet("UnreadCommentNotifications")]
-        public async Task<IActionResult> GetUnreadCommentNotifications([FromHeader(Name = "userId")] string userId, [FromHeader(Name = "next")] string next)
+        public async Task<IActionResult> GetUnreadCommentNotifications([FromHeader(Name = "userId")] string userId, [FromQuery] string next = "")
         {
             var response = await _notificationService.GetUnreadCommentNotifications(userId, next);
             return HandlePaginatedResponse(response);
         }
 
         [HttpGet("UnreadFollowedNotifications")]
-        public async Task<IActionResult> GetUnreadFollowedNotifications([FromHeader(Name = "userId")] string userId, [FromHeader(Name = "next")] string next)
+        public async Task<IActionResult> GetUnreadFollowedNotifications([FromHeader(Name = "userId")] string userId, [FromQuery] string next = "")
         {
             var response = await _notificationService.GetUnreadFollowedNotifications(userId, next);
             return HandlePaginatedResponse(response);
         }
 
         [HttpGet("UnreadMessageNotifications")]
-        public async Task<IActionResult> GetUnreadMessageNotifications([FromHeader(Name = "userId")] string userId, [FromHeader(Name = "next")] string next)
+        public async Task<IActionResult> GetUnreadMessageNotifications([FromHeader(Name = "userId")] string userId, [FromQuery] string next = "")
         {
             var response = await _notificationService.GetUnreadMessageNotifications(userId, next);
             return HandlePaginatedResponse(response);
