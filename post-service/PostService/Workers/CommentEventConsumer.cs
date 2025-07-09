@@ -67,6 +67,9 @@ namespace Workers
                     if (commentEvent.EventType == EventType.Create)
                     {
                         await _postRepository.UpdatePostCountersAsync(commentEvent.PostId, PostCounterEvent.CommentCreated);
+                    } else if (commentEvent.EventType == EventType.Delete)
+                    {
+                        await _postRepository.UpdatePostCountersAsync(commentEvent.PostId, PostCounterEvent.CommentDeleted);
                     }
                 }
 

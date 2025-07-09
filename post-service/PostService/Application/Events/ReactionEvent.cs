@@ -7,6 +7,6 @@ namespace Application.Events
         public string PostId { get; set; } = default!;
         public string PostAuthorId { get; set; } = default!;
         public string UserId { get; set; } = default!;
-        public ReactionEventType ReactionType { get; set; }
+        public ReactionEventType EventType { get; set; }
     }
 }

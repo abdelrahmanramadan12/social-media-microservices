@@ -64,7 +64,7 @@ namespace Workers
 
                 if (reactionEvent != null)
                 {
-                    var counterEvent = reactionEvent.ReactionType == ReactionEventType.Like
+                    var counterEvent = reactionEvent.EventType == ReactionEventType.Like
                         ? PostCounterEvent.ReactionCreated
                         : PostCounterEvent.ReactionDeleted;
 

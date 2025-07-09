@@ -4,12 +4,9 @@ namespace Application.Events
     {
         Create,
         Update,
-        Delete,
-        Follow,
-        Unfollow
+        Delete
     }
     public class QueueEvent
     {
-        public EventType EventType { get; set; }
     }
 }
