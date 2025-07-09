@@ -93,18 +93,6 @@ namespace react_service.Infrastructure.Repositories
                 .Limit(PaginationSetting.Value.DefaultPageSize)
                 .ToListAsync();
         }
-        public async Task<bool> HardDeleteReactionAsync(string postId, string userId)
-        {
-            var filter = Builders<PostReaction>.Filter.And(
-                Builders<PostReaction>.Filter.Eq(r => r.PostId, postId),
-                Builders<PostReaction>.Filter.Eq(r => r.UserId, userId)
-            );
-
-            var result = await _collection.DeleteOneAsync(filter);
-            return result.DeletedCount > 0;
-        }
-
-
         public async Task<string> AddReactionAsync(PostReaction reaction)
         {
             try
@@ -113,9 +101,9 @@ namespace react_service.Infrastructure.Repositories
                 if (!reactionExist)
                 {
                     await _collection.InsertOneAsync(reaction);
-                    return "already exists";
+                    return "Created";
                 }
-                return "Created";
+                return "Already Exists";
             }
             catch (Exception ex)
             {
@@ -125,18 +113,12 @@ namespace react_service.Infrastructure.Repositories
 
         public async Task<bool> DeleteReactionAsync(string postId, string userId)
         {
-            var reationExist = await CheckUserAndPostIdExist(postId, userId);
-            if (reationExist)
-            {
-                var filter = Builders<PostReaction>.Filter.And(
+            var filter = Builders<PostReaction>.Filter.And(
                     Builders<PostReaction>.Filter.Eq(r => r.PostId, postId),
                     Builders<PostReaction>.Filter.Eq(r => r.UserId, userId)
                 );
-                var update = Builders<PostReaction>.Update.Set(r => r.IsDeleted, true);
-                var result = await _collection.UpdateOneAsync(filter, update);
-                return result.ModifiedCount > 0;
-            }
-            return false;
+            var result = await _collection.DeleteOneAsync(filter);
+            return result.DeletedCount > 0;
         }
 
         public async Task<bool> DeleteAllPostReactions(string postId)
@@ -190,22 +172,6 @@ namespace react_service.Infrastructure.Repositories
                 .Project(r => r.UserId)
                 .ToListAsync();
         }
-        public async Task<PostReaction?> GetReactionByIdAsync(string postId, string userId)
-        {
-            var filterBuilder = Builders<PostReaction>.Filter;
-
-            var filters = new List<FilterDefinition<PostReaction>>
-            {
-                filterBuilder.Eq(r => r.PostId, postId),
-                filterBuilder.Eq(r => r.UserId, userId)
-            };
-
-            var filter = filterBuilder.And(filters);
-
-            return await _collection.Find(filter).FirstOrDefaultAsync();
-        }
-
-
         public async Task<bool> IsPostReactedByUserAsync(string postId, string userId)
         {
             var filter = Builders<PostReaction>.Filter.And(
@@ -215,14 +181,6 @@ namespace react_service.Infrastructure.Repositories
             );
             var count = await _collection.CountDocumentsAsync(filter);
             return count > 0;
-        }
-
-        public async Task<bool> SoftDeletePostReaction(string postId)
-        {
-            var filter = Builders<PostReaction>.Filter.Eq(r => r.PostId, postId);
-            var update = Builders<PostReaction>.Update.Set(r => r.IsDeleted, true);
-            var result = await _collection.UpdateManyAsync(filter, update);
-            return result.ModifiedCount > 0;
         }
     }
 }
