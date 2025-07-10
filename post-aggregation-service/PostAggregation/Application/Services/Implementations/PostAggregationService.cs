@@ -63,6 +63,30 @@ namespace Application.Services.Implementations
             };
         }
 
+        private async Task<ResponseWrapper<HashSet<string>>> FilterPostsByIsLiked(List<string> postIds, string userId)
+        {
+            var isLikedResult = await _reactionServiceClient.FilterPostsReactedByUserAsync(new FilterPostsReactedByUserRequest
+            {
+                UserId = userId,
+                PostIds = postIds
+            });
+
+            if (!isLikedResult.Success)
+            {
+                return new ResponseWrapper<HashSet<string>>
+                {
+                    Errors = isLikedResult.Errors ?? new List<string> { "Failed to check like status." },
+                    ErrorType = ErrorType.InternalServerError,
+                    Message = "Failed to check like status."
+                };
+            }
+
+            return new ResponseWrapper<HashSet<string>>
+            {
+                Data = isLikedResult.Data.PostIds.ToHashSet()
+            };
+        }
+
         private async Task<ResponseWrapper<Dictionary<string, SimpleUserProfile>>> GetAuthorProfiles(List<string> authorIds)
         {
             var profilesResult = await _profileServiceClient.GetUsersByIdsAsync(new GetUsersProfileByIdsRequest
@@ -86,7 +110,7 @@ namespace Application.Services.Implementations
             };
         }
 
-        private List<PostAggregationResponse> MapToAggregatedPosts(List<PostResponseDTO> posts, Dictionary<string, SimpleUserProfile> profileDict, bool isLiked = false)
+        private List<PostAggregationResponse> MapToAggregatedPosts(List<PostResponseDTO> posts, Dictionary<string, SimpleUserProfile> profileDict, HashSet<string> liked)
         {
             return posts.Select(post => new PostAggregationResponse
             {
@@ -99,7 +123,7 @@ namespace Application.Services.Implementations
                 IsEdited = post.IsEdited,
                 NumberOfLikes = post.NumberOfLikes,
                 NumberOfComments = post.NumberOfComments,
-                IsLiked = isLiked,
+                IsLiked = liked.Contains(post.PostId),
                 PostAuthorProfile = profileDict.GetValueOrDefault(post.AuthorId)
             }).ToList();
         }
@@ -260,7 +284,7 @@ namespace Application.Services.Implementations
                 return response;
             }
 
-            var aggregatedPosts = MapToAggregatedPosts(postList, profilesResult.Data, true);
+            var aggregatedPosts = MapToAggregatedPosts(postList, profilesResult.Data, postList.Select(p => p.PostId).ToHashSet());
 
             return new PaginationResponseWrapper<List<PostAggregationResponse>>
             {
@@ -330,7 +354,17 @@ namespace Application.Services.Implementations
                 return response;
             }
 
-            var aggregatedPosts = MapToAggregatedPosts(postList, profilesResult.Data, true);
+            var likedPostsResult = await FilterPostsByIsLiked(postList.Select(p => p.PostId).ToList(), request.UserId);
+
+            if (!likedPostsResult.Success)
+            {
+                response.Errors.AddRange(likedPostsResult.Errors);
+                response.ErrorType = likedPostsResult.ErrorType;
+                response.Message = likedPostsResult.Message;
+                return response;
+            }
+
+            var aggregatedPosts = MapToAggregatedPosts(postList, profilesResult.Data, likedPostsResult.Data);
 
             return new PaginationResponseWrapper<List<PostAggregationResponse>>
             {
