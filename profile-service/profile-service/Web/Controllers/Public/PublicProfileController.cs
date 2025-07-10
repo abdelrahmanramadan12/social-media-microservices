@@ -46,19 +46,15 @@ namespace Web.Controllers.Public
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddAsync([FromHeader(Name = "userId")] string userId, [FromHeader(Name = "email")] string Email, [FromForm] ProfileRequestDto profile)
+        public async Task<IActionResult> AddAsync([FromHeader(Name = "userId")] string userId, [FromForm] ProfileRequestDto profile)
         {
-            profile.Email = Email;
             var response = await _profileService.AddAsync(userId, profile);
             return HandleServiceResponse(response);
         }
 
         [HttpPatch]
-        public async Task<IActionResult> UpdateAsync( [FromHeader(Name = "email")] string Email, [FromHeader(Name = "userId")] string userId, [FromForm] ProfileRequestDto profile)
+        public async Task<IActionResult> UpdateAsync( [FromHeader(Name = "userId")] string userId, [FromForm] ProfileRequestDto profile)
         {
-            Console.WriteLine(Email);
-            Console.WriteLine($"User {userId}");
-            profile.Email = Email;
             var response = await _profileService.UpdateAsync(userId, profile);
             return HandleServiceResponse(response);
         }
