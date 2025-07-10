@@ -51,7 +51,7 @@ namespace Web.Controllers
             return Ok(new { data = response.Data, message = response.Message });
         }
 
-        [HttpPost("/api/public/follow/is-following")]
+        [HttpPost("~/api/public/follow/is-following")]
         public async Task<IActionResult> IsFollowingPublic([FromHeader(Name = "userId")] string userId, [FromBody] IsFollowingRequestPublic request)
         {
             var result = await _followQueryService.IsFollowing(userId, request.OtherId);
@@ -68,7 +68,7 @@ namespace Web.Controllers
             return Ok(new { data = response.Data, message = response.Message });
         }
 
-        [HttpPost("/api/public/follow/is-follower")]
+        [HttpPost("~/api/public/follow/is-follower")]
         public async Task<IActionResult> IsFollowerPublic([FromHeader(Name = "userId")] string userId, [FromBody] IsFollowingRequestPublic request)
         {
             var result = await _followQueryService.IsFollower(userId, request.OtherId);
