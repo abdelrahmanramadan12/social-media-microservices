@@ -38,6 +38,17 @@ namespace Infrastructure.Repositories
             return existingConversation;
         }
 
+        public async Task<Message> UpdateLastMessageAsync(Message lastMessage)
+        {
+            var filter = Builders<Conversation>.Filter.Eq(c => c.Id, lastMessage.ConversationId);
+
+            var update = Builders<Conversation>.Update
+                .Set(c => c.LastMessage, lastMessage);
+
+            await _conversations.UpdateOneAsync(filter, update);
+
+            return lastMessage;
+        }
 
         public async Task<Conversation> GetConversationByIdAsync(string id)
         {

@@ -30,6 +30,8 @@ namespace Application.Services
                 LastMessage = null,
                 AdminId = conversation.IsGroup ? conversation.UserId : null 
             };
+
+            conversationEntity.Participants.Add(conversation.UserId);
             
             if (conversation.GroupImage!=null)
             {
@@ -282,6 +284,8 @@ namespace Application.Services
                 } : null,
                 HasAttachment = msg.Attachment != null
             };
+
+            var lstMsg = await _unitOfWork.Conversations.UpdateLastMessageAsync(msg);
 
             var conv = await _unitOfWork.Conversations.GetConversationByIdAsync(msg.ConversationId);
 

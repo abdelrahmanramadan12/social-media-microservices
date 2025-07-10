@@ -7,6 +7,7 @@ namespace Application.Abstractions
     {
         Task<Conversation> AddAsync(Conversation conversationEntity);
         Task <Conversation>EditAsync(Conversation existingConversation);
+        Task<Message> UpdateLastMessageAsync(Message lastMessage);
         Task<Conversation> GetConversationByIdAsync(string id);
         Task<List<Conversation>> GetConversationsAsync(string userId, string? next, int pageSize);
         Task RemoveAsync(string conversationId);

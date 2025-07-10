@@ -19,7 +19,7 @@ namespace Application.Services
 
             try
             {
-                var response = await _httpClient.PostAsJsonAsync("https://localhost:7221/api/internal/profile/list/", new { UserIds = userIds });
+                var response = await _httpClient.PostAsJsonAsync("/api/internal/profile/list", new { UserIds = userIds });
 
                 if (!response.IsSuccessStatusCode)
                 {
