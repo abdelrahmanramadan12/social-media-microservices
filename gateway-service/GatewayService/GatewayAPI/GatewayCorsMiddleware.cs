@@ -14,7 +14,7 @@ public class GatewayCorsMiddleware
 
         // You can restrict this to specific origins if you prefer
         context.Response.Headers["Access-Control-Allow-Origin"] = origin == "" ? "*" : origin;
-        context.Response.Headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS";
+        context.Response.Headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH";
         context.Response.Headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With";
         context.Response.Headers["Access-Control-Allow-Credentials"] = "true";
 
