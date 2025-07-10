@@ -22,22 +22,22 @@ namespace Application.Services.Implementations
 
         }
 
-        public async Task<ResponseWrapper<FilteredPostsReactedByUserResponse>> FilterPostsReactedByUserAsync(FilterPostsReactedByUserRequest request)
+        public async Task<ResponseWrapper<List<string>>> FilterPostsReactedByUserAsync(FilterPostsReactedByUserRequest request)
         {
             try
             {
                 var response = await _httpClient.PostAsJsonAsync(FILTER_POSTS_ENDPOINT, request);
                 if (!response.IsSuccessStatusCode)
                 {
-                    return new ResponseWrapper<FilteredPostsReactedByUserResponse>
+                    return new ResponseWrapper<List<string>>
                     {
                         Errors = new List<string> { $"Failed to filter posts: {response.StatusCode}" },
                         ErrorType = ErrorType.InternalServerError
                     };
                 }
 
-                var result = await response.Content.ReadFromJsonAsync<ResponseWrapper<FilteredPostsReactedByUserResponse>>();
-                return result ?? new ResponseWrapper<FilteredPostsReactedByUserResponse>
+                var result = await response.Content.ReadFromJsonAsync<ResponseWrapper<List<string>>>();
+                return result ?? new ResponseWrapper<List<string>>
                 {
                     Errors = new List<string> { "Empty response from reaction service" },
                     ErrorType = ErrorType.InternalServerError
@@ -45,7 +45,7 @@ namespace Application.Services.Implementations
             }
             catch (Exception ex)
             {
-                return new ResponseWrapper<FilteredPostsReactedByUserResponse>
+                return new ResponseWrapper<List<string>>
                 {
                     Errors = new List<string> { $"Error filtering posts: {ex.Message}" },
                     ErrorType = ErrorType.InternalServerError

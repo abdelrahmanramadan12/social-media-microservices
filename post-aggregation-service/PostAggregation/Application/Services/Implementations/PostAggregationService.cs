@@ -83,7 +83,7 @@ namespace Application.Services.Implementations
 
             return new ResponseWrapper<HashSet<string>>
             {
-                Data = isLikedResult.Data.PostIds.ToHashSet()
+                Data = isLikedResult.Data.ToHashSet()
             };
         }
 
