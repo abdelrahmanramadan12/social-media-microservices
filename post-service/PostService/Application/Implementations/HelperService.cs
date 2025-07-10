@@ -113,22 +113,6 @@ namespace Application.Services
             {
                 if (hasDeletedMedia)
                 {
-                    try
-                    {
-                        var deleteResult = await _mediaServiceClient.DeleteMediaAsync(urlsToBeDeleted);
-                        if (!deleteResult)
-                        {
-                            response.Errors.Add("Failed to delete removed media.");
-                            response.ErrorType = ErrorType.InternalServerError;
-                            return response;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        response.Errors.Add($"Warning: Failed to delete media: {ex.Message}");
-                        response.ErrorType = ErrorType.InternalServerError;
-                    }
-
                     postToUpdate.MediaList.RemoveAll(m => urlsToBeDeleted.Contains(m.MediaUrl));
                 }
 
@@ -194,23 +178,6 @@ namespace Application.Services
                     return response;
                 }
 
-                // Then, delete old media
-                try
-                {
-                    var deleteResult = await _mediaServiceClient.DeleteMediaAsync(urlsToBeDeleted);
-                    if (!deleteResult)
-                    {
-                        response.Errors.Add("Failed to delete old media.");
-                        response.ErrorType = ErrorType.InternalServerError;
-                        return response;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    response.Errors.Add($"Warning: Failed to delete old media: {ex.Message}");
-                    response.ErrorType = ErrorType.InternalServerError;
-                }
-
                 // Update the post's media list - keep only the URLs that are in the input
                 postToUpdate.MediaList = postToUpdate.MediaList
                     .Where(m => inputMediaUrls.Contains(m.MediaUrl))
@@ -269,23 +236,6 @@ namespace Application.Services
             }
             else if (hasDeletedMedia)
             {
-                // Handle case where we're only deleting media
-                try
-                {
-                    var deleteResult = await _mediaServiceClient.DeleteMediaAsync(urlsToBeDeleted);
-                    if (!deleteResult)
-                    {
-                        response.Errors.Add("Failed to delete old media.");
-                        response.ErrorType = ErrorType.InternalServerError;
-                        return response;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    response.Errors.Add($"Warning: Failed to delete old media: {ex.Message}");
-                    response.ErrorType = ErrorType.InternalServerError;
-                }
-
                 // Keep only the URLs that are in the input
                 postToUpdate.MediaList = postToUpdate.MediaList
                     .Where(m => inputMediaUrls.Contains(m.MediaUrl))

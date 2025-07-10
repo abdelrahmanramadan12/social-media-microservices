@@ -7,14 +7,5 @@ namespace Application.IServices
         Task<MediaUploadResponse> UploadMediaAsync(
             MediaUploadRequest request,
             CancellationToken cancellationToken = default);
-
-        Task<MediaUploadResponse> EditMediaAsync(
-            MediaUploadRequest newFiles,
-            IEnumerable<string> currentUrls,
-            CancellationToken cancellationToken = default);
-
-        Task<bool> DeleteMediaAsync(
-            IEnumerable<string> urls,
-            CancellationToken cancellationToken = default);
     }
 }
