@@ -51,6 +51,41 @@ namespace Web.Controllers
             return Ok(new { data = response.Data, message = response.Message });
         }
 
+        [HttpPost("/api/public/follow/is-following")]
+        public async Task<IActionResult> IsFollowingPublic([FromHeader(Name = "userId")] string userId, [FromBody] IsFollowingRequestPublic request)
+        {
+            var result = await _followQueryService.IsFollowing(userId, request.OtherId);
+            var response = new ResponseWrapper<bool>
+            {
+                Data = result,
+                Message = "Successfully checked follow status"
+            };
+
+            if (!response.Success)
+            {
+                return HandleError(response);
+            }
+            return Ok(new { data = response.Data, message = response.Message });
+        }
+
+        [HttpPost("/api/public/follow/is-follower")]
+        public async Task<IActionResult> IsFollowerPublic([FromHeader(Name = "userId")] string userId, [FromBody] IsFollowingRequestPublic request)
+        {
+            var result = await _followQueryService.IsFollower(userId, request.OtherId);
+            var response = new ResponseWrapper<bool>
+            {
+                Data = result,
+                Message = "Successfully checked follower status"
+            };
+
+            if (!response.Success)
+            {
+                return HandleError(response);
+            }
+            return Ok(new { data = response.Data, message = response.Message });
+        }
+
+
         [HttpPost("list-following")]
         public async Task<IActionResult> ListFollowing([FromBody] ListFollowRequest request)
         {
