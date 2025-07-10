@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Options;
-using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
 using react_service.Application;
 using react_service.Application.Events;
