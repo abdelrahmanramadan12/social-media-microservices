@@ -34,7 +34,7 @@ namespace Presentation.Controllers
         {
             request.UserId = userId;
 
-            var response = await _aggregationService.GetFollowers(request);
+            var response = await _aggregationService.GetFollowing(request);
             if (!response.Success)
             {
                 return HandlePaginationErrorResponse(response);
