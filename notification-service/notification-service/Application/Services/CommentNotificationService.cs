@@ -1,4 +1,5 @@
-﻿using Application.Hubs;
+﻿using Application.DTO;
+using Application.Hubs;
 using Application.Interfaces;
 using Application.Interfaces.Services;
 using Application.Interfaces.Services.Application.Services;
@@ -11,11 +12,11 @@ using Microsoft.AspNetCore.SignalR;
 namespace Application.Services
 {
 
-    public class CommentNotificationService(IUnitOfWork unitOfWork, IHubContext<CommentNotificationHub> hubContext , IProfileServiceClient profileServiceClient)
+    public class CommentNotificationService(IUnitOfWork unitOfWork, IRealtimeNotifier _realtimeNotifier , IProfileServiceClient profileServiceClient)
         : ICommentNotificationService
     {
         private readonly IUnitOfWork unitOfWork = unitOfWork;
-        private readonly IHubContext<CommentNotificationHub> _hubContext = hubContext;
+        private readonly IRealtimeNotifier realtimeNotifier = _realtimeNotifier;
         private readonly IProfileServiceClient profileServiceClient = profileServiceClient;
 
         public async Task UpdatCommentListNotification(CommentEvent commentEvent)
@@ -93,11 +94,12 @@ namespace Application.Services
                 await unitOfWork.CacheRepository<CachedCommentsNotification>().UpdateAsync(cacheUser);
 
                 // Send notification
-                await _hubContext.Clients.User(userId.ToString()).SendAsync("ReceiveCommentNotification", new
+                await realtimeNotifier.SendMessageAsync(userId, new NotificationsDTO
                 {
-                    CommentId = commentEvent.CommentId,
-                    commentEvent.PostId,
-                    commentEvent.CommentAuthorId
+                    EntityName = Domain.Enums.NotificationEntity.Comment,
+                    SourceUsername = userSkeleton.UserNames,
+                    SourceUserImageUrl = userSkeleton.ProfileImageUrls,
+                    CreatedTime = DateTime.UtcNow,
                 });
             }
 

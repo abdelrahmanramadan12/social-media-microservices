@@ -9,6 +9,7 @@ using Infrastructure.Settings.Mongodb;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using StackExchange.Redis;
+using Web.Hubs;
 using Workers;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -41,7 +42,7 @@ builder.Services.AddHttpClient<IProfileServiceClient, ProfileServiceClient>(clie
 
 
 // Redis Configuration
-builder.Services.AddScoped<IConnectionMultiplexer>(sp =>
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 {
     var redisSettings = builder.Configuration.GetSection("RedisSettings");
     var host = redisSettings["Host"];
@@ -56,6 +57,8 @@ builder.Services.AddScoped<IConnectionMultiplexer>(sp =>
         Password = password
     });
 });
+builder.Services.AddSingleton(sp =>
+                sp.GetRequiredService<IConnectionMultiplexer>().GetDatabase());
 
 // add SignalR 
 
@@ -67,6 +70,10 @@ builder.Services.AddHostedService<RabbitMqWorker>();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddRabbitMqListeners(builder.Configuration);
 builder.Services.AddApplicationServiceRegistration(builder.Configuration);
+builder.Services.AddSingleton<IConnectionManager, ConnectionManager>();
+builder.Services.AddScoped<IRealtimeNotifier, RealtimeNotifier>();
+
+
 
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
@@ -102,12 +109,6 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// Hubs
-app.MapHub<CommentNotificationHub>("/hubs/comment-notifications");
-app.MapHub<FollowNotificationHub>("/hubs/follow-notifications");
-app.MapHub<ReactionNotificationHub>("/hubs/reaction-notifications");
-app.MapHub<MessageNotificationHub>("/hubs/message-notifications");
-app.MapHub<ReactionNotificationHub>("/hubs/reactions");
 
 // HTTP pipeline
 if (app.Environment.IsDevelopment())
@@ -119,5 +120,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
+// Hubs
+app.MapHub<NotificationHub>("/notificationHub");
 
 app.Run();

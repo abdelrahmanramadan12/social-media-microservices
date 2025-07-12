@@ -102,7 +102,7 @@ namespace Application.Services
                     CreatedTime = DateTime.Now,
                     EntityId = x.UserId,
                     EntityName = NotificationEntity.Follow,
-                    NotificatoinPreview = $"{x.UserNames} started following you.",
+                    NotificationPreview = $"{x.UserNames} started following you.",
                     SourceUsername = x.UserNames
                 }).ToList();
 
@@ -156,7 +156,7 @@ namespace Application.Services
                     CreatedTime = DateTime.Now,
                     EntityId = x.CommentId,
                     EntityName = NotificationEntity.Comment,
-                    NotificatoinPreview = $"{x.User.UserNames} commented on your post.",
+                    NotificationPreview = $"{x.User.UserNames} commented on your post.",
                     SourceUsername = x.User.UserNames
                 }).ToList();
 
@@ -202,7 +202,7 @@ namespace Application.Services
                     CreatedTime = DateTime.Now,
                     EntityId = x.ReactionId,
                     EntityName = NotificationEntity.React,
-                    NotificatoinPreview = $"{x.User.UserNames} reacted to your post.",
+                    NotificationPreview = $"{x.User.UserNames} reacted to your post.",
                     SourceUsername = x.User.UserNames
                 }).ToList();
 
@@ -215,7 +215,7 @@ namespace Application.Services
                     CreatedTime = DateTime.Now,
                     EntityId = x.ReactionId,
                     EntityName = NotificationEntity.React,
-                    NotificatoinPreview = $"{x.User.UserNames} reacted to your comment.",
+                    NotificationPreview = $"{x.User.UserNames} reacted to your comment.",
                     SourceUsername = x.User.UserNames
                 }).ToList();
 
@@ -228,7 +228,7 @@ namespace Application.Services
                     CreatedTime = DateTime.Now,
                     EntityId = x.ReactionId,
                     EntityName = NotificationEntity.React,
-                    NotificatoinPreview = $"{x.User.UserNames} reacted to your message.",
+                    NotificationPreview = $"{x.User.UserNames} reacted to your message.",
                     SourceUsername = x.User.UserNames
                 }).ToList();
 
@@ -295,7 +295,7 @@ namespace Application.Services
                     CreatedTime = x.User.CreatedAt,
                     EntityId = x.MessageId,
                     EntityName = NotificationEntity.Message,
-                    NotificatoinPreview = $"{x.User.UserNames} sent you a message.",
+                    NotificationPreview = $"{x.User.UserNames} sent you a message.",
                     SourceUsername = x.User.UserNames
                 }).ToList();
 
@@ -399,7 +399,7 @@ namespace Application.Services
                     CreatedTime = DateTime.Now,
                     EntityId = x.UserId,
                     EntityName = NotificationEntity.Follow,
-                    NotificatoinPreview = $"{x.UserNames} started following you.",
+                    NotificationPreview = $"{x.UserNames} started following you.",
                     SourceUsername = x.UserNames
                 }).ToList();
 
@@ -453,7 +453,7 @@ namespace Application.Services
                     CreatedTime = DateTime.Now,
                     EntityId = x.CommentId,
                     EntityName = NotificationEntity.Comment,
-                    NotificatoinPreview = $"{x.User.UserNames} commented {x.Content[..Math.Min(20, x.Content.Length)]} on your post.",
+                    NotificationPreview = $"{x.User.UserNames} commented {x.Content[..Math.Min(20, x.Content.Length)]} on your post.",
                     SourceUsername = x.User.UserNames
                 }).ToList();
 
@@ -499,7 +499,7 @@ namespace Application.Services
                     CreatedTime = DateTime.Now,
                     EntityId = x.PostId,
                     EntityName = NotificationEntity.React,
-                    NotificatoinPreview = $"{x.User.UserNames} reacted to your post.",
+                    NotificationPreview = $"{x.User.UserNames} reacted to your post.",
                     SourceUsername = x.User.UserNames
                 }).ToList();
 
@@ -512,7 +512,7 @@ namespace Application.Services
                     CreatedTime = DateTime.Now,
                     EntityId = x.CommentId,
                     EntityName = NotificationEntity.React,
-                    NotificatoinPreview = $"{x.User.UserNames} reacted to your comment.",
+                    NotificationPreview = $"{x.User.UserNames} reacted to your comment.",
                     SourceUsername = x.User.UserNames
                 }).ToList();
 
@@ -578,7 +578,7 @@ namespace Application.Services
                     CreatedTime = x.User.CreatedAt,
                     EntityId = x.MessageId,
                     EntityName = NotificationEntity.Message,
-                    NotificatoinPreview = $"{x.User.UserNames} sent you a message.",
+                    NotificationPreview = $"{x.User.UserNames} sent you a message.",
                     SourceUsername = x.User.UserNames
                 }).ToList();
 

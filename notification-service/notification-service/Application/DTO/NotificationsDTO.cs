@@ -10,7 +10,7 @@ namespace Application.DTO
         public string SourceUsername { get; set; } = string.Empty;
         public string EntityId { get; set; } = string.Empty; // ID of the entity related to the notification (e.g., message, post, etc.)
         public NotificationEntity EntityName { get; set; }
-        public string? NotificatoinPreview { get; set; }
+        public string? NotificationPreview { get; set; }
         public bool IsRead { get; set; }
         public DateTime CreatedTime { get; set; }
 

@@ -42,15 +42,6 @@ namespace Application
                 );
             });
 
-            services.AddSingleton<IMessageListener>(sp =>
-            {
-                var scopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
-                return new MessageListenerService(
-                    Options.Create(CreateListenerSettings(section, "MessageQueue")),
-                    scopeFactory
-                );
-            });
-
             services.AddSingleton<IFollowListener>(sp =>
             {
                 var scopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
@@ -72,7 +63,7 @@ namespace Application
                 Password = section["Password"],
                 QueueName = section[queueKey]
             };
-    
-}
+
+    }
 
 }

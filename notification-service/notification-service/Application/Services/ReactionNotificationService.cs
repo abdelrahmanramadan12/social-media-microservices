@@ -1,24 +1,20 @@
 ﻿using Application.DTO;
-using Application.Hubs;
 using Application.Interfaces;
 using Application.Interfaces.Services;
 using Domain.CacheEntities;
 using Domain.CacheEntities.Reactions;
 using Domain.CoreEntities;
 using Domain.Events;
-using Microsoft.AspNetCore.SignalR;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Application.Services
 {
-    public class ReactionNotificationService(IUnitOfWork unitOfWork1, IHubContext<ReactionNotificationHub> hubContext, IProfileServiceClient profileServiceClient)
+    public class ReactionNotificationService(IUnitOfWork unitOfWork1, IRealtimeNotifier _realtimeNotifier, IProfileServiceClient profileServiceClient)
         : IReactionNotificationService
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork1;
-        private readonly IHubContext<ReactionNotificationHub> _hubContext = hubContext;
+        private readonly IRealtimeNotifier realtimeNotifier = _realtimeNotifier;
         private readonly IProfileServiceClient _profileServiceClient = profileServiceClient;
-            
+
         public async Task UpdateReactionsListNotification(ReactionEvent reactionEventDTO)
         {
             var authorId = reactionEventDTO.AuthorEntityId!;
@@ -78,7 +74,7 @@ namespace Application.Services
 
 
             }
-            else 
+            else
             {
                 profileDTO.Data = new ProfileDTO
                 {
@@ -86,8 +82,9 @@ namespace Application.Services
                     UserNames = UserExist.UserNames,
                     ProfileImageUrl = UserExist.ProfileImageUrls,
 
-                }; 
-            };
+                };
+            }
+            ;
 
 
             UpdateCachedReactionList(cachedReaction, reactionEventDTO, profileDTO);
@@ -97,23 +94,15 @@ namespace Application.Services
             else
                 await _unitOfWork.CacheRepository<CachedReactions>().UpdateAsync(cachedReaction);
 
-            // use hub context 
-           await  _hubContext.Clients.User(authorId)
-                .SendAsync("ReceiveReactionNotification", new
-                {
-                    reactionEventDTO.Id,
-                    reactionEventDTO.ReactedOn,
-                    reactionEventDTO.Content,
-                    reactionEventDTO.ReactionEntityId,
-                    User = new
-                    {
-                        reactionEventDTO.User.Id,
-                        reactionEventDTO.User.UserId,
-                        reactionEventDTO.User.UserNames,
-                        reactionEventDTO.User.ProfileImageUrls,
-                        reactionEventDTO.User.CreatedAt
-                    }
-                });
+            // Send notification
+            await realtimeNotifier.SendMessageAsync(authorId, new NotificationsDTO
+            {
+                EntityName = Domain.Enums.NotificationEntity.Comment,
+                SourceUsername = reactionEventDTO.User.UserNames,
+                SourceUserImageUrl = reactionEventDTO.User.ProfileImageUrls,
+                CreatedTime = DateTime.UtcNow,
+            });
+
             await NotifyUserAsync(reactionEventDTO);
         }
 
@@ -159,12 +148,12 @@ namespace Application.Services
 
         private async Task<Reaction?> GetCoreUserReaction(string authorEntityId)
         {
-            return await _unitOfWork.CoreRepository<Reaction>().GetSingleAsync(i=>i.AuthorId ==  authorEntityId);
+            return await _unitOfWork.CoreRepository<Reaction>().GetSingleAsync(i => i.AuthorId == authorEntityId);
         }
 
         private async Task<CachedReactions?> GetCachedUserReaction(string authorEntityId)
         {
-            return await _unitOfWork.CacheRepository<CachedReactions>().GetSingleAsync(i=>i.AuthorId == authorEntityId);
+            return await _unitOfWork.CacheRepository<CachedReactions>().GetSingleAsync(i => i.AuthorId == authorEntityId);
         }
 
         private void UpdateCachedReactionList(CachedReactions cache, ReactionEvent reactionEvent, ResponseWrapper<ProfileDTO> profile)
@@ -218,22 +207,14 @@ namespace Application.Services
 
         private async Task NotifyUserAsync(ReactionEvent reactionEvent)
         {
-            await _hubContext.Clients.User(reactionEvent.AuthorEntityId)
-                .SendAsync("ReceiveReactionNotification", new
-                {
-                    ReactionId = reactionEvent.Id,
-                    ReactedOn = reactionEvent.ReactedOn.ToString(),
-                    Content = reactionEvent.Content,
-                    EntityId = reactionEvent.ReactionEntityId,
-                    User = new
-                    {
-                        reactionEvent.User.Id,
-                        reactionEvent.User.UserId,
-                        reactionEvent.User.UserNames,
-                        reactionEvent.User.ProfileImageUrls,
-                        reactionEvent.User.CreatedAt
-                    }
-                });
+            // Send notification
+            await realtimeNotifier.SendMessageAsync(reactionEvent.AuthorEntityId, new NotificationsDTO
+            {
+                EntityName = Domain.Enums.NotificationEntity.Comment,
+                SourceUsername = reactionEvent.User.UserNames,
+                SourceUserImageUrl = reactionEvent.User.ProfileImageUrls,
+                CreatedTime = DateTime.UtcNow,
+            });
         }
 
         public Task RemovReactionsFromNotificationList(ReactionEvent ReactionEventDTO)
@@ -241,6 +222,6 @@ namespace Application.Services
             throw new NotImplementedException();
         }
 
-     
+
     }
 }

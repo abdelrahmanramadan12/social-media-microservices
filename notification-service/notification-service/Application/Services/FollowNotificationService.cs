@@ -1,4 +1,5 @@
-﻿using Application.Hubs;
+﻿using Application.DTO;
+using Application.Hubs;
 using Application.Interfaces;
 using Application.Interfaces.Services;
 using Application.Interfaces.Services.Application.Services;
@@ -6,13 +7,14 @@ using Domain.CacheEntities;
 using Domain.CoreEntities;
 using Domain.Events;
 using Microsoft.AspNetCore.SignalR;
+using Web.Hubs;
 
 namespace Application.Services
 {
-    public class FollowNotificationService(IUnitOfWork unitOfWork1, IHubContext<FollowNotificationHub> hubContext , IProfileServiceClient profileServiceClient) : IFollowNotificationService
+    public class FollowNotificationService(IUnitOfWork unitOfWork1, IRealtimeNotifier _realtimeNotifier, IProfileServiceClient profileServiceClient) : IFollowNotificationService
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork1;
-        private readonly IHubContext<FollowNotificationHub> _hubContext = hubContext;
+        private readonly IRealtimeNotifier realtimeNotifier = _realtimeNotifier;
         private readonly IProfileServiceClient profileServiceClient = profileServiceClient;
 
         public async Task UpdateFollowersListNotification(FollowEvent followedDTO)
@@ -108,15 +110,14 @@ namespace Application.Services
                 await _unitOfWork.CacheRepository<CachedFollowed>().UpdateAsync(cacheUserFollower);
 
 
-            // --- SignalR Push ---
-            await _hubContext.Clients.User(followedDTO.FollowingId.ToString())
-                .SendAsync("ReceiveFollowNotification", new
-                {
-                    followedDTO.FollowingId,
-                    followerUser.UserNames,
-                    followerUser.ProfileImageUrls,
-                    Timestamp = DateTime.UtcNow
-                });
+            // Send notification
+            await realtimeNotifier.SendMessageAsync(followedDTO.FollowingId, new NotificationsDTO
+            {
+                EntityName = Domain.Enums.NotificationEntity.Follow,
+                SourceUsername = followerUser.UserNames,
+                SourceUserImageUrl = followerUser.ProfileImageUrls,
+                CreatedTime = DateTime.UtcNow,
+            });
         }
         public async Task RemoveFollowerFromNotificationList(FollowEvent followedDTO)
         {
