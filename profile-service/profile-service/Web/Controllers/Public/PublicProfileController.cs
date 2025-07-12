@@ -31,6 +31,13 @@ namespace Web.Controllers.Public
             return HandleServiceResponse(response);
         }
 
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchByUserName([FromQuery] string query,[FromQuery]int pageNumber=1)
+        {
+            var response = await _profileService.SearchByUserName(query,pageNumber);
+            return HandlePaginatedResponse(response);
+        }
+
         [HttpGet("min/id/{userId}")]
         public async Task<IActionResult> GetByUserIdMinAsync(string userId)
         {

@@ -27,6 +27,16 @@ namespace Infrastructure.Repository
                 .FirstOrDefaultAsync(p => p.UserName.ToLower() == userName.ToLower());
         }
 
+        public async Task<List<Profile>> SearchByUserNameAsync(string userName, int pageNumber, int pageSize)
+        {
+            return await _context.Profiles
+                .Where(p => EF.Functions.Like(p.UserName.ToLower(), $"%{userName.ToLower()}%"))
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
+
+
         public async Task<Profile?> GetByUserIdMinAsync(string userId)
         {
             return await _context.Profiles

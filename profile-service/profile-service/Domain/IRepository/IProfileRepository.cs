@@ -8,6 +8,7 @@ namespace Domain.IRepository
         Task<Profile?> GetByUserNameAsync(string userName);
         Task<Profile?> GetByUserIdMinAsync(string userId);
         Task<Profile?> GetByUserNameMinAsync(string userName);
+        Task<List<Profile>> SearchByUserNameAsync(string userName, int pageNumber, int pageSize);
         Task<List<Profile>> GetUsersByIdsAsync(List<string> userIds);
         Task AddAsync(Profile profile);
         Task Update(Profile profile);

@@ -15,5 +15,6 @@ namespace Service.Interfaces.ProfileServices
         Task<ResponseWrapper<Profile>> AddAsync(string userId, ProfileRequestDto profile);
         Task<ResponseWrapper<Profile>> UpdateAsync(string userId, ProfileRequestDto profile);
         Task<ResponseWrapper<bool>> DeleteAsync(string userId);
+        Task<ResponseWrapper<List<SimpleUserDto>>> SearchByUserName(string query,int pageNumber);
     }
 }

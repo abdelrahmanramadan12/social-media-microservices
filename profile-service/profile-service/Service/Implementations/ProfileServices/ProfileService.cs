@@ -477,5 +477,46 @@ namespace Service.Implementations.ProfileServices
                 
             };
         }
+
+        public async Task<ResponseWrapper<List<SimpleUserDto>>> SearchByUserName(string query ,int pageNumber )
+        {
+            var pageSize = 20; // Default page size
+            var response = new ResponseWrapper<List<SimpleUserDto>>();
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                response.Errors = new List<string> { "Search query cannot be null or empty." };
+                response.ErrorType = ErrorType.BadRequest;
+                return response;
+            }
+            try
+            {
+                var profiles = await _profileRepository.SearchByUserNameAsync(query,pageNumber,pageSize+1);
+                if (profiles == null || !profiles.Any())
+                {
+                    response.Errors = new List<string> { "No profiles found matching the search query." };
+                    response.ErrorType = ErrorType.NotFound;
+                    return response;
+                }
+                if(profiles.Count > pageSize)
+                {
+                    profiles = profiles.Take(pageSize).ToList();
+                }
+                response.Data = profiles.Select(ProfileMapper.ToSimpleUserDto).ToList();
+                response.Pagination = new PaginationMetadata();
+                if(response.Data.Count > pageSize)
+                {
+                    response.Pagination.Next = (pageNumber + 1).ToString();
+                }
+                response.Message = "Profiles retrieved successfully";
+                return response;
+            }
+            catch (Exception ex)
+            {
+                response.Errors = new List<string> { $"Failed to search profiles: {ex.Message}" };
+                response.ErrorType = ErrorType.InternalServerError;
+                return response;
+            }
+
+        }
     }
 }
