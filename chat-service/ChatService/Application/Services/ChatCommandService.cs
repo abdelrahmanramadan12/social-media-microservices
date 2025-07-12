@@ -58,7 +58,8 @@ namespace Application.Services
                     Id = conv.LastMessage.Id,
                     Content = conv.LastMessage.Text,
                     ConversationId = conv.Id,
-                    SenderId = conv.LastMessage.SenderId
+                    SenderId = conv.LastMessage.SenderId,
+                    TimeStamp = conv.LastMessage.SentAt,
                 } : null,
                 IsGroup = conv.IsGroup,
                 Participants = conv.Participants,
@@ -113,7 +114,8 @@ namespace Application.Services
                     Id = updatedConversation.LastMessage.Id,
                     Content = updatedConversation.LastMessage.Text,
                     ConversationId = updatedConversation.Id,
-                    SenderId = updatedConversation.LastMessage.SenderId
+                    SenderId = updatedConversation.LastMessage.SenderId,
+                    TimeStamp = updatedConversation.LastMessage.SentAt,
                 } : null,
                 Participants = updatedConversation.Participants
             };
@@ -218,7 +220,8 @@ namespace Application.Services
                 {
                     Url = msg.Attachment.Url,
                     Type = msg.Attachment.Type
-                } : null
+                } : null,
+                TimeStamp = msg.SentAt
             };
         }
         public async Task MarkReadAsync(string userId, string conversationId)
@@ -282,7 +285,8 @@ namespace Application.Services
                     Url = msg.Attachment.Url,
                     Type = msg.Attachment.Type
                 } : null,
-                HasAttachment = msg.Attachment != null
+                HasAttachment = msg.Attachment != null,
+                TimeStamp = msg.SentAt
             };
 
             var lstMsg = await _unitOfWork.Conversations.UpdateLastMessageAsync(msg);

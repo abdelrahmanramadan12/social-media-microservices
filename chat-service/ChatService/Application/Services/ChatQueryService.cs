@@ -55,7 +55,8 @@ namespace Application.Services
                         ConversationId = c.Id,
                         SenderId = c.LastMessage.SenderId,
                         HasAttachment = c.LastMessage.Attachment != null,
-                        Read = c.LastMessage.ReadBy.Keys.Contains(userId)
+                        Read = c.LastMessage.ReadBy.Keys.Contains(userId),
+                        TimeStamp = c.LastMessage.SentAt
                     } : null,
                     Participants = c.Participants
                 }).ToList(),
@@ -87,7 +88,8 @@ namespace Application.Services
                         Url = m.Attachment?.Url ?? string.Empty,
                         Type = m.Attachment?.Type ?? Domain.Enums.MediaType.Image
                     } : null,
-                    Read = m.ReadBy?.ContainsKey(userId) == true
+                    Read = m.ReadBy?.ContainsKey(userId) == true,
+                    TimeStamp = m.SentAt
                 }).ToList()
             };
         }

@@ -44,11 +44,6 @@ namespace Web
 
             var config = builder.Configuration;
 
-            builder.Services.AddHttpClient<IAuthServiceClient, AuthServiceClient>((sp, client) =>
-            {
-                client.BaseAddress = new Uri(config["HttpClients:Auth"]!);
-                client.Timeout = TimeSpan.FromSeconds(30);
-            });
             builder.Services.AddHttpClient<IProfileServiceClient, ProfileServiceClient>((sp, client) =>
             {
                 client.BaseAddress = new Uri(config["HttpClients:Profile"]!);
@@ -76,8 +71,8 @@ namespace Web
 
             app.UseAuthorization();
 
-
             app.MapControllers();
+            app.MapHub<ChatHub>("/chatHub");
 
             app.Run();
         }
