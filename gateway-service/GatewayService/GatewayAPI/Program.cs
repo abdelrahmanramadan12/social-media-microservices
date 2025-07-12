@@ -26,6 +26,8 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
+app.UseWebSockets();
+
 app.MapReverseProxy();
 
 app.MapControllers();

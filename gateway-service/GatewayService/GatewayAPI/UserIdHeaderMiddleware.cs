@@ -11,7 +11,7 @@ public class UserIdHeaderMiddleware
     public async Task InvokeAsync(HttpContext context)
     {
         var path = context.Request.Path.Value?.ToLower();
-        if (path != null && !path.Contains("api/public/auth"))
+        if (path != null && !path.Contains("api/public/auth") && !path.Contains("chathub") && !path.Contains("notificationhub"))
         {
             var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
             if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith("Bearer ", System.StringComparison.OrdinalIgnoreCase))
