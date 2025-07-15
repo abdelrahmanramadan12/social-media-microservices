@@ -173,3 +173,22 @@ Enables real-time push notificatons.
 * notificatons stored in MongoDB
 * Supports seen acknowledgments
   
+---
+
+## 🚀 Run Instructions
+
+To run the Thryve backend locally using Docker Compose:
+
+1. **Download the `compose.yaml` file:**
+
+    ```bash
+    curl -O https://raw.githubusercontent.com/Thryve-Project/social-media-microservices/main/compose.yaml
+    ```
+
+2. **Start all services:**
+
+    ```bash
+    docker compose up -d
+    ```
+
+This will launch all microservices and dependencies in the background. Access logs with `docker compose logs -f`.
