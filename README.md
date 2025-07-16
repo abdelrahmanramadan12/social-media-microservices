@@ -182,7 +182,7 @@ To run the Thryve backend locally using Docker Compose:
 1. **Download the `compose.yaml` file:**
 
     ```bash
-    curl -O https://raw.githubusercontent.com/Thryve-Project/social-media-microservices/main/compose.yaml
+    curl -O https://raw.githubusercontent.com/miinamaaher1/thryve-backend/main/compose.yaml
     ```
 
 2. **Start all services:**
